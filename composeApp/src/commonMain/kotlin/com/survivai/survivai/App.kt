@@ -1,49 +1,67 @@
 package com.survivai.survivai
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.Canvas as ComposeCanvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.toSize
+import com.survivai.survivai.game.createGameDrawScope
+import com.survivai.survivai.game.getCanvas
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import survivai.composeapp.generated.resources.Res
-import survivai.composeapp.generated.resources.compose_multiplatform
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+        val canvasState = remember { getCanvas() }
+
+        // UI update state
+        var frameTick by remember { mutableStateOf(0) }
+
+        // 1. Set game loop
+        var lastTime by remember { mutableStateOf(0L) }
+
+        LaunchedEffect(Unit) {
+            // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청
+            while (true) {
+                withFrameMillis { currentTime ->
+                    if (lastTime > 0) {
+                        val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산
+                        canvasState.update(deltaTime)
+                    }
+                    lastTime = currentTime
+
+                    // Force recomposition
+                    frameTick++
                 }
             }
+        }
+
+        // 2. Rendering
+        ComposeCanvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged { size ->
+                    canvasState.setViewportSize(size.toSize().width, size.toSize().height)
+                }
+                .clickable {
+                    // TODO : 화면 조작 불필요
+                    canvasState.jump()
+                }
+        ) {
+            // frameTick에 의존하여 매 프레임 리렌더링하기 위함
+            val currentFrame = frameTick
+
+            // Background
+            drawRect(Color.White)
+
+            // Draw circle
+            val drawScopeWrapper = createGameDrawScope(this)
+            canvasState.render(drawScopeWrapper)
         }
     }
 }

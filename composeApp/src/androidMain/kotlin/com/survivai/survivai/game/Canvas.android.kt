@@ -21,19 +21,15 @@ class AndroidDrawScope(private val drawScope: DrawScope) : GameDrawScope {
 class AndroidCanvas : Canvas {
 
     override fun update(deltaTime: Double) {
-        TODO("Not yet implemented")
+        // TODO : Update all player
     }
 
     override fun render(context: GameDrawScope) {
-        TODO("Not yet implemented")
+        // TODO : Update all player
     }
 
     override fun setViewportSize(width: Float, height: Float) {
-        TODO("Not yet implemented")
-    }
-
-    override fun jump() {
-        TODO("Not yet implemented")
+        // TODO : Update all player
     }
 }
 

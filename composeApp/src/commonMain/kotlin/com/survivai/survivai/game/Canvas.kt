@@ -12,7 +12,6 @@ interface Canvas {
     fun update(deltaTime: Double)
     fun render(context: GameDrawScope)
     fun setViewportSize(width: Float, height: Float)
-    fun jump() // TODO : 객체 event 로 이전
 }
 
 expect fun getCanvas(): Canvas

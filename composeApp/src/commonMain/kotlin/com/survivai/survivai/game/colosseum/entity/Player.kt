@@ -2,9 +2,8 @@ package com.survivai.survivai.game.colosseum.entity
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import com.survivai.survivai.game.Entity
-import com.survivai.survivai.game.GameDrawScope
+import com.survivai.survivai.game.colosseum.GameDrawScope
 import kotlin.math.min
 
 class Player(

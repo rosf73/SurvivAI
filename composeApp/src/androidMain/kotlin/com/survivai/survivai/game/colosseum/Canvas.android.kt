@@ -1,6 +1,7 @@
-package com.survivai.survivai.game
+package com.survivai.survivai.game.colosseum
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 
@@ -14,6 +15,33 @@ class AndroidDrawScope(private val drawScope: DrawScope) : GameDrawScope {
             color = color,
             center = center,
             radius = radius,
+        )
+    }
+
+    override fun drawArc(
+        color: Color,
+        topLeft: Offset,
+        width: Float,
+        height: Float,
+        startAngle: Float,
+        sweepAngle: Float,
+        useCenter: Boolean
+    ) {
+        drawScope.drawArc(
+            color = color,
+            startAngle = startAngle,
+            sweepAngle = sweepAngle,
+            useCenter = useCenter,
+            topLeft = topLeft,
+            size = Size(width, height),
+        )
+    }
+
+    override fun drawRect(color: Color, topLeft: Offset, width: Float, height: Float) {
+        drawScope.drawRect(
+            color = color,
+            topLeft = topLeft,
+            size = Size(width, height),
         )
     }
 }

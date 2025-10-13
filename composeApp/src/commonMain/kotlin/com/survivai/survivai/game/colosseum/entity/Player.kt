@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import com.survivai.survivai.game.Entity
+import com.survivai.survivai.game.GameDrawScope
 import kotlin.math.min
 
 class Player(
@@ -62,7 +63,7 @@ class Player(
         }
     }
 
-    override fun render(context: CanvasDrawScope) {
+    override fun render(context: GameDrawScope) {
         context.drawCircle(
             color = color,
             center = Offset(x, y),

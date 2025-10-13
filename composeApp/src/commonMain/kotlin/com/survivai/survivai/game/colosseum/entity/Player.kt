@@ -31,12 +31,25 @@ class Player(
     private val floorY: Float
         get() = viewportHeight - radius
 
+    // Behavior
+    private var facingRight = true // 바라보는 방향
+    private var isAttacking = false
+    private var attackTimer = 0f
+
     override fun update(deltaTime: Double, viewportWidth: Float, viewportHeight: Float) {
         this.viewportWidth = viewportWidth
         this.viewportHeight = viewportHeight
 
         // frame drop 에 의한 불안정성 예방 기준 시간 (max 30ms)
         val clampedDeltaTime = min(deltaTime, 0.03).toFloat()
+
+        // 공격 타이머 처리
+        if (isAttacking) {
+            attackTimer -= clampedDeltaTime
+            if (attackTimer <= 0f) {
+                isAttacking = false // 0.3초 경과, 공격 종료
+            }
+        }
 
         // --- 수직 이동 ---
         velocityY += gravity * clampedDeltaTime
@@ -68,6 +81,29 @@ class Player(
             center = Offset(x, y),
             radius = radius
         )
+
+        // Attack effect
+        if (isAttacking) {
+            // arc size
+            val attackRadius = radius
+            // arc offset
+            val offsetDistance = radius + 5f
+            val top = y
+            val left = x + if (facingRight) offsetDistance else -offsetDistance
+            // arc angle
+            val startAngle = if (facingRight) -90f else 90f
+            val sweepAngle = 180f
+
+            context.drawArc(
+                color = Color.Black,
+                topLeft = Offset(left - attackRadius, top - attackRadius),
+                width = attackRadius * 2f,
+                height = attackRadius * 2f,
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+            )
+        }
     }
 
     override fun setViewportHeight(height: Float) {
@@ -75,10 +111,18 @@ class Player(
     }
 
     fun move(direction: MoveDirection) {
-        velocityX = when (direction) {
-            MoveDirection.LEFT -> -moveSpeed
-            MoveDirection.RIGHT -> moveSpeed
-            MoveDirection.STOP -> 0f
+        when (direction) {
+            MoveDirection.LEFT -> {
+                velocityX = -moveSpeed
+                facingRight = false
+            }
+            MoveDirection.RIGHT -> {
+                velocityX = moveSpeed
+                facingRight = true
+            }
+            MoveDirection.STOP -> {
+                velocityX = 0f
+            }
         }
     }
 
@@ -86,6 +130,17 @@ class Player(
         if (y >= floorY - 1f) {
             velocityY = jumpPower
         }
+    }
+
+    fun attack() {
+        if (!isAttacking) {
+            isAttacking = true
+            attackTimer = ATTACK_DURATION
+        }
+    }
+
+    companion object {
+        private const val ATTACK_DURATION = 0.3f
     }
 }
 

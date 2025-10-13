@@ -3,6 +3,7 @@ package com.survivai.survivai.game
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import com.survivai.survivai.game.colosseum.entity.Player
 import kotlin.math.min
 
 class WebDrawScope(private val drawScope: DrawScope) : GameDrawScope {
@@ -21,16 +22,44 @@ class WebDrawScope(private val drawScope: DrawScope) : GameDrawScope {
 
 class WebCanvas : Canvas {
 
+    private var viewportWidth = 0f
+    private var viewportHeight = 0f
+
+    // TODO : 임시 엔티티 리스트
+    private val players = listOf(
+        Player(
+            initialX = 30f,
+            initialY = 300f,
+        ),
+        Player(
+            initialX = 100f,
+            initialY = 300f,
+            color = Color.Red,
+        ),
+        Player(
+            initialX = 350f,
+            initialY = 300f,
+            color = Color.Green,
+        ),
+    )
+
     override fun update(deltaTime: Double) {
-        // TODO : Update all player
+        if (viewportWidth > 0 && viewportHeight > 0) {
+            players.forEach { it.update(deltaTime, viewportWidth, viewportHeight) }
+        }
     }
 
     override fun render(context: GameDrawScope) {
-        // TODO : Update all player
+        // 맵
+        // context.drawRect(Color.Gray, Offset(0f, floorY), size = Size(viewportWidth, viewportHeight - floorY))
+
+        // 엔티티
+        players.forEach { it.render(context) }
     }
 
     override fun setViewportSize(width: Float, height: Float) {
-        // TODO : Update all player
+        viewportWidth = width
+        viewportHeight = height
     }
 }
 

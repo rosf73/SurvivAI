@@ -48,10 +48,6 @@ fun App() {
                 .onSizeChanged { size ->
                     canvasState.setViewportSize(size.toSize().width, size.toSize().height)
                 }
-                .clickable {
-                    // TODO : 화면 조작 불필요
-                    canvasState.jump()
-                }
         ) {
             // frameTick에 의존하여 매 프레임 리렌더링하기 위함
             val currentFrame = frameTick

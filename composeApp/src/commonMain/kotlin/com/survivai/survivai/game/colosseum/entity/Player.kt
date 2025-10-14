@@ -22,7 +22,6 @@ class Player(
 
     var velocityY = 0f // 수직 속도
     private val gravity = 980f // 중력 가속도 (픽셀/초^2)
-    private val jumpPower = -500f
 
     // Viewport
     private var viewportWidth = 0f
@@ -183,7 +182,7 @@ class Player(
         setAction()
 
         if (y >= floorY - 1f) {
-            velocityY = jumpPower
+            velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
         }
     }
 

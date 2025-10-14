@@ -10,7 +10,7 @@ import kotlin.random.Random
 class Player(
     initialX: Float,
     initialY: Float,
-    val radius: Float = 20f,
+    val radius: Float = 30f,
     val color: Color = Color.Blue,
 ) : Entity {
 
@@ -38,6 +38,9 @@ class Player(
     // Random
     private var idleTime = 1f // 1초 후 시작
     private var inAction = false
+
+    // TODO : HP
+    private var hp = START_HP
 
     override fun update(deltaTime: Double, viewportWidth: Float, viewportHeight: Float) {
         this.viewportWidth = viewportWidth
@@ -198,6 +201,7 @@ class Player(
         private const val ATTACK_DURATION = 0.3f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
+        private const val START_HP = 3
     }
 }
 

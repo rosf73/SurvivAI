@@ -55,16 +55,16 @@ class WebCanvas : Canvas {
     // TODO : 임시 엔티티 리스트
     private val players = listOf(
         Player(
-            initialX = 30f,
+            initialX = 300f,
             initialY = 300f,
         ),
         Player(
-            initialX = 100f,
+            initialX = 600f,
             initialY = 300f,
             color = Color.Red,
         ),
         Player(
-            initialX = 350f,
+            initialX = 950f,
             initialY = 300f,
             color = Color.Green,
         ),

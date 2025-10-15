@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 
 interface GameDrawScope {
     fun drawCircle(color: Color, center: Offset, radius: Float)
@@ -16,7 +17,7 @@ interface GameDrawScope {
 
 interface Canvas {
     fun update(deltaTime: Double)
-    fun render(context: GameDrawScope, textMeasurer: TextMeasurer)
+    fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily)
     fun setViewportSize(width: Float, height: Float)
 }
 

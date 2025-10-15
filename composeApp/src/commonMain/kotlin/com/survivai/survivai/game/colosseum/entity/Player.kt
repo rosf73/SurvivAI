@@ -149,7 +149,7 @@ class Player(
         }
     }
 
-    override fun render(context: GameDrawScope, textMeasurer: TextMeasurer) {
+    override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         context.drawCircle(
             color = color,
             center = Offset(x, y),
@@ -182,7 +182,7 @@ class Player(
         // Speech effect
         if (isSpeeching) {
             // text style
-            val textStyle = TextStyle(fontSize = 14.sp, color = Color.Black, fontFamily = FontFamily.SansSerif)
+            val textStyle = TextStyle(fontSize = 14.sp, color = Color.Black, fontFamily = fontFamily)
             // text size
             val textSize = cachedTextSize
                 ?: textMeasurer.measure(
@@ -190,7 +190,7 @@ class Player(
                     style = textStyle,
                 ).size.toSize().also { cachedTextSize = it }
             // speech offset
-            val offsetDistance = radius + 15f
+            val offsetDistance = radius + 20f // TODO : magic number
             val centerY = y - offsetDistance
             val centerX = x
 

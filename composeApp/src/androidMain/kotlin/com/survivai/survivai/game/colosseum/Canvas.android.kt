@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontFamily
 
 class AndroidDrawScope(private val drawScope: DrawScope) : GameDrawScope {
     override fun drawCircle(
@@ -73,7 +74,7 @@ class AndroidCanvas : Canvas {
         // TODO : Update all player
     }
 
-    override fun render(context: GameDrawScope, textMeasurer: TextMeasurer) {
+    override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         // TODO : Update all player
     }
 

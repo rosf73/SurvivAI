@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.game.colosseum.entity.Player
 
 class WebDrawScope(private val drawScope: DrawScope) : GameDrawScope {
@@ -97,12 +98,12 @@ class WebCanvas : Canvas {
         }
     }
 
-    override fun render(context: GameDrawScope, textMeasurer: TextMeasurer) {
+    override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         // 맵
         // context.drawRect(Color.Gray, Offset(0f, floorY), size = Size(viewportWidth, viewportHeight - floorY))
 
         // 엔티티
-        players.forEach { it.render(context, textMeasurer) }
+        players.forEach { it.render(context, textMeasurer, fontFamily) }
     }
 
     override fun setViewportSize(width: Float, height: Float) {

@@ -7,17 +7,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.getCanvas
+import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import survivai.composeapp.generated.resources.NotoSansKR
+import survivai.composeapp.generated.resources.Res
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
         val textMeasurer = rememberTextMeasurer()
+        val fontFamily = FontFamily(Font(Res.font.NotoSansKR))
         val canvasState = remember { getCanvas() }
 
         // UI update state
@@ -58,7 +63,7 @@ fun App() {
 
             // Draw circle
             val drawScopeWrapper = createGameDrawScope(this)
-            canvasState.render(drawScopeWrapper, textMeasurer)
+            canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
         }
     }
 }

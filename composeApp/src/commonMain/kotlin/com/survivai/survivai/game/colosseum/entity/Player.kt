@@ -52,6 +52,24 @@ class Player(
     // TODO : HP
     private var hp = START_HP
 
+    /**
+     * 랜덤 확률을 기반으로 다음 액션을 결정
+     */
+    private fun randomAction() {
+        // 95 : 5 비율
+        if (Random.nextFloat() < 0.95) {
+            // 95% 확률로 BEHAVIOR
+            when (Random.nextInt(3)) {
+                0 -> move(MoveDirection.entries.random())
+                1 -> jump()
+                2 -> attack()
+            }
+        } else {
+            // 5% 확률로 IDLE
+            speech()
+        }
+    }
+
     override fun update(deltaTime: Double, viewportWidth: Float, viewportHeight: Float) {
         this.viewportWidth = viewportWidth
         this.viewportHeight = viewportHeight
@@ -139,12 +157,7 @@ class Player(
             if (idleTime > 0f) {
                 idleTime -= clampedDeltaTime
             } else {
-                when (Random.nextInt(4)) {
-                    0 -> move(MoveDirection.entries.random())
-                    1 -> jump()
-                    2 -> attack()
-                    3 -> speech()
-                }
+                randomAction()
             }
         }
     }

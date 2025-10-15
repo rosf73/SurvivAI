@@ -24,12 +24,12 @@ class WebCanvas : Canvas {
     // Game State
     var circleX = 50f
     var circleY = 50f
-    val radius = 20f
+    var radius = 20f
 
     // Physics Variables
     var velocityY = 0f
     val gravity = 980f // Gravity acceleration (pixels/second^2)
-    val jumpPower = -500f
+    var jumpPower = -500f
 
     // Viewport bounds
     private var viewportHeight = 600f
@@ -66,12 +66,28 @@ class WebCanvas : Canvas {
     }
 
     override fun setViewportSize(width: Float, height: Float) {
-        // Update canvas height for floor calculation
+        // Previous floor and grounded state before resize
+        val prevFloorY = floorY
+
+        // Remember relative height ratio (0.0 = top, 1.0 = floor)
+        val prevRange = if (prevFloorY > 0f) prevFloorY else 1f
+        val heightRatio = (circleY / prevRange).coerceIn(0f, 1f)
+
+        // Apply new viewport size (affects floorY)
         viewportHeight = height
-        // Ensure the ball doesn't fall through if the height changes
-        if (circleY > floorY) {
+
+        // Resize the circle proportionally to the viewport height
+        // 3.3% of height with reasonable clamps to avoid extremes
+        val targetRadius = (width * 0.033f).coerceIn(8f, 60f)
+        radius = targetRadius
+
+        // Position the circle based on preserved ratio under the new size
+        circleY = floorY * heightRatio
+
+         if (circleY > floorY) {
+            // Clamp if numerical drift pushes below the floor
             circleY = floorY
-            velocityY = 0f
+            if (velocityY > 0f) velocityY = 0f
         }
     }
 

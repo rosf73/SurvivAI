@@ -4,6 +4,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 
 class IOSDrawScope(private val drawScope: DrawScope) : GameDrawScope {
     override fun drawCircle(
@@ -44,6 +47,24 @@ class IOSDrawScope(private val drawScope: DrawScope) : GameDrawScope {
             size = Size(width, height),
         )
     }
+
+    override fun drawText(
+        textMeasurer: TextMeasurer,
+        text: String,
+        topLeft: Offset,
+        size: Size,
+        style: TextStyle,
+        softWrap: Boolean,
+    ) {
+        drawScope.drawText(
+            textMeasurer = textMeasurer,
+            text = text,
+            topLeft = topLeft,
+            style = style,
+            softWrap = softWrap,
+            size = size,
+        )
+    }
 }
 
 class IOSCanvas : Canvas {
@@ -52,7 +73,7 @@ class IOSCanvas : Canvas {
         // TODO : Update all player
     }
 
-    override fun render(context: GameDrawScope) {
+    override fun render(context: GameDrawScope, textMeasurer: TextMeasurer) {
         // TODO : Update all player
     }
 

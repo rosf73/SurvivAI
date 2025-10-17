@@ -2,6 +2,11 @@ package com.survivai.survivai
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.survivai.survivai.game.colosseum.CombatLogStore
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -40,11 +45,19 @@ private fun ResponsiveRoot() {
             .align(if (isLandscape) Alignment.CenterEnd else Alignment.BottomCenter)
             .fillMaxWidth(if(isLandscape) 0.4f else 1.0f)
             .fillMaxHeight(if(isLandscape) 1.0f else 0.4f)) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
                 Text(
-                    "하이루",
-                    modifier = Modifier.fillMaxWidth().padding(all = 20.dp),
+                    text = "LOG",
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
                 )
+                val entries = CombatLogStore.entries
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(entries) { line ->
+                        Text(text = line, fontSize = 12.sp, modifier = Modifier.padding(vertical = 2.dp))
+                    }
+                }
             }
         }
     }

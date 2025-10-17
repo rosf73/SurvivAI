@@ -45,12 +45,46 @@ class Player(
     private var speechIndex = 0
     private var cachedTextSize: Size? = null
 
+    // Collision state
+    private var onPlatform = false
+
     // Random
     private var idleTime = 1f // 1초 후 시작
     private var inAction = false
 
     // TODO : HP
     private var hp = START_HP
+
+    // Event flags
+    private var justJumped = false
+
+    // Public read-only views
+    val isAttackingNow: Boolean get() = isAttacking
+    val isFacingRight: Boolean get() = facingRight
+    val currentHp: Int get() = hp
+
+    // Consume-and-clear jump flag (for external systems to react/log)
+    fun pollJustJumped(): Boolean {
+        val j = justJumped
+        justJumped = false
+        return j
+    }
+
+    // Apply damage/knockback from an attacker positioned at attackerX
+    fun receiveHit(attackerX: Float, power: Float = 600f) {
+        // Knockback direction: away from attacker
+        val dir = if (attackerX < x) 1f else -1f
+        velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
+        // Small pop-up
+        velocityY = -200f
+        onPlatform = false
+        // Take damage
+        hp = (hp - 1).coerceAtLeast(0)
+        // Interrupt current action
+        isAttacking = false
+        attackTimer = 0f
+        inAction = true
+    }
 
     /**
      * 랜덤 확률을 기반으로 다음 액션을 결정
@@ -247,12 +281,14 @@ class Player(
     }
 
     fun jump() {
-        if (inAction || y < floorY - 1f) return
+        if (inAction) return
+        // 점프는 바닥이나 플랫폼 위에서만 가능
+        val canJump = (y >= floorY - 1f) || onPlatform
+        if (!canJump) return
         setAction()
 
-        if (y >= floorY - 1f) {
-            velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
-        }
+        velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
+        justJumped = true
     }
 
     fun attack() {
@@ -273,6 +309,82 @@ class Player(
             isSpeeching = true
             selectedSpeechList = speechDocs.random()
             speechTimer = SPEECH_DURATION
+        }
+    }
+
+    fun updateWithPlatforms(
+        deltaTime: Double,
+        viewportWidth: Float,
+        viewportHeight: Float,
+        platforms: List<com.survivai.survivai.game.colosseum.PlatformRect>,
+    ) {
+        // run base update but add platform collision manually (duplicated minimal code for clarity)
+        this.viewportWidth = viewportWidth
+        this.viewportHeight = viewportHeight
+
+        val clampedDeltaTime = min(deltaTime, 0.03).toFloat()
+
+        // timers
+        if (isAttacking) {
+            attackTimer -= clampedDeltaTime
+            if (attackTimer <= 0f) isAttacking = false
+        }
+        if (isSpeeching) {
+            speechTimer -= clampedDeltaTime
+            if (speechTimer <= 0f) {
+                cachedTextSize = null
+                if (speechIndex + 1 >= selectedSpeechList.size) {
+                    isSpeeching = false
+                    speechIndex = 0
+                } else {
+                    speechIndex++
+                    speechTimer = SPEECH_DURATION
+                }
+            }
+        }
+
+        // physics
+        val prevY = y
+        velocityY += gravity * clampedDeltaTime
+        y += velocityY * clampedDeltaTime
+
+        // platform landing from above (includes floor)
+        onPlatform = false
+        if (velocityY >= 0f || y >= prevY) {
+            platforms.forEach { p ->
+                // Treat as collision if the circle horizontally overlaps the platform span
+                val overlapsX = (x + radius) > p.left && (x - radius) < p.right
+                val wasAbove = prevY + radius <= p.top
+                val nowBelowTop = y + radius >= p.top
+                if (!onPlatform && overlapsX && wasAbove && nowBelowTop) {
+                    y = p.top - radius
+                    velocityY = 0f
+                    onPlatform = true
+                }
+            }
+        }
+
+        // horizontal w/ friction when grounded (on platform)
+        if (velocityX != 0f && onPlatform) {
+            velocityX *= FRICTION
+            if (velocityX in -1f..1f) velocityX = 0f
+        }
+        x += velocityX * clampedDeltaTime
+        if (x - radius < 0) { x = radius; velocityX = 0f } else if (x + radius > viewportWidth) { x = viewportWidth - radius; velocityX = 0f }
+
+        val wasInAction = inAction
+        val onGround = onPlatform
+        if (inAction) {
+            val attackFinished = !isAttacking
+            val moveFinished = velocityX == 0f
+            val jumpFinished = onGround && velocityY == 0f
+            val speechFinished = !isSpeeching
+            if (attackFinished && moveFinished && jumpFinished && speechFinished) inAction = false
+        }
+
+        if (!inAction) {
+            if (wasInAction) idleTime = kotlin.random.Random.nextFloat()
+            if (idleTime > 0f) idleTime -= clampedDeltaTime else randomAction()
         }
     }
 

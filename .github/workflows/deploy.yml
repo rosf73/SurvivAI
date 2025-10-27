@@ -16,11 +16,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ➡️ STEP 1: Java (JDK) 환경 설정
+      # Kotlin/JS 빌드에 필요한 JDK 버전을 설정합니다.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # ➡️ STEP 2: gradlew 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # ➡️ STEP 3: 웹 빌드 태스크 실행 (Compose Web 프로젝트 기준)
+      # 이 태스크가 composeApp.js 및 기타 정적 파일을 생성합니다.
+      - name: Build Web Assets
+        run: ./gradlew :composeApp:jsBrowserDistribution
+
+      # ➡️ STEP 4: Pages 아티팩트 업로드
+      # 빌드 결과물이 생성되는 폴더 경로로 변경합니다. (일반적인 KMP 웹 빌드 결과 폴더)
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # index.html 이 있는 폴더
-          path: 'composeApp/src/webMain/resources'
+          path: 'composeApp/build/dist/js/productionExecutable'
 
       - name: Deploy to GitHub Pages
         id: deployment

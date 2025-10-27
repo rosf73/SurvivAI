@@ -5,7 +5,7 @@ import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.game.colosseum.GameDrawScope
 
 interface Entity {
-    fun update(deltaTime: Double, viewportWidth: Float, viewportHeight: Float)
+    fun update(deltaTime: Double, viewportWidth: Float, viewportHeight: Float, world: World)
     fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily)
     fun setViewportHeight(height: Float)
 }

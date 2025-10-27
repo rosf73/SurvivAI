@@ -119,10 +119,11 @@ class WebCanvas : Canvas {
             // Call Entity::update
             alivePlayers.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
 
-            // Log jump events
+            // (중계 로그) 대사
             alivePlayers.forEachIndexed { i, p ->
-                if (p.pollJustJumped()) {
-                    log("P$i jumps")
+                val text = p.pollJustSpeeched()
+                if (text.isNotBlank()) {
+                    log("P$i : \"$text\"")
                 }
             }
 

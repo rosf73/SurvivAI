@@ -67,18 +67,11 @@ class Player(
     val isAlive: Boolean get() = _isAlive
 
     // Event flags
-    private var justJumped = false
+    private var justSpeeched = ""
 
     // Public read-only views
     val isAttackingNow: Boolean get() = isAttacking
     val isFacingRight: Boolean get() = facingRight
-
-    // Consume-and-clear jump flag (for external systems to react/log)
-    fun pollJustJumped(): Boolean {
-        val j = justJumped
-        justJumped = false
-        return j
-    }
 
     /**
      * 랜덤 확률을 기반으로 다음 액션을 결정
@@ -117,13 +110,15 @@ class Player(
             }
         }
 
-        // timers
+        // 공격 타이머 처리
         if (isAttacking) {
             attackTimer -= clampedDeltaTime
             if (attackTimer <= 0f) {
                 isAttacking = false
             }
         }
+
+        // 대사 타이머 처리
         if (isSpeeching) {
             speechTimer -= clampedDeltaTime
             if (speechTimer <= 0f) {
@@ -133,6 +128,7 @@ class Player(
                     speechIndex = 0
                 } else {
                     speechIndex++
+                    justSpeeched = selectedSpeechList[speechIndex]
                     speechTimer = SPEECH_DURATION
                 }
             }
@@ -283,7 +279,6 @@ class Player(
         setAction()
 
         velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
-        justJumped = true
     }
 
     fun attack() {
@@ -303,8 +298,15 @@ class Player(
         if (!isSpeeching) {
             isSpeeching = true
             selectedSpeechList = speechDocs.random()
+            justSpeeched = selectedSpeechList[speechIndex]
             speechTimer = SPEECH_DURATION
         }
+    }
+
+    fun pollJustSpeeched(): String {
+        val j = justSpeeched
+        justSpeeched = ""
+        return j
     }
 
     // damaged

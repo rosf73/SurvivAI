@@ -9,7 +9,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
+import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.GameDrawScope
+import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -104,27 +106,26 @@ class Player(
         }
     }
 
-    override fun update(deltaTime: Double, viewportWidth: Float, viewportHeight: Float) {
+    override fun update(
+        deltaTime: Double,
+        viewportWidth: Float,
+        viewportHeight: Float,
+        world: World,
+    ) {
         this.viewportWidth = viewportWidth
         this.viewportHeight = viewportHeight
 
-        // frame drop 에 의한 불안정성 예방 기준 시간 (max 30ms)
         val clampedDeltaTime = min(deltaTime, 0.03).toFloat()
 
-        // 공격 타이머 처리
+        // timers
         if (isAttacking) {
             attackTimer -= clampedDeltaTime
-            if (attackTimer <= 0f) {
-                isAttacking = false // 0.3초 경과, 공격 종료
-            }
+            if (attackTimer <= 0f) isAttacking = false
         }
-
-        // 대사 타이머 처리
         if (isSpeeching) {
             speechTimer -= clampedDeltaTime
-
             if (speechTimer <= 0f) {
-                cachedTextSize = null // text measure 초기화
+                cachedTextSize = null
                 if (speechIndex + 1 >= selectedSpeechList.size) {
                     isSpeeching = false
                     speechIndex = 0
@@ -135,64 +136,49 @@ class Player(
             }
         }
 
-        // --- 수직 이동 ---
+        // 수직 물리 작용
+        val prevY = y
         velocityY += gravity * clampedDeltaTime
         y += velocityY * clampedDeltaTime
-        // 바닥 충돌
-        val onGround = y >= floorY - 1f
-        if (y > floorY) {
-            y = floorY // Stick to the floor
-            velocityY = 0f // Reset vertical speed
+
+        // 플랫폼 landing
+        onPlatform = false
+        if (velocityY >= 0f || y >= prevY) {
+            (world as? ColosseumWorld)?.getPlatforms()?.forEach { p ->
+                // Treat as collision if the circle horizontally overlaps the platform span
+                val overlapsX = (x + radius) > p.left && (x - radius) < p.right
+                val wasAbove = prevY + radius <= p.top
+                val nowBelowTop = y + radius >= p.top
+                if (!onPlatform && overlapsX && wasAbove && nowBelowTop) {
+                    y = p.top - radius
+                    velocityY = 0f
+                    onPlatform = true
+                }
+            }
         }
 
-        // --- 수평 이동 ---
-        if (velocityX != 0f && y >= floorY - 1f) {
-            velocityX *= FRICTION // 공중에 떠 있을 때는 마찰력 적용 안 함
-            if (velocityX in -1f..1f) {
-                velocityX = 0f
-            }
+        // 수평 이동 마찰계수 적용
+        if (velocityX != 0f && onPlatform) {
+            velocityX *= FRICTION
+            if (velocityX in -1f..1f) velocityX = 0f
         }
         x += velocityX * clampedDeltaTime
-        // 벽 충돌
-        if (x - radius < 0) {
-            x = radius
-            velocityX = 0f
-        } else if (x + radius > viewportWidth) {
-            x = viewportWidth - radius
-            velocityX = 0f
-        }
+        if (x - radius < 0) { x = radius; velocityX = 0f } else if (x + radius > viewportWidth) { x = viewportWidth - radius; velocityX = 0f }
 
+        // 액션
         val wasInAction = inAction
+        val onGround = onPlatform
         if (inAction) {
-            // 공격 종료: isAttacking 플래그에 의존
             val attackFinished = !isAttacking
-
-            // 이동 종료: 속도가 0이 되었을 때
             val moveFinished = velocityX == 0f
-
-            // 점프 종료: 지면에 닿았고 수직 속도가 0일 때 (다시 점프 가능 상태)
             val jumpFinished = onGround && velocityY == 0f
-
             val speechFinished = !isSpeeching
-
-            // 모든 동작이 완료되었을 경우 inAction을 false로 설정
-            if (attackFinished && moveFinished && jumpFinished && speechFinished) {
-                inAction = false
-            }
+            if (attackFinished && moveFinished && jumpFinished && speechFinished) inAction = false
         }
 
-        // 행위 이벤트
         if (!inAction) {
-            if (wasInAction) {
-                // 직전 동작이 끝났을 때만 idleTime 재설정
-                idleTime = Random.nextFloat()
-            }
-
-            if (idleTime > 0f) {
-                idleTime -= clampedDeltaTime
-            } else {
-                randomAction()
-            }
+            if (wasInAction) idleTime = Random.nextFloat()
+            if (idleTime > 0f) idleTime -= clampedDeltaTime else randomAction()
         }
     }
 
@@ -309,82 +295,6 @@ class Player(
             isSpeeching = true
             selectedSpeechList = speechDocs.random()
             speechTimer = SPEECH_DURATION
-        }
-    }
-
-    fun updateWithPlatforms(
-        deltaTime: Double,
-        viewportWidth: Float,
-        viewportHeight: Float,
-        platforms: List<com.survivai.survivai.game.colosseum.PlatformRect>,
-    ) {
-        // run base update but add platform collision manually (duplicated minimal code for clarity)
-        this.viewportWidth = viewportWidth
-        this.viewportHeight = viewportHeight
-
-        val clampedDeltaTime = min(deltaTime, 0.03).toFloat()
-
-        // timers
-        if (isAttacking) {
-            attackTimer -= clampedDeltaTime
-            if (attackTimer <= 0f) isAttacking = false
-        }
-        if (isSpeeching) {
-            speechTimer -= clampedDeltaTime
-            if (speechTimer <= 0f) {
-                cachedTextSize = null
-                if (speechIndex + 1 >= selectedSpeechList.size) {
-                    isSpeeching = false
-                    speechIndex = 0
-                } else {
-                    speechIndex++
-                    speechTimer = SPEECH_DURATION
-                }
-            }
-        }
-
-        // physics
-        val prevY = y
-        velocityY += gravity * clampedDeltaTime
-        y += velocityY * clampedDeltaTime
-
-        // platform landing from above (includes floor)
-        onPlatform = false
-        if (velocityY >= 0f || y >= prevY) {
-            platforms.forEach { p ->
-                // Treat as collision if the circle horizontally overlaps the platform span
-                val overlapsX = (x + radius) > p.left && (x - radius) < p.right
-                val wasAbove = prevY + radius <= p.top
-                val nowBelowTop = y + radius >= p.top
-                if (!onPlatform && overlapsX && wasAbove && nowBelowTop) {
-                    y = p.top - radius
-                    velocityY = 0f
-                    onPlatform = true
-                }
-            }
-        }
-
-        // horizontal w/ friction when grounded (on platform)
-        if (velocityX != 0f && onPlatform) {
-            velocityX *= FRICTION
-            if (velocityX in -1f..1f) velocityX = 0f
-        }
-        x += velocityX * clampedDeltaTime
-        if (x - radius < 0) { x = radius; velocityX = 0f } else if (x + radius > viewportWidth) { x = viewportWidth - radius; velocityX = 0f }
-
-        val wasInAction = inAction
-        val onGround = onPlatform
-        if (inAction) {
-            val attackFinished = !isAttacking
-            val moveFinished = velocityX == 0f
-            val jumpFinished = onGround && velocityY == 0f
-            val speechFinished = !isSpeeching
-            if (attackFinished && moveFinished && jumpFinished && speechFinished) inAction = false
-        }
-
-        if (!inAction) {
-            if (wasInAction) idleTime = kotlin.random.Random.nextFloat()
-            if (idleTime > 0f) idleTime -= clampedDeltaTime else randomAction()
         }
     }
 

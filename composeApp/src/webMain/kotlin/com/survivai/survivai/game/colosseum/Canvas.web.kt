@@ -8,9 +8,8 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.sp
 import com.survivai.survivai.game.colosseum.entity.Player
-import com.survivai.survivai.game.colosseum.CombatLogStore
+import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -79,25 +78,12 @@ class WebCanvas : Canvas {
     private var viewportHeight = 0f
     private var initialized = false
 
-    private val platforms = mutableListOf<PlatformRect>()
+    // colosseum 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
+    private val world = ColosseumWorld()
 
     // Simple combat/event log -> delegate to shared store
     private fun log(message: String) {
         CombatLogStore.add(message)
-    }
-
-    private fun rebuildPlatforms() {
-        platforms.clear()
-        if (viewportWidth <= 0f || viewportHeight <= 0f) return
-        val floorH = 30f
-        // floor
-        platforms.add(PlatformRect(0f, viewportHeight - floorH, viewportWidth, floorH))
-        // middle
-        platforms.add(PlatformRect(viewportWidth * 0.25f, viewportHeight * 0.65f, viewportWidth * 0.5f))
-        // left upper-mid
-        platforms.add(PlatformRect(viewportWidth * 0.02f, viewportHeight * 0.45f, viewportWidth * 0.28f))
-        // right top
-        platforms.add(PlatformRect(viewportWidth * 0.55f, viewportHeight * 0.30f, viewportWidth * 0.4f))
     }
 
     // TODO : 임시 엔티티 리스트
@@ -121,12 +107,13 @@ class WebCanvas : Canvas {
     override fun update(deltaTime: Double) {
         if (viewportWidth > 0 && viewportHeight > 0) {
             if (!initialized) {
-                rebuildPlatforms()
+                world.buildMap(viewportWidth, viewportHeight)
                 initializePlayerPositions()
                 initialized = true
             }
-            // Physics and self-updates
-            players.forEach { it.updateWithPlatforms(deltaTime, viewportWidth, viewportHeight, platforms) }
+
+            // Call Entity::update
+            players.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
 
             // Log jump events
             players.forEachIndexed { i, p ->
@@ -183,7 +170,7 @@ class WebCanvas : Canvas {
 
     override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         // 맵 (플랫폼 렌더링)
-        platforms.forEach { it.render(context) }
+        world.render(context)
 
         // 엔티티
         players.forEach { it.render(context, textMeasurer, fontFamily) }
@@ -193,7 +180,7 @@ class WebCanvas : Canvas {
     override fun setViewportSize(width: Float, height: Float) {
         viewportWidth = width
         viewportHeight = height
-        rebuildPlatforms()
+        world.buildMap(viewportWidth, viewportHeight)
     }
 
     private fun initializePlayerPositions() {
@@ -204,7 +191,7 @@ class WebCanvas : Canvas {
             val radius = p.radius
             val minX = radius + margin
             val maxX = (viewportWidth - radius - margin).coerceAtLeast(minX)
-            val floorTop = platforms.firstOrNull()?.top ?: viewportHeight
+            val floorTop = world.getFloor() ?: viewportHeight
             val y = (floorTop - radius).coerceAtLeast(radius)
 
             var tries = 0

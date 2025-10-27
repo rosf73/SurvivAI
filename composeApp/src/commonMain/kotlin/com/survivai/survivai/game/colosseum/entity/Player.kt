@@ -62,6 +62,10 @@ class Player(
     private var isInvincible = false
     private var invincibleTimer = 0f
 
+    // 생존 여부
+    private var _isAlive = true
+    val isAlive: Boolean get() = _isAlive
+
     // Event flags
     private var justJumped = false
 
@@ -318,6 +322,11 @@ class Player(
 
         // 데미지
         hp = (hp - 1).coerceAtLeast(0)
+
+        // 생존 체크
+        if (hp <= 0) {
+            _isAlive = false
+        }
 
         // 무적 on
         isInvincible = true

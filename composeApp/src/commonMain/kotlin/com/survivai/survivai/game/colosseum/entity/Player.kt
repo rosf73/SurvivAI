@@ -163,7 +163,14 @@ class Player(
             if (velocityX in -1f..1f) velocityX = 0f
         }
         x += velocityX * clampedDeltaTime
-        if (x - radius < 0) { x = radius; velocityX = 0f } else if (x + radius > viewportWidth) { x = viewportWidth - radius; velocityX = 0f }
+        // 벽 충돌
+        if (x - radius < 0) {
+            x = radius
+            velocityX = 0f
+        } else if (x + radius > viewportWidth) {
+            x = viewportWidth - radius
+            velocityX = 0f
+        }
 
         // 액션
         val wasInAction = inAction

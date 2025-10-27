@@ -76,32 +76,6 @@ class Player(
         return j
     }
 
-    // damaged
-    fun receiveDamage(attackerX: Float, power: Float = 600f) {
-        // Ignore damage if invincible
-        if (isInvincible) return
-
-        // Knockback
-        val dir = if (attackerX < x) 1f else -1f
-        velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
-
-        // Small pop-up
-        velocityY = -200f
-        onPlatform = false
-
-        // Take damage
-        hp = (hp - 1).coerceAtLeast(0)
-
-        // Start invincibility period
-        isInvincible = true
-        invincibleTimer = INVINCIBLE_DURATION
-
-        // Interrupt current action
-        isAttacking = false
-        attackTimer = 0f
-        inAction = true
-    }
-
     /**
      * 랜덤 확률을 기반으로 다음 액션을 결정
      */
@@ -327,6 +301,32 @@ class Player(
             selectedSpeechList = speechDocs.random()
             speechTimer = SPEECH_DURATION
         }
+    }
+
+    // damaged
+    fun receiveDamage(attackerX: Float, power: Float = 600f) {
+        // 무적 상태인 경우 return
+        if (isInvincible) return
+
+        // 넉백
+        val dir = if (attackerX < x) 1f else -1f
+        velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
+
+        // 약간 점프
+        velocityY = -200f // TODO : magic number
+        onPlatform = false
+
+        // 데미지
+        hp = (hp - 1).coerceAtLeast(0)
+
+        // 무적 on
+        isInvincible = true
+        invincibleTimer = INVINCIBLE_DURATION
+
+        // 액션 취소
+        isAttacking = false
+        attackTimer = 0f
+        inAction = true
     }
 
     companion object {

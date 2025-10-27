@@ -7,15 +7,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.survivai.survivai.game.colosseum.CombatLogStore
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
+import com.survivai.survivai.game.colosseum.ColosseumInfo
+import com.survivai.survivai.game.colosseum.entity.Player
 import org.jetbrains.compose.resources.Font
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
@@ -31,6 +33,30 @@ fun main() {
 private fun ResponsiveRoot() {
     val containerSize = LocalWindowInfo.current.containerSize
     val isLandscape = containerSize.width >= containerSize.height
+
+    val fullUpdater = ColosseumInfo.fullUpdateState.value
+
+    LaunchedEffect(fullUpdater) {
+        // TODO : StartScreen 으로 이전
+        ColosseumInfo.setPlayers(
+            listOf(
+                Player(
+                    initialX = 0f,
+                    initialY = 0f,
+                ),
+                Player(
+                    initialX = 0f,
+                    initialY = 0f,
+                    color = Color.Red,
+                ),
+                Player(
+                    initialX = 0f,
+                    initialY = 0f,
+                    color = Color.Green,
+                ),
+            )
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Colosseum
@@ -62,9 +88,10 @@ private fun ResponsiveRoot() {
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = fontFamily,
                 )
-                val entries = CombatLogStore.entries
+
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(entries) { line ->
+                    val itemUpdater = ColosseumInfo.itemUpdateState.value
+                    items(ColosseumInfo.logEntries) { line ->
                         Text(
                             text = line,
                             fontSize = 12.sp,
@@ -74,6 +101,20 @@ private fun ResponsiveRoot() {
                     }
                 }
             }
+        }
+
+        // Restart TODO : EndScreen 으로 이전
+        Button(
+            modifier = Modifier
+                .align(Alignment.TopEnd),
+            onClick = {
+                ColosseumInfo.clear()
+            },
+        ) {
+            Text(
+                text = "재시작",
+                fontFamily = fontFamily,
+            )
         }
     }
 }

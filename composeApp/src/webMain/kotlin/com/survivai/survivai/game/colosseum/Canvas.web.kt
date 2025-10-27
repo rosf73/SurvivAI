@@ -78,31 +78,15 @@ class WebCanvas : Canvas {
     private var viewportHeight = 0f
     private var initialized = false
 
-    // colosseum 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
-    private val world = ColosseumWorld()
+    // TODO : 게임 유형 확장성 추가
+    private val world get() = ColosseumInfo.world
+    private val players get() = ColosseumInfo.players
 
     // Simple combat/event log -> delegate to shared store
     private fun log(message: String) {
-        CombatLogStore.add(message)
+        ColosseumInfo.addLog(message)
     }
 
-    // TODO : 임시 엔티티 리스트
-    private val players = listOf(
-        Player(
-            initialX = 0f,
-            initialY = 0f,
-        ),
-        Player(
-            initialX = 0f,
-            initialY = 0f,
-            color = Color.Red,
-        ),
-        Player(
-            initialX = 0f,
-            initialY = 0f,
-            color = Color.Green,
-        ),
-    )
     private val eliminatedPlayers = mutableSetOf<Int>()
 
     override fun update(deltaTime: Double) {

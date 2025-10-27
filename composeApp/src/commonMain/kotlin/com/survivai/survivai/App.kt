@@ -37,7 +37,7 @@ fun App() {
                 withFrameMillis { currentTime ->
                     if (lastTime > 0) {
                         val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산
-                        canvasState.update(deltaTime)
+                        canvasState.update(deltaTime * 2)
                     }
                     lastTime = currentTime
 

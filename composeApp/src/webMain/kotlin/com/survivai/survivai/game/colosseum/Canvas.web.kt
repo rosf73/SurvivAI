@@ -78,31 +78,17 @@ class WebCanvas : Canvas {
     private var viewportHeight = 0f
     private var initialized = false
 
-    // colosseum 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
-    private val world = ColosseumWorld()
+    // TODO : 게임 유형 확장성 추가
+    private val world get() = ColosseumInfo.world
+    private val players get() = ColosseumInfo.players
+    private val winnerAnnounced get() = ColosseumInfo.winnerAnnounced
 
     // Simple combat/event log -> delegate to shared store
     private fun log(message: String) {
-        CombatLogStore.add(message)
+        ColosseumInfo.addLog(message)
     }
 
-    // TODO : 임시 엔티티 리스트
-    private val players = listOf(
-        Player(
-            initialX = 0f,
-            initialY = 0f,
-        ),
-        Player(
-            initialX = 0f,
-            initialY = 0f,
-            color = Color.Red,
-        ),
-        Player(
-            initialX = 0f,
-            initialY = 0f,
-            color = Color.Green,
-        ),
-    )
+    private val eliminatedPlayers = mutableSetOf<Int>()
 
     override fun update(deltaTime: Double) {
         if (viewportWidth > 0 && viewportHeight > 0) {
@@ -112,21 +98,40 @@ class WebCanvas : Canvas {
                 initialized = true
             }
 
-            // Call Entity::update
-            players.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
+            // Get alive players
+            val alivePlayers = players.filter { it.isAlive }
 
-            // Log jump events
-            players.forEachIndexed { i, p ->
-                if (p.pollJustJumped()) {
-                    log("P$i jumps")
+            // Call Entity::update
+            alivePlayers.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
+
+            // (중계 로그) 대사
+            alivePlayers.forEachIndexed { i, p ->
+                val text = p.pollJustSpeeched()
+                if (text.isNotBlank()) {
+                    log("P$i : \"$text\"")
                 }
             }
 
+            // (중계 로그) 탈락
+            players.forEachIndexed { i, p ->
+                if (!p.isAlive && !eliminatedPlayers.contains(i)) {
+                    eliminatedPlayers.add(i)
+                    log("P$i 탈락! ToT")
+                }
+            }
+
+            // Check for winner (only once)
+            if (!winnerAnnounced && alivePlayers.size == 1) {
+                val winnerId = players.indexOf(alivePlayers[0])
+                log("🏆 P$winnerId 우승! 최후의 생존자!")
+                ColosseumInfo.updateGameSet()
+            }
+
             // Player-player overlap resolution (simple horizontal push)
-            for (i in players.indices) {
-                for (j in i + 1 until players.size) {
-                    val a = players[i]
-                    val b = players[j]
+            for (i in alivePlayers.indices) {
+                for (j in i + 1 until alivePlayers.size) {
+                    val a = alivePlayers[i]
+                    val b = alivePlayers[j]
                     val rSum = a.radius + b.radius
                     val dx = b.x - a.x
                     val dy = b.y - a.y
@@ -145,22 +150,24 @@ class WebCanvas : Canvas {
 
             // Attack detection and damage/knockback
             val hitThisFrame = mutableSetOf<Pair<Int, Int>>()
-            for (i in players.indices) {
-                val attacker = players[i]
+            for (i in alivePlayers.indices) {
+                val attacker = alivePlayers[i]
                 if (!attacker.isAttackingNow) continue
                 val reach = attacker.radius * 2.2f
                 val heightTol = attacker.radius * 1.2f
-                for (j in players.indices) {
+                for (j in alivePlayers.indices) {
                     if (i == j) continue
-                    val target = players[j]
+                    val target = alivePlayers[j]
                     val dx = target.x - attacker.x
                     val dy = target.y - attacker.y
                     val inFront = if (attacker.isFacingRight) dx > 0f else dx < 0f
                     if (inFront && abs(dx) <= reach && abs(dy) <= heightTol) {
                         val key = i to j
                         if (hitThisFrame.add(key)) {
-                            target.receiveHit(attacker.x, power = 700f)
-                            log("P$i hits P$j (HP=${target.currentHp})")
+                            val damaged = target.receiveDamage(attacker.x, power = 700f)
+                            if (damaged) {
+                                log("P$i hits P$j (HP=${target.currentHp})")
+                            }
                         }
                     }
                 }
@@ -173,8 +180,9 @@ class WebCanvas : Canvas {
         world.render(context)
 
         // 엔티티
-        players.forEach { it.render(context, textMeasurer, fontFamily) }
-
+        players
+            .filter { it.isAlive }
+            .forEach { it.render(context, textMeasurer, fontFamily) }
     }
 
     override fun setViewportSize(width: Float, height: Float) {

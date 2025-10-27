@@ -54,39 +54,24 @@ class Player(
     private var idleTime = 1f // 1초 후 시작
     private var inAction = false
 
-    // TODO : HP
+    // HP
     private var hp = START_HP
+    val currentHp: Int get() = hp
+
+    // 무적 시간
+    private var isInvincible = false
+    private var invincibleTimer = 0f
+
+    // 생존 여부
+    private var _isAlive = true
+    val isAlive: Boolean get() = _isAlive
 
     // Event flags
-    private var justJumped = false
+    private var justSpeeched = ""
 
     // Public read-only views
     val isAttackingNow: Boolean get() = isAttacking
     val isFacingRight: Boolean get() = facingRight
-    val currentHp: Int get() = hp
-
-    // Consume-and-clear jump flag (for external systems to react/log)
-    fun pollJustJumped(): Boolean {
-        val j = justJumped
-        justJumped = false
-        return j
-    }
-
-    // Apply damage/knockback from an attacker positioned at attackerX
-    fun receiveHit(attackerX: Float, power: Float = 600f) {
-        // Knockback direction: away from attacker
-        val dir = if (attackerX < x) 1f else -1f
-        velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
-        // Small pop-up
-        velocityY = -200f
-        onPlatform = false
-        // Take damage
-        hp = (hp - 1).coerceAtLeast(0)
-        // Interrupt current action
-        isAttacking = false
-        attackTimer = 0f
-        inAction = true
-    }
 
     /**
      * 랜덤 확률을 기반으로 다음 액션을 결정
@@ -117,11 +102,23 @@ class Player(
 
         val clampedDeltaTime = min(deltaTime, 0.03).toFloat()
 
-        // timers
+        // 무적 타이머 처리
+        if (isInvincible) {
+            invincibleTimer -= clampedDeltaTime
+            if (invincibleTimer <= 0f) {
+                isInvincible = false
+            }
+        }
+
+        // 공격 타이머 처리
         if (isAttacking) {
             attackTimer -= clampedDeltaTime
-            if (attackTimer <= 0f) isAttacking = false
+            if (attackTimer <= 0f) {
+                isAttacking = false
+            }
         }
+
+        // 대사 타이머 처리
         if (isSpeeching) {
             speechTimer -= clampedDeltaTime
             if (speechTimer <= 0f) {
@@ -131,6 +128,7 @@ class Player(
                     speechIndex = 0
                 } else {
                     speechIndex++
+                    justSpeeched = selectedSpeechList[speechIndex]
                     speechTimer = SPEECH_DURATION
                 }
             }
@@ -281,7 +279,6 @@ class Player(
         setAction()
 
         velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
-        justJumped = true
     }
 
     fun attack() {
@@ -301,8 +298,48 @@ class Player(
         if (!isSpeeching) {
             isSpeeching = true
             selectedSpeechList = speechDocs.random()
+            justSpeeched = selectedSpeechList[speechIndex]
             speechTimer = SPEECH_DURATION
         }
+    }
+
+    fun pollJustSpeeched(): String {
+        val j = justSpeeched
+        justSpeeched = ""
+        return j
+    }
+
+    // damaged
+    fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
+        // 무적 상태인 경우 return
+        if (isInvincible) return false
+
+        // 넉백
+        val dir = if (attackerX < x) 1f else -1f
+        velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
+
+        // 약간 점프
+        velocityY = -200f // TODO : magic number
+        onPlatform = false
+
+        // 데미지
+        hp = (hp - 1).coerceAtLeast(0)
+
+        // 생존 체크
+        if (hp <= 0) {
+            _isAlive = false
+        }
+
+        // 무적 on
+        isInvincible = true
+        invincibleTimer = INVINCIBLE_DURATION
+
+        // 액션 취소
+        isAttacking = false
+        attackTimer = 0f
+        inAction = true
+
+        return true
     }
 
     companion object {
@@ -310,7 +347,8 @@ class Player(
         private const val SPEECH_DURATION = 2.0f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
-        private const val START_HP = 3
+        private const val START_HP = 3 // TODO : 시작 체력 지정 기능 추가
+        private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
 
         private val speechDocs = listOf(
             listOf("나는 최강이다."),

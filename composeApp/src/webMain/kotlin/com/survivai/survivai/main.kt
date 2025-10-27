@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.survivai.survivai.game.colosseum.CombatLogStore
@@ -32,7 +33,7 @@ private fun ResponsiveRoot() {
     val isLandscape = containerSize.width >= containerSize.height
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Keep a single App() composition and size it to share space with the Log panel
+        // Colosseum
         Box(
             modifier = Modifier
                 .align(
@@ -46,10 +47,13 @@ private fun ResponsiveRoot() {
 
         // TODO : 전역 폰트 설정
         val fontFamily = FontFamily(Font(Res.font.NotoSansKR))
-        Box(modifier = Modifier
-            .align(if (isLandscape) Alignment.CenterEnd else Alignment.BottomCenter)
-            .fillMaxWidth(if(isLandscape) 0.4f else 1.0f)
-            .fillMaxHeight(if(isLandscape) 1.0f else 0.4f)) {
+        // Log TODO : App()으로 이전
+        Box(
+            modifier = Modifier
+                .align(if (isLandscape) Alignment.CenterEnd else Alignment.BottomCenter)
+                .fillMaxWidth(if(isLandscape) 0.4f else 1.0f)
+                .fillMaxHeight(if(isLandscape) 1.0f else 0.4f)
+        ) {
             Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
                 Text(
                     text = "LOG",

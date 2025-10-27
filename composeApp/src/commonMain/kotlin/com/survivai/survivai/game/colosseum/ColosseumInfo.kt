@@ -1,9 +1,7 @@
 package com.survivai.survivai.game.colosseum
 
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.survivai.survivai.game.colosseum.entity.Player
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 
@@ -11,6 +9,10 @@ object ColosseumInfo {
 
     // 엔티티
     var players = emptyList<Player>()
+        private set
+
+    // 게임 셋
+    var winnerAnnounced = false
         private set
 
     // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
@@ -27,6 +29,8 @@ object ColosseumInfo {
     val logEntries: List<String> get() = _logEntries
 
     fun clear() {
+        players = emptyList()
+        winnerAnnounced = false
         _logEntries.clear()
 
         // recomposition event
@@ -47,5 +51,9 @@ object ColosseumInfo {
 
         // recomposition event
         _itemUpdateState.value = !_itemUpdateState.value
+    }
+
+    fun updateGameSet() {
+        winnerAnnounced = true
     }
 }

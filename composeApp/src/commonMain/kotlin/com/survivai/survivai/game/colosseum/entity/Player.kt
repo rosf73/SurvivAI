@@ -310,9 +310,9 @@ class Player(
     }
 
     // damaged
-    fun receiveDamage(attackerX: Float, power: Float = 600f) {
+    fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
         // 무적 상태인 경우 return
-        if (isInvincible) return
+        if (isInvincible) return false
 
         // 넉백
         val dir = if (attackerX < x) 1f else -1f
@@ -338,6 +338,8 @@ class Player(
         isAttacking = false
         attackTimer = 0f
         inAction = true
+
+        return true
     }
 
     companion object {

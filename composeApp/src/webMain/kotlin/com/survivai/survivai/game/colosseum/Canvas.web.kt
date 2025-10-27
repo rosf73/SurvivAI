@@ -81,6 +81,7 @@ class WebCanvas : Canvas {
     // TODO : 게임 유형 확장성 추가
     private val world get() = ColosseumInfo.world
     private val players get() = ColosseumInfo.players
+    private val winnerAnnounced get() = ColosseumInfo.winnerAnnounced
 
     // Simple combat/event log -> delegate to shared store
     private fun log(message: String) {
@@ -117,6 +118,13 @@ class WebCanvas : Canvas {
                     eliminatedPlayers.add(i)
                     log("P$i 탈락! ToT")
                 }
+            }
+
+            // Check for winner (only once)
+            if (!winnerAnnounced && alivePlayers.size == 1) {
+                val winnerId = players.indexOf(alivePlayers[0])
+                log("🏆 P$winnerId 우승! 최후의 생존자!")
+                ColosseumInfo.updateGameSet()
             }
 
             // Player-player overlap resolution (simple horizontal push)
@@ -156,8 +164,10 @@ class WebCanvas : Canvas {
                     if (inFront && abs(dx) <= reach && abs(dy) <= heightTol) {
                         val key = i to j
                         if (hitThisFrame.add(key)) {
-                            target.receiveDamage(attacker.x, power = 700f)
-                            log("P$i hits P$j (HP=${target.currentHp})")
+                            val damaged = target.receiveDamage(attacker.x, power = 700f)
+                            if (damaged) {
+                                log("P$i hits P$j (HP=${target.currentHp})")
+                            }
                         }
                     }
                 }

@@ -12,9 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.jetbrains.compose.resources.Font
+import survivai.composeapp.generated.resources.NotoSansKR
+import survivai.composeapp.generated.resources.Res
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -41,6 +44,8 @@ private fun ResponsiveRoot() {
             App()
         }
 
+        // TODO : 전역 폰트 설정
+        val fontFamily = FontFamily(Font(Res.font.NotoSansKR))
         Box(modifier = Modifier
             .align(if (isLandscape) Alignment.CenterEnd else Alignment.BottomCenter)
             .fillMaxWidth(if(isLandscape) 0.4f else 1.0f)
@@ -51,11 +56,17 @@ private fun ResponsiveRoot() {
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
+                    fontFamily = fontFamily,
                 )
                 val entries = CombatLogStore.entries
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(entries) { line ->
-                        Text(text = line, fontSize = 12.sp, modifier = Modifier.padding(vertical = 2.dp))
+                        Text(
+                            text = line,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(vertical = 2.dp),
+                            fontFamily = fontFamily,
+                        )
                     }
                 }
             }

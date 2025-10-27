@@ -159,7 +159,7 @@ class WebCanvas : Canvas {
                     if (inFront && abs(dx) <= reach && abs(dy) <= heightTol) {
                         val key = i to j
                         if (hitThisFrame.add(key)) {
-                            target.receiveHit(attacker.x, power = 700f)
+                            target.receiveDamage(attacker.x, power = 700f)
                             log("P$i hits P$j (HP=${target.currentHp})")
                         }
                     }

@@ -54,8 +54,13 @@ class Player(
     private var idleTime = 1f // 1초 후 시작
     private var inAction = false
 
-    // TODO : HP
+    // HP
     private var hp = START_HP
+    val currentHp: Int get() = hp
+
+    // 무적 시간
+    private var isInvincible = false
+    private var invincibleTimer = 0f
 
     // Event flags
     private var justJumped = false
@@ -63,7 +68,6 @@ class Player(
     // Public read-only views
     val isAttackingNow: Boolean get() = isAttacking
     val isFacingRight: Boolean get() = facingRight
-    val currentHp: Int get() = hp
 
     // Consume-and-clear jump flag (for external systems to react/log)
     fun pollJustJumped(): Boolean {
@@ -72,16 +76,26 @@ class Player(
         return j
     }
 
-    // Apply damage/knockback from an attacker positioned at attackerX
-    fun receiveHit(attackerX: Float, power: Float = 600f) {
-        // Knockback direction: away from attacker
+    // damaged
+    fun receiveDamage(attackerX: Float, power: Float = 600f) {
+        // Ignore damage if invincible
+        if (isInvincible) return
+
+        // Knockback
         val dir = if (attackerX < x) 1f else -1f
         velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
+
         // Small pop-up
         velocityY = -200f
         onPlatform = false
+
         // Take damage
         hp = (hp - 1).coerceAtLeast(0)
+
+        // Start invincibility period
+        isInvincible = true
+        invincibleTimer = INVINCIBLE_DURATION
+
         // Interrupt current action
         isAttacking = false
         attackTimer = 0f
@@ -117,10 +131,20 @@ class Player(
 
         val clampedDeltaTime = min(deltaTime, 0.03).toFloat()
 
+        // 무적 타이머 처리
+        if (isInvincible) {
+            invincibleTimer -= clampedDeltaTime
+            if (invincibleTimer <= 0f) {
+                isInvincible = false
+            }
+        }
+
         // timers
         if (isAttacking) {
             attackTimer -= clampedDeltaTime
-            if (attackTimer <= 0f) isAttacking = false
+            if (attackTimer <= 0f) {
+                isAttacking = false
+            }
         }
         if (isSpeeching) {
             speechTimer -= clampedDeltaTime
@@ -310,7 +334,8 @@ class Player(
         private const val SPEECH_DURATION = 2.0f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
-        private const val START_HP = 3
+        private const val START_HP = 3 // TODO : 시작 체력 지정 기능 추가
+        private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
 
         private val speechDocs = listOf(
             listOf("나는 최강이다."),

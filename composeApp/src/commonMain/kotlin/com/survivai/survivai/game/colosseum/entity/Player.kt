@@ -18,6 +18,7 @@ import kotlin.random.Random
 class Player(
     initialX: Float,
     initialY: Float,
+    val name: String,
     val radius: Float = 30f,
     val color: Color = Color.Blue,
 ) : Entity {
@@ -192,6 +193,20 @@ class Player(
             color = color,
             center = Offset(x, y),
             radius = radius
+        )
+
+        // 이름 표시 (앞 2글자)
+        val displayName = name.take(2)
+        val textStyle = TextStyle(fontSize = (radius * 0.5f).sp, color = Color.Black, fontFamily = fontFamily) // TODO : color
+        val measuredText = textMeasurer.measure(text = displayName, style = textStyle)
+        context.drawText(
+            textMeasurer = textMeasurer,
+            text = displayName,
+            topLeft = Offset(
+                x - measuredText.size.width / 2f,
+                y - measuredText.size.height / 2f
+            ),
+            style = textStyle,
         )
 
         // Attack effect

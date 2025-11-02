@@ -108,7 +108,7 @@ class WebCanvas : Canvas {
             alivePlayers.forEachIndexed { i, p ->
                 val text = p.pollJustSpeeched()
                 if (text.isNotBlank()) {
-                    log("P$i : \"$text\"")
+                    log("${p.name} : \"$text\"")
                 }
             }
 
@@ -116,14 +116,13 @@ class WebCanvas : Canvas {
             players.forEachIndexed { i, p ->
                 if (!p.isAlive && !eliminatedPlayers.contains(i)) {
                     eliminatedPlayers.add(i)
-                    log("P$i 탈락! ToT")
+                    log("${p.name} 탈락! ToT")
                 }
             }
 
             // Check for winner (only once)
             if (!winnerAnnounced && alivePlayers.size == 1) {
-                val winnerId = players.indexOf(alivePlayers[0])
-                log("🏆 P$winnerId 우승! 최후의 생존자!")
+                log("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
                 ColosseumInfo.updateGameSet()
             }
 
@@ -166,7 +165,7 @@ class WebCanvas : Canvas {
                         if (hitThisFrame.add(key)) {
                             val damaged = target.receiveDamage(attacker.x, power = 700f)
                             if (damaged) {
-                                log("P$i hits P$j (HP=${target.currentHp})")
+                                log("${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
                             }
                         }
                     }

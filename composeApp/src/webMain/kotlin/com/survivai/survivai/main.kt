@@ -43,16 +43,20 @@ private fun ResponsiveRoot() {
                 Player(
                     initialX = 0f,
                     initialY = 0f,
+                    color = Color.Blue,
+                    name = "Blue",
                 ),
                 Player(
                     initialX = 0f,
                     initialY = 0f,
                     color = Color.Red,
+                    name = "Red",
                 ),
                 Player(
                     initialX = 0f,
                     initialY = 0f,
                     color = Color.Green,
+                    name = "Green",
                 ),
             )
         )

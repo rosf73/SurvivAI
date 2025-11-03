@@ -88,8 +88,6 @@ class WebCanvas : Canvas {
         ColosseumInfo.addLog(message)
     }
 
-    private val eliminatedPlayers = mutableSetOf<Int>()
-
     override fun update(deltaTime: Double) {
         if (viewportWidth > 0 && viewportHeight > 0) {
             // Get alive players
@@ -103,14 +101,6 @@ class WebCanvas : Canvas {
                 val text = p.pollJustSpeeched()
                 if (text.isNotBlank()) {
                     log("${p.name} : \"$text\"")
-                }
-            }
-
-            // (중계 로그) 탈락
-            players.forEachIndexed { i, p ->
-                if (!p.isAlive && !eliminatedPlayers.contains(i)) {
-                    eliminatedPlayers.add(i)
-                    log("${p.name} 탈락! ToT")
                 }
             }
 
@@ -159,7 +149,11 @@ class WebCanvas : Canvas {
                         if (hitThisFrame.add(key)) {
                             val damaged = target.receiveDamage(attacker.x, power = 700f)
                             if (damaged) {
-                                log("${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
+                                if (target.currentHp > 0) {
+                                    log("${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
+                                } else {
+                                    log("${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
+                                }
                             }
                         }
                     }

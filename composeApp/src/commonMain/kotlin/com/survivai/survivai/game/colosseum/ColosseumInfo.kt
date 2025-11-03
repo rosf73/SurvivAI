@@ -67,6 +67,7 @@ object ColosseumInfo {
 
         // recomposition event
         _fullUpdateState.value = !_fullUpdateState.value
+        _itemUpdateState.value = !_itemUpdateState.value
     }
 
     fun addLog(message: String) {

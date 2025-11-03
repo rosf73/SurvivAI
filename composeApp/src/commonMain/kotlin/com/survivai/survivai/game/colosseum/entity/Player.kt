@@ -10,22 +10,22 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
+import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import kotlin.math.abs
 import kotlin.math.min
 import kotlin.random.Random
 
 class Player(
-    initialX: Float,
-    initialY: Float,
     val name: String,
     val radius: Float = 30f,
     val color: Color = Color.Blue,
 ) : Entity {
 
     // Position
-    var x = initialX
-    var y = initialY
+    var x = 0f
+    var y = 0f
 
     var velocityX = 0f // 수평 속도
 
@@ -375,6 +375,33 @@ class Player(
             listOf("피자와 함께 먹으면 안되는 것은?", "구기자 ㅋㅋ"),
             listOf("화해합시다."),
         )
+
+        fun List<Player>.initializePositions(viewportWidth: Float, viewportHeight: Float) {
+            // 랜덤 포지션
+            val margin = 10f
+            val placed = mutableListOf<Pair<Float, Float>>()
+            forEach { p ->
+                val radius = p.radius
+                val minX = radius + margin
+                val maxX = (viewportWidth - radius - margin).coerceAtLeast(minX)
+                val floorTop = ColosseumInfo.world.getFloor() ?: viewportHeight
+                val y = (floorTop - radius).coerceAtLeast(radius)
+
+                var tries = 0
+                var x: Float
+                do {
+                    x = if (maxX > minX) Random.nextFloat() * (maxX - minX) + minX else minX
+                    tries++
+                } while (
+                    placed.any { (ox, _) -> abs(ox - x) < (p.radius * 2 + margin) }
+                    && tries < 50
+                )
+
+                p.x = x
+                p.y = y
+                placed.add(x to y)
+            }
+        }
     }
 }
 

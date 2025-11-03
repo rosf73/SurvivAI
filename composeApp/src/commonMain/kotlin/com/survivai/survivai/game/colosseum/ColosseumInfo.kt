@@ -3,9 +3,14 @@ package com.survivai.survivai.game.colosseum
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import com.survivai.survivai.game.colosseum.entity.Player
+import com.survivai.survivai.game.colosseum.entity.Player.Companion.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 
 object ColosseumInfo {
+
+    // 게임 초기화됨
+    var initialized = false
+        private set
 
     // 엔티티
     var players = emptyList<Player>()
@@ -28,17 +33,40 @@ object ColosseumInfo {
     private val _logEntries = mutableListOf<String>()
     val logEntries: List<String> get() = _logEntries
 
+    // Viewport 크기 캐싱
+    private var viewportWidth = 0f
+    private var viewportHeight = 0f
+
+    fun setViewportSize(width: Float, height: Float) {
+        viewportWidth = width
+        viewportHeight = height
+        tryInitialize()
+    }
+
+    fun setPlayers(newList: List<Player>) {
+        players = newList
+        initialized = false  // 재초기화 필요
+        tryInitialize()
+    }
+
+    private fun tryInitialize() {
+        if (initialized) return
+        if (players.isEmpty()) return
+        if (viewportWidth <= 0 || viewportHeight <= 0) return
+
+        world.buildMap(viewportWidth, viewportHeight)
+        players.initializePositions(viewportWidth, viewportHeight)
+        initialized = true
+    }
+
     fun clear() {
+        initialized = false
         players = emptyList()
         winnerAnnounced = false
         _logEntries.clear()
 
         // recomposition event
         _fullUpdateState.value = !_fullUpdateState.value
-    }
-
-    fun setPlayers(newList: List<Player>) {
-        players = newList
     }
 
     fun addLog(message: String) {

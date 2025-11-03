@@ -19,7 +19,9 @@ import survivai.composeapp.generated.resources.Res
 
 @Composable
 @Preview
-fun App() {
+fun App(
+    onUpdatedViewport: (Float, Float) -> Unit = { _, _ -> },
+) {
     MaterialTheme {
         val textMeasurer = rememberTextMeasurer()
         val fontFamily = FontFamily(Font(Res.font.NotoSansKR))
@@ -51,8 +53,10 @@ fun App() {
         ComposeCanvas(
             modifier = Modifier
                 .fillMaxSize()
-                .onSizeChanged { size ->
-                    canvasState.setViewportSize(size.toSize().width, size.toSize().height)
+                .onSizeChanged {
+                    val size = it.toSize()
+                    canvasState.setViewportSize(size.width, size.height)
+                    onUpdatedViewport(size.width, size.height)
                 }
         ) {
             // frameTick에 의존하여 매 프레임 리렌더링하기 위함

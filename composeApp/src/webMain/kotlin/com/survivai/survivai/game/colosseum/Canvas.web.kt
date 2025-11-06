@@ -106,7 +106,7 @@ class WebCanvas : Canvas {
 
             // Check for winner (only once)
             if (!winnerAnnounced && alivePlayers.size == 1) {
-                log("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
+                log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
                 ColosseumInfo.updateGameSet()
             }
 
@@ -150,9 +150,9 @@ class WebCanvas : Canvas {
                             val damaged = target.receiveDamage(attacker.x, power = 700f)
                             if (damaged) {
                                 if (target.currentHp > 0) {
-                                    log("${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
+                                    log("        ${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
                                 } else {
-                                    log("${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
+                                    log("        ${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
                                 }
                             }
                         }

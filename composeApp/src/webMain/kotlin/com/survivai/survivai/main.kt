@@ -81,7 +81,10 @@ private fun ResponsiveRoot() {
                     fontFamily = fontFamily,
                 )
 
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    reverseLayout = true,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
                     val itemUpdater = ColosseumInfo.itemUpdateState.value
                     items(ColosseumInfo.logEntries) { line ->
                         Text(

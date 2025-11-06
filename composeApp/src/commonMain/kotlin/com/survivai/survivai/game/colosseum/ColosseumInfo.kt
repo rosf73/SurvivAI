@@ -71,7 +71,7 @@ object ColosseumInfo {
     }
 
     fun addLog(message: String) {
-        _logEntries.add(message)
+        _logEntries.add(0, message)
         // Keep a reasonable cap
         if (_logEntries.size > 200) {
             // remove oldest extra elements to keep list bounded

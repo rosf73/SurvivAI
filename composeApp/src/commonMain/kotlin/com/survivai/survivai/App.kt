@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.toSize
+import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
@@ -43,9 +44,15 @@ fun App(
         // 1. Set game loop
         var lastTime by remember { mutableStateOf(0L) }
 
-        LaunchedEffect(Unit) {
+        // 게임 실행 상태 추적
+        val gameRestartTrigger = ColosseumInfo.fullUpdateState.value
+        val isGameRunning = ColosseumInfo.isGameRunning.value
+
+        LaunchedEffect(gameRestartTrigger) {
+            lastTime = 0L  // 재시작 시 타이머 리셋
+
             // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청
-            while (true) {
+            while (ColosseumInfo.isGameRunning.value) {
                 withFrameMillis { currentTime ->
                     if (lastTime > 0) {
                         val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산

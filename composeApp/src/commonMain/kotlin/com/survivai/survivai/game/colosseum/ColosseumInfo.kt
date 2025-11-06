@@ -20,6 +20,10 @@ object ColosseumInfo {
     var winnerAnnounced = false
         private set
 
+    // 게임 실행 상태
+    private val _isGameRunning = mutableStateOf(true)
+    val isGameRunning: State<Boolean> get() = _isGameRunning
+
     // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
     val world = ColosseumWorld()
 
@@ -63,6 +67,7 @@ object ColosseumInfo {
         initialized = false
         players = emptyList()
         winnerAnnounced = false
+        _isGameRunning.value = true  // 게임 재시작
         _logEntries.clear()
 
         // recomposition event
@@ -84,5 +89,6 @@ object ColosseumInfo {
 
     fun updateGameSet() {
         winnerAnnounced = true
+        _isGameRunning.value = false  // 게임 중단
     }
 }

@@ -151,6 +151,8 @@ class WebCanvas : Canvas {
                             if (damaged) {
                                 if (target.currentHp > 0) {
                                     log("        ${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
+                                } else if (alivePlayers.size == players.size) { // first blood
+                                    log("        ${alivePlayers[i].name} 에 의해 ${target.name} First Blood! 😭")
                                 } else {
                                     log("        ${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
                                 }

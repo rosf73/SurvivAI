@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -19,6 +20,7 @@ import androidx.compose.ui.window.ComposeViewport
 import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.entity.Player
 import org.jetbrains.compose.resources.Font
+import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
 
@@ -36,24 +38,17 @@ private fun ResponsiveRoot() {
 
     val fullUpdater = ColosseumInfo.fullUpdateState.value
 
+    // 플랫폼별로 이모지 폰트 preload
+    val fontFamilyResolver = LocalFontFamilyResolver.current
+    preloadEmojiFontForFallback(fontFamilyResolver)
+
+    // TODO : StartScreen 으로 이전
     LaunchedEffect(fullUpdater) {
-        // TODO : StartScreen 으로 이전
         ColosseumInfo.setPlayers(
             listOf(
-                Player(
-                    initialX = 0f,
-                    initialY = 0f,
-                ),
-                Player(
-                    initialX = 0f,
-                    initialY = 0f,
-                    color = Color.Red,
-                ),
-                Player(
-                    initialX = 0f,
-                    initialY = 0f,
-                    color = Color.Green,
-                ),
+                Player(color = Color.Blue, name = "Blue"),
+                Player(color = Color.Red, name = "Red"),
+                Player(color = Color.Green, name = "Green"),
             )
         )
     }
@@ -68,11 +63,17 @@ private fun ResponsiveRoot() {
                 .fillMaxHeight(if (isLandscape) 1.0f else 0.6f)
                 .fillMaxWidth(if (isLandscape) 0.6f else 1.0f)
         ) {
-            App()
+            App { w, h ->
+                // Viewport 크기를 ColosseumInfo에 전달 (자동 초기화)
+                ColosseumInfo.setViewportSize(w, h)
+            }
         }
 
-        // TODO : 전역 폰트 설정
-        val fontFamily = FontFamily(Font(Res.font.NotoSansKR))
+        val fontFamily = FontFamily(
+            Font(Res.font.NotoSansKR),
+            Font(Res.font.NotoEmojiColor),
+        )
+
         // Log TODO : App()으로 이전
         Box(
             modifier = Modifier
@@ -89,7 +90,10 @@ private fun ResponsiveRoot() {
                     fontFamily = fontFamily,
                 )
 
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    reverseLayout = true,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
                     val itemUpdater = ColosseumInfo.itemUpdateState.value
                     items(ColosseumInfo.logEntries) { line ->
                         Text(

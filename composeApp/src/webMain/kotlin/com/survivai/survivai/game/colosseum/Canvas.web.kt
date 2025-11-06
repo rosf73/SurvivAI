@@ -12,6 +12,7 @@ import com.survivai.survivai.game.colosseum.entity.Player
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.random.Random
 
 class WebDrawScope(private val drawScope: DrawScope) : GameDrawScope {
     override fun drawCircle(
@@ -76,7 +77,6 @@ class WebCanvas : Canvas {
 
     private var viewportWidth = 0f
     private var viewportHeight = 0f
-    private var initialized = false
 
     // TODO : 게임 유형 확장성 추가
     private val world get() = ColosseumInfo.world
@@ -88,16 +88,8 @@ class WebCanvas : Canvas {
         ColosseumInfo.addLog(message)
     }
 
-    private val eliminatedPlayers = mutableSetOf<Int>()
-
     override fun update(deltaTime: Double) {
         if (viewportWidth > 0 && viewportHeight > 0) {
-            if (!initialized) {
-                world.buildMap(viewportWidth, viewportHeight)
-                initializePlayerPositions()
-                initialized = true
-            }
-
             // Get alive players
             val alivePlayers = players.filter { it.isAlive }
 
@@ -108,22 +100,13 @@ class WebCanvas : Canvas {
             alivePlayers.forEachIndexed { i, p ->
                 val text = p.pollJustSpeeched()
                 if (text.isNotBlank()) {
-                    log("P$i : \"$text\"")
-                }
-            }
-
-            // (중계 로그) 탈락
-            players.forEachIndexed { i, p ->
-                if (!p.isAlive && !eliminatedPlayers.contains(i)) {
-                    eliminatedPlayers.add(i)
-                    log("P$i 탈락! ToT")
+                    log("${p.name} : \"$text\"")
                 }
             }
 
             // Check for winner (only once)
             if (!winnerAnnounced && alivePlayers.size == 1) {
-                val winnerId = players.indexOf(alivePlayers[0])
-                log("🏆 P$winnerId 우승! 최후의 생존자!")
+                log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
                 ColosseumInfo.updateGameSet()
             }
 
@@ -166,7 +149,13 @@ class WebCanvas : Canvas {
                         if (hitThisFrame.add(key)) {
                             val damaged = target.receiveDamage(attacker.x, power = 700f)
                             if (damaged) {
-                                log("P$i hits P$j (HP=${target.currentHp})")
+                                if (target.currentHp > 0) {
+                                    log("        ${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
+                                } else if (alivePlayers.size == players.size) { // first blood
+                                    log("        ${alivePlayers[i].name} 에 의해 ${target.name} First Blood! 😭")
+                                } else {
+                                    log("        ${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
+                                }
                             }
                         }
                     }
@@ -188,32 +177,7 @@ class WebCanvas : Canvas {
     override fun setViewportSize(width: Float, height: Float) {
         viewportWidth = width
         viewportHeight = height
-        world.buildMap(viewportWidth, viewportHeight)
-    }
-
-    private fun initializePlayerPositions() {
-        // Randomize initial positions within bounds and avoid overlapping
-        val margin = 10f
-        val placed = mutableListOf<Pair<Float, Float>>()
-        players.forEach { p ->
-            val radius = p.radius
-            val minX = radius + margin
-            val maxX = (viewportWidth - radius - margin).coerceAtLeast(minX)
-            val floorTop = world.getFloor() ?: viewportHeight
-            val y = (floorTop - radius).coerceAtLeast(radius)
-
-            var tries = 0
-            var x: Float
-            do {
-                x = if (maxX > minX) kotlin.random.Random.nextFloat() * (maxX - minX) + minX else minX
-                tries++
-                // ensure no overlap with already placed players
-            } while (placed.any { (ox, _) -> kotlin.math.abs(ox - x) < (p.radius * 2 + margin) } && tries < 50)
-
-            p.x = x
-            p.y = y
-            placed.add(x to y)
-        }
+        ColosseumInfo.setViewportSize(width, height)
     }
 }
 

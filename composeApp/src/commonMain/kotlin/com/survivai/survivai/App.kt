@@ -7,22 +7,35 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.toSize
+import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
 
 @Composable
 @Preview
-fun App() {
+fun App(
+    onUpdatedViewport: (Float, Float) -> Unit = { _, _ -> },
+) {
     MaterialTheme {
         val textMeasurer = rememberTextMeasurer()
-        val fontFamily = FontFamily(Font(Res.font.NotoSansKR))
+
+        // 플랫폼별로 이모지 폰트 preload
+        val fontFamilyResolver = LocalFontFamilyResolver.current
+        preloadEmojiFontForFallback(fontFamilyResolver)
+
+        val fontFamily = FontFamily(
+            Font(Res.font.NotoSansKR),
+            Font(Res.font.NotoEmojiColor),
+        )
         val canvasState = remember { getCanvas() }
 
         // UI update state
@@ -31,9 +44,15 @@ fun App() {
         // 1. Set game loop
         var lastTime by remember { mutableStateOf(0L) }
 
-        LaunchedEffect(Unit) {
+        // 게임 실행 상태 추적
+        val gameRestartTrigger = ColosseumInfo.fullUpdateState.value
+        val isGameRunning = ColosseumInfo.isGameRunning.value
+
+        LaunchedEffect(gameRestartTrigger) {
+            lastTime = 0L  // 재시작 시 타이머 리셋
+
             // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청
-            while (true) {
+            while (ColosseumInfo.isGameRunning.value) {
                 withFrameMillis { currentTime ->
                     if (lastTime > 0) {
                         val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산
@@ -51,8 +70,10 @@ fun App() {
         ComposeCanvas(
             modifier = Modifier
                 .fillMaxSize()
-                .onSizeChanged { size ->
-                    canvasState.setViewportSize(size.toSize().width, size.toSize().height)
+                .onSizeChanged {
+                    val size = it.toSize()
+                    canvasState.setViewportSize(size.width, size.height)
+                    onUpdatedViewport(size.width, size.height)
                 }
         ) {
             // frameTick에 의존하여 매 프레임 리렌더링하기 위함

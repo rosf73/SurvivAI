@@ -1,6 +1,7 @@
 package com.survivai.survivai
 
 import androidx.compose.foundation.Canvas as ComposeCanvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -12,13 +13,16 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.colosseum.ColosseumInfo
+import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope
+import com.survivai.survivai.game.colosseum.entity.Player
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
+import kotlin.random.Random
 
 @Composable
 @Preview
@@ -48,6 +52,9 @@ fun App(
         val gameRestartTrigger = ColosseumInfo.fullUpdateState.value
         val isGameRunning = ColosseumInfo.isGameRunning.value
 
+        // 게임 시작 여부 상태 (재시작 시 리셋)
+        var gameStarted by remember(gameRestartTrigger) { mutableStateOf(false) }
+
         LaunchedEffect(gameRestartTrigger) {
             lastTime = 0L  // 재시작 시 타이머 리셋
 
@@ -67,24 +74,70 @@ fun App(
         }
 
         // 2. Rendering
-        ComposeCanvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .onSizeChanged {
-                    val size = it.toSize()
-                    canvasState.setViewportSize(size.width, size.height)
-                    onUpdatedViewport(size.width, size.height)
-                }
-        ) {
-            // frameTick에 의존하여 매 프레임 리렌더링하기 위함
-            val currentFrame = frameTick
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Canvas (World + Players)
+            ComposeCanvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onSizeChanged {
+                        val size = it.toSize()
+                        canvasState.setViewportSize(size.width, size.height)
+                        onUpdatedViewport(size.width, size.height)
+                    }
+            ) {
+                // frameTick에 의존하여 매 프레임 리렌더링하기 위함
+                val currentFrame = frameTick
 
-            // Background
-            drawRect(Color.White)
+                // Background
+                drawRect(Color.White)
 
-            // Draw circle
-            val drawScopeWrapper = createGameDrawScope(this)
-            canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
+                // Draw circle
+                val drawScopeWrapper = createGameDrawScope(this)
+                canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
+            }
+
+            // Start Screen Overlay
+            if (!gameStarted) {
+                ColosseumStartScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    fontFamily = fontFamily,
+                    onClickStart = { playerNames ->
+                        // 빈 이름 필터링 및 플레이어 생성
+                        val validNames = playerNames.filter { it.isNotBlank() }
+                        if (validNames.size >= 2) {
+                            val players = validNames.map { name ->
+                                Player(
+                                    name = name,
+                                    color = generateRandomColor()
+                                )
+                            }
+                            ColosseumInfo.setPlayers(players)
+                            gameStarted = true
+                        }
+                    },
+                )
+            }
         }
     }
+}
+
+/**
+ * 랜덤 색상 생성 (선명한 색상 위주)
+ */
+private fun generateRandomColor(): Color {
+    val colors = listOf(
+        Color(0xFFE74C3C), // Red
+        Color(0xFF3498DB), // Blue
+        Color(0xFF2ECC71), // Green
+        Color(0xFFF39C12), // Orange
+        Color(0xFF9B59B6), // Purple
+        Color(0xFF1ABC9C), // Turquoise
+        Color(0xFFE91E63), // Pink
+        Color(0xFFFF5722), // Deep Orange
+        Color(0xFF00BCD4), // Cyan
+        Color(0xFF4CAF50), // Light Green
+        Color(0xFFFF9800), // Orange
+        Color(0xFF673AB7), // Deep Purple
+    )
+    return colors[Random.nextInt(colors.size)]
 }

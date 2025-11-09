@@ -11,14 +11,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
 import com.survivai.survivai.game.colosseum.ColosseumInfo
-import com.survivai.survivai.game.colosseum.entity.Player
 import org.jetbrains.compose.resources.Font
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
@@ -41,17 +39,6 @@ private fun ResponsiveRoot() {
     // 플랫폼별로 이모지 폰트 preload
     val fontFamilyResolver = LocalFontFamilyResolver.current
     preloadEmojiFontForFallback(fontFamilyResolver)
-
-    // TODO : StartScreen 으로 이전
-    LaunchedEffect(fullUpdater) {
-        ColosseumInfo.setPlayers(
-            listOf(
-                Player(color = Color.Blue, name = "Blue"),
-                Player(color = Color.Red, name = "Red"),
-                Player(color = Color.Green, name = "Green"),
-            )
-        )
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Colosseum

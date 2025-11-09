@@ -101,7 +101,7 @@ fun App(
             // Start Screen Overlay
             if (!gameStarted) {
                 ColosseumStartScreen(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 50.dp),
+                    modifier = Modifier.fillMaxSize(),
                     fontFamily = fontFamily,
                     onClickStart = { playerNames, hp ->
                         // 빈 이름 필터링 및 플레이어 생성

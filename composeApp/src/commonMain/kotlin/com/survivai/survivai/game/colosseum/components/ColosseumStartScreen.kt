@@ -2,11 +2,9 @@ package com.survivai.survivai.game.colosseum.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,7 +50,8 @@ fun ColosseumStartScreen(
 
     Column(
         modifier = modifier
-            .background(color = Color(255, 255, 255, 127)),
+            .background(color = Color(220, 255, 255, 180))
+            .padding(horizontal = 50.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // 타이틀

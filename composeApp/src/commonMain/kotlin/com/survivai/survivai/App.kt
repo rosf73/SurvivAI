@@ -3,6 +3,7 @@ package com.survivai.survivai
 import androidx.compose.foundation.Canvas as ComposeCanvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -11,6 +12,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
@@ -99,7 +101,7 @@ fun App(
             // Start Screen Overlay
             if (!gameStarted) {
                 ColosseumStartScreen(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 50.dp),
                     fontFamily = fontFamily,
                     onClickStart = { playerNames, hp ->
                         // 빈 이름 필터링 및 플레이어 생성

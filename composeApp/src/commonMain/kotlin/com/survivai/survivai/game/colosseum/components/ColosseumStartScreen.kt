@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -65,6 +67,8 @@ fun ColosseumStartScreen(
             ),
         )
 
+        Spacer(modifier = Modifier.size(20.dp))
+
         // 플레이어 등록
         ColosseumInput(
             modifier = Modifier
@@ -89,6 +93,12 @@ fun ColosseumStartScreen(
         Button(
             modifier = Modifier
                 .padding(bottom = 16.dp),
+            colors = ButtonColors(
+                containerColor = Color.Cyan,
+                contentColor = Color.Blue,
+                disabledContainerColor = Color.LightGray,
+                disabledContentColor = Color.Gray,
+            ),
             onClick = {
                 onClickStart(players, hpSliderValue.roundToInt())
             }
@@ -137,6 +147,7 @@ private fun ColosseumInput(
                 fontFamily = fontFamily,
                 modifier = Modifier.fillMaxWidth(),
             )
+            Spacer(modifier = Modifier.size(10.dp))
         }
 
         // 플레이어 추가 버튼
@@ -177,7 +188,7 @@ private fun HpSettingCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "시작 HP",
+                    text = "시작 HP 설정",
                     style = TextStyle(
                         fontFamily = fontFamily,
                         fontSize = 16.sp,

@@ -101,16 +101,20 @@ fun App(
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
                     fontFamily = fontFamily,
-                    onClickStart = { playerNames ->
+                    onClickStart = { playerNames, hp ->
                         // 빈 이름 필터링 및 플레이어 생성
                         val validNames = playerNames.filter { it.isNotBlank() }
                         if (validNames.size >= 2) {
+                            // HP 설정
+                            ColosseumInfo.setDefaultHp(hp)
+                            
                             // 중복 없는 색상 생성
                             val colors = generateUniqueColors(validNames.size)
                             val players = validNames.mapIndexed { index, name ->
                                 Player(
                                     name = name,
-                                    color = colors[index]
+                                    color = colors[index],
+                                    startHp = hp
                                 )
                             }
                             ColosseumInfo.setPlayers(players)

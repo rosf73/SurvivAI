@@ -16,6 +16,10 @@ object ColosseumInfo {
     var players = emptyList<Player>()
         private set
 
+    // 기본 HP 설정 (1~10)
+    var defaultHp = 3
+        private set
+
     // 게임 셋
     var winnerAnnounced = false
         private set
@@ -53,6 +57,10 @@ object ColosseumInfo {
         tryInitialize()
     }
 
+    fun setDefaultHp(hp: Int) {
+        defaultHp = hp.coerceIn(1, 10)
+    }
+
     private fun tryInitialize() {
         if (initialized) return
         if (players.isEmpty()) return
@@ -66,6 +74,7 @@ object ColosseumInfo {
     fun clear() {
         initialized = false
         players = emptyList()
+        defaultHp = 3  // HP 초기화
         winnerAnnounced = false
         _isGameRunning.value = true  // 게임 재시작
         _logEntries.clear()

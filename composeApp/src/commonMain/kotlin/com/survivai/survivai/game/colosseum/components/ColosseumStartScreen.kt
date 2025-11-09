@@ -1,9 +1,14 @@
 package com.survivai.survivai.game.colosseum.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -16,9 +21,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,22 +37,26 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 @Composable
 fun ColosseumStartScreen(
-    onClickStart: (List<String>) -> Unit,
+    onClickStart: (playerNames: List<String>, hp: Int) -> Unit,
     fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     val players = remember { mutableStateListOf("홍길동", "김철수") } // 최소 2명으로 시작
+    var hpSliderValue by remember { mutableFloatStateOf(3f) }
 
-    Box(
+    Column(
         modifier = modifier
             .background(color = Color(255, 255, 255, 127)),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // 타이틀
         Text(
-            modifier = Modifier.align(Alignment.TopCenter),
+            modifier = Modifier
+                .padding(top = 16.dp),
             text = "플레이어 등록",
             style = TextStyle(
                 fontSize = 24.sp,
@@ -56,8 +67,12 @@ fun ColosseumStartScreen(
 
         // 플레이어 등록
         ColosseumInput(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             players = players,
+            hpValue = hpSliderValue.roundToInt(),
+            onHpChange = { hpSliderValue = it },
             addPlayer = {
                 players.add("")
             },
@@ -72,9 +87,10 @@ fun ColosseumStartScreen(
 
         // 시작 버튼
         Button(
-            modifier = Modifier.align(Alignment.BottomCenter),
+            modifier = Modifier
+                .padding(bottom = 16.dp),
             onClick = {
-                onClickStart(players)
+                onClickStart(players, hpSliderValue.roundToInt())
             }
         ) {
             Text("경기 시작", style = TextStyle(fontFamily = fontFamily))
@@ -85,6 +101,8 @@ fun ColosseumStartScreen(
 @Composable
 private fun ColosseumInput(
     players: List<String>,
+    hpValue: Int,
+    onHpChange: (Float) -> Unit,
     addPlayer: () -> Unit,
     removePlayer: (Int) -> Unit,
     changePlayer: (Int, String) -> Unit,
@@ -94,6 +112,18 @@ private fun ColosseumInput(
     LazyColumn(
         modifier = modifier,
     ) {
+        // HP 설정 카드
+        item {
+            HpSettingCard(
+                hpValue = hpValue,
+                onHpChange = onHpChange,
+                fontFamily = fontFamily,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+        }
+
         itemsIndexed(players) { index, name ->
             PlayerInputCard(
                 index = index,
@@ -119,6 +149,76 @@ private fun ColosseumInput(
                     .padding(vertical = 8.dp)
             ) {
                 Text("추가", style = TextStyle(fontFamily = fontFamily))
+            }
+        }
+    }
+}
+
+@Composable
+private fun HpSettingCard(
+    hpValue: Int,
+    onHpChange: (Float) -> Unit,
+    fontFamily: FontFamily,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "시작 HP",
+                    style = TextStyle(
+                        fontFamily = fontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                )
+                Text(
+                    text = "$hpValue",
+                    style = TextStyle(
+                        fontFamily = fontFamily,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    ),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Slider(
+                value = hpValue.toFloat(),
+                onValueChange = onHpChange,
+                valueRange = 1f..10f,
+                steps = 8, // 1부터 10까지 9개 값 (1,2,3,...,10)
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "1",
+                    style = TextStyle(fontFamily = fontFamily, fontSize = 12.sp),
+                    color = Color.Gray,
+                )
+                Text(
+                    text = "10",
+                    style = TextStyle(fontFamily = fontFamily, fontSize = 12.sp),
+                    color = Color.Gray,
+                )
             }
         }
     }

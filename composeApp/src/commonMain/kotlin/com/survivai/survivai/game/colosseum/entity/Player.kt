@@ -21,6 +21,7 @@ class Player(
     val name: String,
     val radius: Float = 30f,
     val color: Color = Color.Blue,
+    startHp: Int = ColosseumInfo.defaultHp,
 ) : Entity {
 
     // Position
@@ -56,7 +57,7 @@ class Player(
     private var inAction = false
 
     // HP
-    private var hp = START_HP
+    private var hp = startHp
     val currentHp: Int get() = hp
 
     // 무적 시간

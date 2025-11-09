@@ -26,14 +26,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
 fun ColosseumStartScreen(
-    modifier: Modifier = Modifier,
     onClickStart: (List<String>) -> Unit,
+    fontFamily: FontFamily,
+    modifier: Modifier = Modifier,
 ) {
     val players = remember { mutableStateListOf("홍길동", "김철수") } // 최소 2명으로 시작
 
@@ -48,6 +50,7 @@ fun ColosseumStartScreen(
             style = TextStyle(
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+                fontFamily = fontFamily,
             ),
         )
 
@@ -64,6 +67,7 @@ fun ColosseumStartScreen(
             changePlayer = { index, newName ->
                 players[index] = newName
             },
+            fontFamily = fontFamily,
         )
 
         // 시작 버튼
@@ -73,7 +77,7 @@ fun ColosseumStartScreen(
                 onClickStart(players)
             }
         ) {
-            Text("경기 시작")
+            Text("경기 시작", style = TextStyle(fontFamily = fontFamily))
         }
     }
 }
@@ -84,6 +88,7 @@ private fun ColosseumInput(
     addPlayer: () -> Unit,
     removePlayer: (Int) -> Unit,
     changePlayer: (Int, String) -> Unit,
+    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -99,7 +104,8 @@ private fun ColosseumInput(
                 onDelete = if (players.size > 2) {
                     { removePlayer(index) }
                 } else null, // 최소 2명 유지
-                modifier = Modifier.fillMaxWidth()
+                fontFamily = fontFamily,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
@@ -107,12 +113,12 @@ private fun ColosseumInput(
         item {
             Button(
                 onClick = addPlayer,
-                enabled = players.size < 10, // 최대 10명 제한
+                enabled = players.size < 8, // 최대 8명 제한
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             ) {
-                Text("추가")
+                Text("추가", style = TextStyle(fontFamily = fontFamily))
             }
         }
     }
@@ -124,30 +130,32 @@ private fun PlayerInputCard(
     name: String,
     onNameChange: (String) -> Unit,
     onDelete: (() -> Unit)?,
+    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "${index + 1}.",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(end = 8.dp)
+                style = TextStyle(fontFamily = fontFamily),
+                modifier = Modifier.padding(end = 8.dp),
             )
 
             OutlinedTextField(
                 value = name,
                 onValueChange = onNameChange,
-                placeholder = { Text("플레이어 이름") },
+                placeholder = { Text("플레이어 이름", style = TextStyle(fontFamily = fontFamily)) },
                 modifier = Modifier.weight(1f),
-                singleLine = true
+                singleLine = true,
+                textStyle = TextStyle(fontFamily = fontFamily),
             )
 
             // 삭제 버튼 (3명 이상일 때만 표시)

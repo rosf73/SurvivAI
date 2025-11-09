@@ -12,6 +12,9 @@ object ColosseumInfo {
     var initialized = false
         private set
 
+    // World 초기화 여부
+    private var worldInitialized = false
+
     // 엔티티
     var players = emptyList<Player>()
         private set
@@ -48,6 +51,7 @@ object ColosseumInfo {
     fun setViewportSize(width: Float, height: Float) {
         viewportWidth = width
         viewportHeight = height
+        initializeWorld()
         tryInitialize()
     }
 
@@ -61,18 +65,26 @@ object ColosseumInfo {
         defaultHp = hp.coerceIn(1, 10)
     }
 
+    private fun initializeWorld() {
+        if (worldInitialized) return
+        if (viewportWidth <= 0 || viewportHeight <= 0) return
+
+        world.buildMap(viewportWidth, viewportHeight)
+        worldInitialized = true
+    }
+
     private fun tryInitialize() {
         if (initialized) return
         if (players.isEmpty()) return
         if (viewportWidth <= 0 || viewportHeight <= 0) return
 
-        world.buildMap(viewportWidth, viewportHeight)
         players.initializePositions(viewportWidth, viewportHeight)
         initialized = true
     }
 
     fun clear() {
         initialized = false
+        worldInitialized = false  // World도 재초기화 필요
         players = emptyList()
         defaultHp = 3  // HP 초기화
         winnerAnnounced = false

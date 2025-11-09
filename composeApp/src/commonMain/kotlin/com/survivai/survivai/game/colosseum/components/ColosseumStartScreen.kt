@@ -19,7 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,7 +35,7 @@ fun ColosseumStartScreen(
     modifier: Modifier = Modifier,
     onClickStart: (List<String>) -> Unit,
 ) {
-    var players by remember { mutableStateOf(listOf("홍길동", "김철수")) } // 최소 2명으로 시작
+    val players = remember { mutableStateListOf("홍길동", "김철수") } // 최소 2명으로 시작
 
     Box(
         modifier = modifier
@@ -55,6 +55,15 @@ fun ColosseumStartScreen(
         ColosseumInput(
             modifier = Modifier.align(Alignment.Center),
             players = players,
+            addPlayer = {
+                players.add("")
+            },
+            removePlayer = { index ->
+                players.removeAt(index)
+            },
+            changePlayer = { index, newName ->
+                players[index] = newName
+            },
         )
 
         // 시작 버튼
@@ -72,6 +81,9 @@ fun ColosseumStartScreen(
 @Composable
 private fun ColosseumInput(
     players: List<String>,
+    addPlayer: () -> Unit,
+    removePlayer: (Int) -> Unit,
+    changePlayer: (Int, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -82,12 +94,10 @@ private fun ColosseumInput(
                 index = index,
                 name = name,
                 onNameChange = { newName ->
-                    // TODO : implementation
+                    changePlayer(index, newName)
                 },
                 onDelete = if (players.size > 2) {
-                    {
-                        // TODO : implementation
-                    }
+                    { removePlayer(index) }
                 } else null, // 최소 2명 유지
                 modifier = Modifier.fillMaxWidth()
             )
@@ -96,7 +106,7 @@ private fun ColosseumInput(
         // 플레이어 추가 버튼
         item {
             Button(
-                onClick = { /* TODO : implementation */ },
+                onClick = addPlayer,
                 enabled = players.size < 10, // 최대 10명 제한
                 modifier = Modifier
                     .fillMaxWidth()

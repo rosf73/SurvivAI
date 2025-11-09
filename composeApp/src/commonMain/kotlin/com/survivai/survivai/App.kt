@@ -1,7 +1,9 @@
 package com.survivai.survivai
 
 import androidx.compose.foundation.Canvas as ComposeCanvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -10,9 +12,13 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.colosseum.ColosseumInfo
+import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope
+import com.survivai.survivai.game.colosseum.entity.Player
+import com.survivai.survivai.game.colosseum.entity.generateUniqueColors
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -48,6 +54,9 @@ fun App(
         val gameRestartTrigger = ColosseumInfo.fullUpdateState.value
         val isGameRunning = ColosseumInfo.isGameRunning.value
 
+        // 게임 시작 여부 상태 (재시작 시 리셋)
+        var gameStarted by remember(gameRestartTrigger) { mutableStateOf(false) }
+
         LaunchedEffect(gameRestartTrigger) {
             lastTime = 0L  // 재시작 시 타이머 리셋
 
@@ -67,24 +76,55 @@ fun App(
         }
 
         // 2. Rendering
-        ComposeCanvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .onSizeChanged {
-                    val size = it.toSize()
-                    canvasState.setViewportSize(size.width, size.height)
-                    onUpdatedViewport(size.width, size.height)
-                }
-        ) {
-            // frameTick에 의존하여 매 프레임 리렌더링하기 위함
-            val currentFrame = frameTick
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Canvas (World + Players)
+            ComposeCanvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onSizeChanged {
+                        val size = it.toSize()
+                        canvasState.setViewportSize(size.width, size.height)
+                        onUpdatedViewport(size.width, size.height)
+                    }
+            ) {
+                // frameTick에 의존하여 매 프레임 리렌더링하기 위함
+                val currentFrame = frameTick
 
-            // Background
-            drawRect(Color.White)
+                // Background
+                drawRect(Color.White)
 
-            // Draw circle
-            val drawScopeWrapper = createGameDrawScope(this)
-            canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
+                // Draw circle
+                val drawScopeWrapper = createGameDrawScope(this)
+                canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
+            }
+
+            // Start Screen Overlay
+            if (!gameStarted) {
+                ColosseumStartScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    fontFamily = fontFamily,
+                    onClickStart = { playerNames, hp ->
+                        // 빈 이름 필터링 및 플레이어 생성
+                        val validNames = playerNames.filter { it.isNotBlank() }
+                        if (validNames.size >= 2) {
+                            // HP 설정
+                            ColosseumInfo.setDefaultHp(hp)
+                            
+                            // 중복 없는 색상 생성
+                            val colors = generateUniqueColors(validNames.size)
+                            val players = validNames.mapIndexed { index, name ->
+                                Player(
+                                    name = name,
+                                    color = colors[index],
+                                    startHp = hp
+                                )
+                            }
+                            ColosseumInfo.setPlayers(players)
+                            gameStarted = true
+                        }
+                    },
+                )
+            }
         }
     }
 }

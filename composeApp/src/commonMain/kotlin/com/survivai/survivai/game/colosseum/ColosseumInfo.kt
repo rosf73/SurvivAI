@@ -3,7 +3,7 @@ package com.survivai.survivai.game.colosseum
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import com.survivai.survivai.game.colosseum.entity.Player
-import com.survivai.survivai.game.colosseum.entity.Player.Companion.initializePositions
+import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 
 object ColosseumInfo {
@@ -12,8 +12,15 @@ object ColosseumInfo {
     var initialized = false
         private set
 
+    // World 초기화 여부
+    private var worldInitialized = false
+
     // 엔티티
     var players = emptyList<Player>()
+        private set
+
+    // 기본 HP 설정 (1~10)
+    var defaultHp = 3
         private set
 
     // 게임 셋
@@ -44,6 +51,7 @@ object ColosseumInfo {
     fun setViewportSize(width: Float, height: Float) {
         viewportWidth = width
         viewportHeight = height
+        initializeWorld()
         tryInitialize()
     }
 
@@ -53,19 +61,32 @@ object ColosseumInfo {
         tryInitialize()
     }
 
+    fun setDefaultHp(hp: Int) {
+        defaultHp = hp.coerceIn(1, 10)
+    }
+
+    private fun initializeWorld() {
+        if (worldInitialized) return
+        if (viewportWidth <= 0 || viewportHeight <= 0) return
+
+        world.buildMap(viewportWidth, viewportHeight)
+        worldInitialized = true
+    }
+
     private fun tryInitialize() {
         if (initialized) return
         if (players.isEmpty()) return
         if (viewportWidth <= 0 || viewportHeight <= 0) return
 
-        world.buildMap(viewportWidth, viewportHeight)
         players.initializePositions(viewportWidth, viewportHeight)
         initialized = true
     }
 
     fun clear() {
         initialized = false
+        worldInitialized = false  // World도 재초기화 필요
         players = emptyList()
+        defaultHp = 3  // HP 초기화
         winnerAnnounced = false
         _isGameRunning.value = true  // 게임 재시작
         _logEntries.clear()

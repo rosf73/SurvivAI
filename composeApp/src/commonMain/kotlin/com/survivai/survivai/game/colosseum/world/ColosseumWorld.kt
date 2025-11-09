@@ -21,11 +21,11 @@ class ColosseumWorld : World {
         // floor
         platforms.add(PlatformRect(0f, viewportHeight - floorH, viewportWidth, floorH))
         // middle
-        platforms.add(PlatformRect(viewportWidth * 0.25f, viewportHeight * 0.65f, viewportWidth * 0.5f))
+        platforms.add(PlatformRect(viewportWidth * 0.45f, viewportHeight * 0.75f, viewportWidth * 0.1f))
         // left upper-mid
-        platforms.add(PlatformRect(viewportWidth * 0.02f, viewportHeight * 0.45f, viewportWidth * 0.28f))
+        platforms.add(PlatformRect(viewportWidth * 0.15f, viewportHeight * 0.75f, viewportWidth * 0.1f))
         // right top
-        platforms.add(PlatformRect(viewportWidth * 0.55f, viewportHeight * 0.30f, viewportWidth * 0.4f))
+        platforms.add(PlatformRect(viewportWidth * 0.75f, viewportHeight * 0.75f, viewportWidth * 0.1f))
     }
 
     override fun render(context: GameDrawScope) {

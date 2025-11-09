@@ -16,6 +16,7 @@ import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.entity.Player
+import com.survivai.survivai.game.colosseum.entity.generateRandomColor
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -119,25 +120,4 @@ fun App(
             }
         }
     }
-}
-
-/**
- * 랜덤 색상 생성 (선명한 색상 위주)
- */
-private fun generateRandomColor(): Color {
-    val colors = listOf(
-        Color(0xFFE74C3C), // Red
-        Color(0xFF3498DB), // Blue
-        Color(0xFF2ECC71), // Green
-        Color(0xFFF39C12), // Orange
-        Color(0xFF9B59B6), // Purple
-        Color(0xFF1ABC9C), // Turquoise
-        Color(0xFFE91E63), // Pink
-        Color(0xFFFF5722), // Deep Orange
-        Color(0xFF00BCD4), // Cyan
-        Color(0xFF4CAF50), // Light Green
-        Color(0xFFFF9800), // Orange
-        Color(0xFF673AB7), // Deep Purple
-    )
-    return colors[Random.nextInt(colors.size)]
 }

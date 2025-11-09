@@ -364,44 +364,6 @@ class Player(
         private const val FRICTION = 0.95f // 마찰력 계수
         private const val START_HP = 3 // TODO : 시작 체력 지정 기능 추가
         private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
-
-        private val speechDocs = listOf(
-            listOf("나는 최강이다."),
-            listOf("빌이 청소할 차례다를 영어로 하면?", "빌 클린턴 ㅋㅋ"),
-            listOf("이번엔 조지가 씻을 차례다를 영어로 하면?", "조지 워싱턴 ㅋㅋ"),
-            listOf("아 금붕어 산책 시켜야 하는데."),
-            listOf("일본인이 대가족을 만들고 싶을 때 하는 말은?", "여러식구 오네가이시마스 ㅋㅋ"),
-            listOf("경상도 사람이 홍차를 냉동실에 넣으며 하는 말은?", "얼그레이~ ㅋㅋ"),
-            listOf("피자와 함께 먹으면 안되는 것은?", "구기자 ㅋㅋ"),
-            listOf("화해합시다."),
-        )
-
-        fun List<Player>.initializePositions(viewportWidth: Float, viewportHeight: Float) {
-            // 랜덤 포지션
-            val margin = 10f
-            val placed = mutableListOf<Pair<Float, Float>>()
-            forEach { p ->
-                val radius = p.radius
-                val minX = radius + margin
-                val maxX = (viewportWidth - radius - margin).coerceAtLeast(minX)
-                val floorTop = ColosseumInfo.world.getFloor() ?: viewportHeight
-                val y = (floorTop - radius).coerceAtLeast(radius)
-
-                var tries = 0
-                var x: Float
-                do {
-                    x = if (maxX > minX) Random.nextFloat() * (maxX - minX) + minX else minX
-                    tries++
-                } while (
-                    placed.any { (ox, _) -> abs(ox - x) < (p.radius * 2 + margin) }
-                    && tries < 50
-                )
-
-                p.x = x
-                p.y = y
-                placed.add(x to y)
-            }
-        }
     }
 }
 

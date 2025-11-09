@@ -3,7 +3,7 @@ package com.survivai.survivai.game.colosseum
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import com.survivai.survivai.game.colosseum.entity.Player
-import com.survivai.survivai.game.colosseum.entity.Player.Companion.initializePositions
+import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 
 object ColosseumInfo {

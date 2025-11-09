@@ -79,15 +79,15 @@ class Player(
      */
     private fun randomAction() {
         // 95 : 5 비율
-        if (Random.nextFloat() < 0.95) {
-            // 95% 확률로 BEHAVIOR
+        if (Random.nextFloat() < 0.98) {
+            // 98% 확률로 BEHAVIOR
             when (Random.nextInt(3)) {
                 0 -> move(MoveDirection.entries.random())
                 1 -> jump()
                 2 -> attack()
             }
         } else {
-            // 5% 확률로 IDLE
+            // 2% 확률로 IDLE
             speech()
         }
     }

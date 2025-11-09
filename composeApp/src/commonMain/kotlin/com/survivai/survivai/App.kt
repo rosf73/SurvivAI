@@ -16,14 +16,13 @@ import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.entity.Player
-import com.survivai.survivai.game.colosseum.entity.generateRandomColor
+import com.survivai.survivai.game.colosseum.entity.generateUniqueColors
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
-import kotlin.random.Random
 
 @Composable
 @Preview
@@ -106,10 +105,12 @@ fun App(
                         // 빈 이름 필터링 및 플레이어 생성
                         val validNames = playerNames.filter { it.isNotBlank() }
                         if (validNames.size >= 2) {
-                            val players = validNames.map { name ->
+                            // 중복 없는 색상 생성
+                            val colors = generateUniqueColors(validNames.size)
+                            val players = validNames.mapIndexed { index, name ->
                                 Player(
                                     name = name,
-                                    color = generateRandomColor()
+                                    color = colors[index]
                                 )
                             }
                             ColosseumInfo.setPlayers(players)

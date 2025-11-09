@@ -20,24 +20,36 @@ val speechDocs = listOf(
 )
 
 /**
+ * 사용 가능한 플레이어 색상 팔레트
+ */
+private val playerColorPalette = listOf(
+    Color(0xFFE73F3C), // Red
+    Color(0xFF3498DB), // Blue
+    Color(0xFF2ECC71), // Green
+    Color(0xFFF3CC12), // Yellow
+    Color(0xFF9B59B6), // Purple
+    Color(0xFF7ABCBC), // Sky Blue
+    Color(0xFFE91E63), // Pink
+    Color(0xFFAAAAAA), // Gray
+)
+
+/**
  * 랜덤 색상 생성 (선명한 색상 위주)
  */
 fun generateRandomColor(): Color {
-    val colors = listOf(
-        Color(0xFFE74C3C), // Red
-        Color(0xFF3498DB), // Blue
-        Color(0xFF2ECC71), // Green
-        Color(0xFFF39C12), // Orange
-        Color(0xFF9B59B6), // Purple
-        Color(0xFF1ABC9C), // Turquoise
-        Color(0xFFE91E63), // Pink
-        Color(0xFFFF5722), // Deep Orange
-        Color(0xFF00BCD4), // Cyan
-        Color(0xFF4CAF50), // Light Green
-        Color(0xFFFF9800), // Orange
-        Color(0xFF673AB7), // Deep Purple
-    )
-    return colors[Random.nextInt(colors.size)]
+    return playerColorPalette[Random.nextInt(playerColorPalette.size)]
+}
+
+/**
+ * 중복 없이 여러 개의 랜덤 색상 생성
+ * @param count 필요한 색상의 개수 (최대 8개)
+ * @return 중복 없는 색상 리스트
+ */
+fun generateUniqueColors(count: Int): List<Color> {
+    require(count <= playerColorPalette.size) {
+        "요청한 색상 개수($count)가 사용 가능한 색상 팔레트 크기(${playerColorPalette.size})를 초과합니다."
+    }
+    return playerColorPalette.shuffled().take(count)
 }
 
 /**

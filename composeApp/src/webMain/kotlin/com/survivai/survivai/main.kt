@@ -133,14 +133,18 @@ private fun ResponsiveRoot() {
                 }
             }
 
-            // Restart Button TODO : EndScreen 으로 이전
+            // 재설정 버튼
             Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Cyan,
+                    contentColor = Color.Blue,
+                ),
                 onClick = {
                     ColosseumInfo.clear()
                 },
             ) {
                 Text(
-                    text = "재시작",
+                    text = "경기 재설정",
                     fontFamily = fontFamily,
                 )
             }

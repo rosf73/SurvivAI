@@ -5,6 +5,9 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.*
@@ -16,6 +19,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
+import com.survivai.survivai.common.createGitHubIcon
 import com.survivai.survivai.game.colosseum.ColosseumInfo
 import org.jetbrains.compose.resources.Font
 import survivai.composeapp.generated.resources.NotoEmojiColor
@@ -94,18 +98,52 @@ private fun ResponsiveRoot() {
             }
         }
 
-        // Restart TODO : EndScreen 으로 이전
-        Button(
+        // Top right buttons
+        Row(
             modifier = Modifier
-                .align(Alignment.TopEnd),
-            onClick = {
-                ColosseumInfo.clear()
-            },
+                .align(Alignment.TopEnd)
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = "재시작",
-                fontFamily = fontFamily,
-            )
+            // GitHub Link Button
+            Button(
+                onClick = {
+                    window.open("https://github.com/rosf73/SurvivAI", "_blank")
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    contentColor = Color.White,
+                ),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // GitHub 아이콘
+                    Icon(
+                        imageVector = createGitHubIcon(),
+                        contentDescription = "GitHub",
+                        modifier = Modifier.size(18.dp),
+                        tint = Color.White,
+                    )
+                    Text(
+                        text = "GitHub",
+                        fontFamily = fontFamily,
+                    )
+                }
+            }
+
+            // Restart Button TODO : EndScreen 으로 이전
+            Button(
+                onClick = {
+                    ColosseumInfo.clear()
+                },
+            ) {
+                Text(
+                    text = "재시작",
+                    fontFamily = fontFamily,
+                )
+            }
         }
     }
 }

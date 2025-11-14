@@ -82,7 +82,33 @@ object ColosseumInfo {
         initialized = true
     }
 
-    fun clear() {
+    fun restart() {
+        // 현재 플레이어 정보로 새 플레이어 생성 (HP 초기화)
+        val newPlayers = players.map { player ->
+            Player(
+                name = player.name,
+                color = player.color,
+                radius = player.radius,
+                startHp = defaultHp
+            )
+        }
+        
+        // 게임 상태 리셋
+        winnerAnnounced = false
+        _isGameRunning.value = true
+        _logEntries.clear()
+        
+        // 플레이어 재설정 및 재초기화
+        players = newPlayers
+        initialized = false
+        tryInitialize()
+        
+        // recomposition event
+        _fullUpdateState.value = !_fullUpdateState.value
+        _itemUpdateState.value = !_itemUpdateState.value
+    }
+
+    fun reset() {
         initialized = false
         worldInitialized = false  // World도 재초기화 필요
         players = emptyList()

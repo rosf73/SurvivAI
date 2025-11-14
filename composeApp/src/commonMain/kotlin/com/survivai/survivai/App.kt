@@ -15,6 +15,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.colosseum.ColosseumInfo
+import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.entity.Player
@@ -56,6 +57,9 @@ fun App(
 
         // 게임 시작 여부 상태 (재시작 시 리셋)
         var gameStarted by remember(gameRestartTrigger) { mutableStateOf(false) }
+        
+        // 게임 종료 상태 (시작되었지만 더 이상 실행 중이 아님)
+        val gameEnded = gameStarted && !isGameRunning
 
         LaunchedEffect(gameRestartTrigger) {
             lastTime = 0L  // 재시작 시 타이머 리셋
@@ -122,6 +126,24 @@ fun App(
                             ColosseumInfo.setPlayers(players)
                             gameStarted = true
                         }
+                    },
+                )
+            }
+            
+            // End Screen Overlay
+            if (gameEnded) {
+                ColosseumEndScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    statsList = emptyList(), // TODO : 결과 stats 전달
+                    fontFamily = fontFamily,
+                    onClickRestart = {
+                        // 바로 재시작 (플레이어 유지)
+                        ColosseumInfo.restart()
+                    },
+                    onClickReset = {
+                        // 경기 재설정 (처음부터)
+                        gameStarted = false
+                        ColosseumInfo.reset()
                     },
                 )
             }

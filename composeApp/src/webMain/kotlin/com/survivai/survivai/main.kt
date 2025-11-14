@@ -140,7 +140,7 @@ private fun ResponsiveRoot() {
                     contentColor = Color.Blue,
                 ),
                 onClick = {
-                    ColosseumInfo.clear()
+                    ColosseumInfo.reset()
                 },
             ) {
                 Text(

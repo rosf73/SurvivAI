@@ -37,7 +37,7 @@ fun ColosseumEndScreen(
 ) {
     Column(
         modifier = modifier
-            .background(color = Color(220, 255, 255, 180))
+            .background(color = Color(255, 220, 220, 180))
             .padding(horizontal = 50.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -45,7 +45,7 @@ fun ColosseumEndScreen(
         Text(
             modifier = Modifier
                 .padding(top = 16.dp),
-            text = "플레이어 등록",
+            text = "게임 결과",
             style = TextStyle(
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
@@ -83,6 +83,8 @@ fun ColosseumEndScreen(
                 Text("바로 재시작", style = TextStyle(fontFamily = fontFamily))
             }
 
+            Spacer(modifier = Modifier.size(30.dp))
+
             Button(
                 modifier = Modifier
                     .padding(bottom = 16.dp),
@@ -110,7 +112,7 @@ private fun ColosseumDashboard(
 ) {
     val borderColor = Color(0xFF666666)
     val borderWidth = 1.dp
-    
+
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
@@ -122,7 +124,7 @@ private fun ColosseumDashboard(
                 1 -> Color(0xFFFFF9C4) // 연노란색
                 else -> Color(0x80FFFFFF) // 반투명 하얀색 (alpha 50%)
             }
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -134,7 +136,7 @@ private fun ColosseumDashboard(
                         // 나머지 column들: 같은 간격
                         Modifier.weight(1f)
                     }
-                    
+
                     Box(
                         modifier = cellModifier
                             .background(backgroundColor)

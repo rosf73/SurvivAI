@@ -6,6 +6,12 @@ import com.survivai.survivai.game.colosseum.entity.Player
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 
+sealed interface GameState {
+    data object WaitingForPlayers : GameState  // 플레이어 등록 대기
+    data object Playing : GameState  // 게임 진행 중
+    data object Ended : GameState  // 게임 종료
+}
+
 object ColosseumInfo {
 
     // 게임 초기화됨
@@ -23,26 +29,16 @@ object ColosseumInfo {
     var defaultHp = 3
         private set
 
-    // 게임 셋
-    var winnerAnnounced = false
-        private set
-
-    // 게임 실행 상태
-    private val _isGameRunning = mutableStateOf(true)
-    val isGameRunning: State<Boolean> get() = _isGameRunning
+    // 게임 상태
+    private val _gameState = mutableStateOf<GameState>(GameState.WaitingForPlayers)
+    val gameState: State<GameState> get() = _gameState
 
     // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
     val world = ColosseumWorld()
 
     // 로그 상태 추적
-    private val _fullUpdateState = mutableStateOf(false)
-    val fullUpdateState: State<Boolean> get() = _fullUpdateState
     private val _itemUpdateState = mutableStateOf(false)
     val itemUpdateState: State<Boolean> get() = _itemUpdateState
-    
-    // 완전 리셋 트리거 (gameStarted 상태를 리셋할 때만 사용)
-    private val _resetTrigger = mutableStateOf(false)
-    val resetTrigger: State<Boolean> get() = _resetTrigger
 
     // 로그 리스트
     private val _logEntries = mutableListOf<String>()
@@ -62,6 +58,7 @@ object ColosseumInfo {
     fun setPlayers(newList: List<Player>) {
         players = newList
         initialized = false  // 재초기화 필요
+        _gameState.value = GameState.Playing
         tryInitialize()
     }
 
@@ -96,19 +93,17 @@ object ColosseumInfo {
                 startHp = defaultHp
             )
         }
-        
+
         // 게임 상태 리셋
-        winnerAnnounced = false
-        _isGameRunning.value = true
+        _gameState.value = GameState.Playing
         _logEntries.clear()
-        
+
         // 플레이어 재설정 및 재초기화
         players = newPlayers
         initialized = false
         tryInitialize()
-        
-        // recomposition event (resetTrigger는 토글하지 않음)
-        _fullUpdateState.value = !_fullUpdateState.value
+
+        // recomposition event
         _itemUpdateState.value = !_itemUpdateState.value
     }
 
@@ -117,13 +112,12 @@ object ColosseumInfo {
         worldInitialized = false  // World도 재초기화 필요
         players = emptyList()
         defaultHp = 3  // HP 초기화
-        winnerAnnounced = false
-        _isGameRunning.value = true  // 게임 재시작
         _logEntries.clear()
 
+        // 게임 상태를 대기 상태로
+        _gameState.value = GameState.WaitingForPlayers
+
         // recomposition event
-        _resetTrigger.value = !_resetTrigger.value  // gameStarted 리셋 트리거
-        _fullUpdateState.value = !_fullUpdateState.value
         _itemUpdateState.value = !_itemUpdateState.value
     }
 
@@ -140,7 +134,6 @@ object ColosseumInfo {
     }
 
     fun updateGameSet() {
-        winnerAnnounced = true
-        _isGameRunning.value = false  // 게임 중단
+        _gameState.value = GameState.Ended
     }
 }

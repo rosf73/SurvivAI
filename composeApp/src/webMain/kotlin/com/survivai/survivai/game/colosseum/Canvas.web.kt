@@ -81,7 +81,7 @@ class WebCanvas : Canvas {
     // TODO : 게임 유형 확장성 추가
     private val world get() = ColosseumInfo.world
     private val players get() = ColosseumInfo.players
-    private val winnerAnnounced get() = ColosseumInfo.winnerAnnounced
+    private val gameState get() = ColosseumInfo.gameState.value
 
     // Simple combat/event log -> delegate to shared store
     private fun log(message: String) {
@@ -105,7 +105,7 @@ class WebCanvas : Canvas {
             }
 
             // Check for winner (only once)
-            if (!winnerAnnounced && alivePlayers.size == 1) {
+            if (gameState != GameState.Ended && alivePlayers.size == 1) {
                 log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
                 ColosseumInfo.updateGameSet()
             }

@@ -39,6 +39,10 @@ object ColosseumInfo {
     val fullUpdateState: State<Boolean> get() = _fullUpdateState
     private val _itemUpdateState = mutableStateOf(false)
     val itemUpdateState: State<Boolean> get() = _itemUpdateState
+    
+    // 완전 리셋 트리거 (gameStarted 상태를 리셋할 때만 사용)
+    private val _resetTrigger = mutableStateOf(false)
+    val resetTrigger: State<Boolean> get() = _resetTrigger
 
     // 로그 리스트
     private val _logEntries = mutableListOf<String>()
@@ -103,7 +107,7 @@ object ColosseumInfo {
         initialized = false
         tryInitialize()
         
-        // recomposition event
+        // recomposition event (resetTrigger는 토글하지 않음)
         _fullUpdateState.value = !_fullUpdateState.value
         _itemUpdateState.value = !_itemUpdateState.value
     }
@@ -118,6 +122,7 @@ object ColosseumInfo {
         _logEntries.clear()
 
         // recomposition event
+        _resetTrigger.value = !_resetTrigger.value  // gameStarted 리셋 트리거
         _fullUpdateState.value = !_fullUpdateState.value
         _itemUpdateState.value = !_itemUpdateState.value
     }

@@ -52,16 +52,16 @@ fun App(
         var lastTime by remember { mutableStateOf(0L) }
 
         // 게임 실행 상태 추적
-        val gameRestartTrigger = ColosseumInfo.fullUpdateState.value
+        val gameResetTrigger = ColosseumInfo.resetTrigger.value
         val isGameRunning = ColosseumInfo.isGameRunning.value
 
-        // 게임 시작 여부 상태 (재시작 시 리셋)
-        var gameStarted by remember(gameRestartTrigger) { mutableStateOf(false) }
-        
+        // 게임 시작 여부 상태 (완전 리셋 시에만 false로 리셋)
+        var gameStarted by remember(gameResetTrigger) { mutableStateOf(false) }
+
         // 게임 종료 상태 (시작되었지만 더 이상 실행 중이 아님)
         val gameEnded = gameStarted && !isGameRunning
 
-        LaunchedEffect(gameRestartTrigger) {
+        LaunchedEffect(ColosseumInfo.fullUpdateState.value) {
             lastTime = 0L  // 재시작 시 타이머 리셋
 
             // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청

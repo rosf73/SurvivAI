@@ -128,6 +128,7 @@ fun App(
                 ColosseumEndScreen(
                     modifier = Modifier.fillMaxSize(),
                     statsList = currentGameState.statsList,
+                    titles = currentGameState.titleList,
                     fontFamily = fontFamily,
                     onClickRestart = {
                         // 바로 재시작 (플레이어 유지)

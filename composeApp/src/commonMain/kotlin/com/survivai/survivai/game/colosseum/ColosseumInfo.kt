@@ -6,6 +6,7 @@ import com.survivai.survivai.common.msToMMSS
 import com.survivai.survivai.game.colosseum.entity.Player
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import kotlin.collections.plus
 import kotlin.math.max
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -13,8 +14,13 @@ import kotlin.time.ExperimentalTime
 sealed interface GameState {
     data object WaitingForPlayers : GameState  // 플레이어 등록 대기
     data class Playing(val startTime: Long) : GameState  // 게임 진행 중
-    data class Ended(val statsList: List<List<String>>) : GameState  // 게임 종료
+    data class Ended(val statsList: List<List<String>>, val titleList: List<PlayerTitle>) : GameState  // 게임 종료
 }
+
+data class PlayerTitle(
+    val title: String,
+    val players: String,
+)
 
 object ColosseumInfo {
 
@@ -144,7 +150,8 @@ object ColosseumInfo {
         val gameState = gameState.value as? GameState.Playing ?: return
 
         val statsList = calculateTotalScore(gameState)
-        _gameState.value = GameState.Ended(statsList)
+        val titleList = calculateTitles(statsList)
+        _gameState.value = GameState.Ended(statsList, titleList)
     }
 
     @OptIn(ExperimentalTime::class)
@@ -178,6 +185,10 @@ object ColosseumInfo {
         }.sortedByDescending {
             it.last().toInt()
         }
+    }
+
+    private fun calculateTitles(statsList: List<List<String>>): List<PlayerTitle> {
+        return emptyList() // TODO
     }
 
     // 타격 횟수

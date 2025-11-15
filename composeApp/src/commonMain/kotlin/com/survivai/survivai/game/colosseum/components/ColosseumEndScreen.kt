@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -25,11 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.roundToInt
+import com.survivai.survivai.game.colosseum.PlayerTitle
 
 @Composable
 fun ColosseumEndScreen(
     statsList: List<List<String>>,
+    titles: List<PlayerTitle>,
     onClickRestart: () -> Unit,
     onClickReset: () -> Unit,
     fontFamily: FontFamily,
@@ -55,13 +58,34 @@ fun ColosseumEndScreen(
 
         Spacer(modifier = Modifier.size(20.dp))
 
-        // 대시 보드
-        ColosseumDashboard(
-            statsList = statsList,
-            fontFamily = fontFamily,
+        // 대시보드(70%) + 칭호 목록(30%) Row
+        Row(
             modifier = Modifier
-                .weight(1f),
-        )
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            // 대시 보드
+            Dashboard(
+                statsList = statsList,
+                fontFamily = fontFamily,
+                modifier = Modifier
+                    .weight(7f)
+                    .fillMaxHeight(),
+            )
+
+            Spacer(modifier = Modifier.size(20.dp))
+
+            // 칭호 목록
+            TitlesList(
+                titles = titles,
+                fontFamily = fontFamily,
+                modifier = Modifier
+                    .weight(3f)
+                    .fillMaxHeight()
+            )
+        }
+
+        Spacer(modifier = Modifier.size(20.dp))
 
         // 재시작 버튼
         Row(
@@ -105,7 +129,64 @@ fun ColosseumEndScreen(
 }
 
 @Composable
-private fun ColosseumDashboard(
+private fun TitlesList(
+    titles: List<PlayerTitle>,
+    fontFamily: FontFamily,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.Start,
+    ) {
+        // 제목
+        Text(
+            text = "칭호 목록",
+            style = TextStyle(
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = fontFamily,
+                color = Color.Black,
+            ),
+            modifier = Modifier.padding(bottom = 20.dp)
+        )
+
+        // 칭호 리스트
+        LazyColumn(
+            modifier = Modifier.weight(1f)
+        ) {
+            items(titles) { playerTitle ->
+                // 칭호 제목
+                Text(
+                    text = playerTitle.title,
+                    style = TextStyle(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = fontFamily,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+
+                // 플레이어들
+                Text(
+                    text = playerTitle.players,
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = fontFamily,
+                        color = Color.Black,
+                    ),
+                    modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+                )
+
+                // 칭호 간 간격
+                Spacer(modifier = Modifier.size(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun Dashboard(
     statsList: List<List<String>>,
     fontFamily: FontFamily,
     modifier: Modifier = Modifier,
@@ -115,7 +196,6 @@ private fun ColosseumDashboard(
 
     LazyColumn(
         modifier = modifier
-            .fillMaxWidth()
             .border(width = borderWidth, color = borderColor)
     ) {
         itemsIndexed(statsList) { rowIndex, rowData ->

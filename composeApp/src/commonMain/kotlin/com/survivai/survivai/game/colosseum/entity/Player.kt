@@ -362,6 +362,9 @@ data class Player(
         attackTimer = 0f
         inAction = true
 
+        // 스탯 업데이트
+        ColosseumInfo.resetPlayerComboPoint(name)
+
         return true
     }
 

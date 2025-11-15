@@ -149,13 +149,22 @@ class WebCanvas : Canvas {
                         if (hitThisFrame.add(key)) {
                             val damaged = target.receiveDamage(attacker.x, power = 700f)
                             if (damaged) {
+                                // 스탯 업데이트
+                                ColosseumInfo.updatePlayerAttackPoint(alivePlayers[i].name)
 
                                 if (target.currentHp > 0) {
                                     log("        ${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
-                                } else if (alivePlayers.size == players.size) { // first blood
-                                    log("        ${alivePlayers[i].name} 에 의해 ${target.name} First Blood! 😭")
                                 } else {
-                                    log("        ${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
+                                    // 스탯 업데이트
+                                    ColosseumInfo.updatePlayerKillPoint(
+                                        killerName = alivePlayers[i].name,
+                                        victimName = target.name,
+                                    )
+                                    if (alivePlayers.size == players.size) { // first blood
+                                        log("        ${alivePlayers[i].name} 에 의해 ${target.name} First Blood! 😭")
+                                    } else {
+                                        log("        ${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
+                                    }
                                 }
                             }
                         }

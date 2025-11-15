@@ -19,6 +19,7 @@ sealed interface GameState {
 
 data class PlayerTitle(
     val title: String,
+    val desc: String,
     val players: String,
 )
 
@@ -160,7 +161,7 @@ object ColosseumInfo {
         val endTime = Clock.System.now().toEpochMilliseconds()
         val firstPlayerSurvivePoint = endTime - startTime + 60000
 
-        val title = listOf(listOf("NAME", "ATTACK", "KILL", "SURVIVE", "COMBO", "결과"))
+        val title = listOf(listOf("NAME", "ATTACK", "KILL", "SURVIVE", "COMBO", "결과(ATTACK+SURVIVE)"))
 
         // 순위 기준값 먼저 계산
         var totalAttackPoint = 0F
@@ -188,7 +189,66 @@ object ColosseumInfo {
     }
 
     private fun calculateTitles(statsList: List<List<String>>): List<PlayerTitle> {
-        return emptyList() // TODO
+        if (statsList.size <= 1) return emptyList() // 헤더만 있거나 비어있음
+
+        val titles = mutableListOf<PlayerTitle>()
+
+        // 1등 (이미 score 기준으로 정렬되어 있으므로 첫 번째가 1등)
+        val firstPlace = statsList[1][0] // NAME 컬럼
+        titles.add(PlayerTitle("🏆 1등", "결국 점수 높은 게 1등이야", firstPlace))
+
+        // 반복문으로 나머지 칭호 수집
+        var maxKill = -1
+        val killChampions = mutableListOf<String>()
+        val quickExits = mutableListOf<String>() // 10초 이내 사망
+        val pacifists = mutableListOf<String>() // 타격 0회
+
+        for (i in 1 until statsList.size) {
+            val row = statsList[i]
+            val name = row[0]
+            val attack = row[1].toIntOrNull() ?: 0
+            val kill = row[2].toIntOrNull() ?: 0
+            val surviveTime = row[3] // "MM:SS" 형식
+
+            // GOSU (kill 최대값)
+            when {
+                kill > maxKill -> {
+                    maxKill = kill
+                    killChampions.clear()
+                    killChampions.add(name)
+                }
+                kill == maxKill && maxKill > 0 -> {
+                    killChampions.add(name)
+                }
+            }
+
+            // 최단기퇴물 (10초 이내 사망)
+            if (surviveTime <= "00:10") {
+                quickExits.add(name)
+            }
+
+            // 평화주의자 (타격 0회)
+            if (attack == 0) {
+                pacifists.add(name)
+            }
+        }
+
+        // GOSU 칭호 추가
+        if (killChampions.isNotEmpty() && maxKill > 0) {
+            titles.add(PlayerTitle("⭐️ GOSU", "해골 수집가 (최다결정타)", killChampions.joinToString(", ")))
+        }
+
+        // 최단기퇴물 칭호 추가
+        if (quickExits.isNotEmpty()) {
+            titles.add(PlayerTitle("⏱️ 최단기퇴물", "스폰킬도 실력 (10초 이내로 사망)", quickExits.joinToString(", ")))
+        }
+
+        // 평화주의자 칭호 추가
+        if (pacifists.isNotEmpty()) {
+            titles.add(PlayerTitle("🕊️ 평화주의자", "적을 못 맞힌 게 아니다… 바람을 맞힌 거다. (어택 횟수 0회)", pacifists.joinToString(", ")))
+        }
+
+        return titles
     }
 
     // 타격 횟수

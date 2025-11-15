@@ -140,7 +140,7 @@ private fun TitlesList(
     ) {
         // 제목
         Text(
-            text = "칭호 목록",
+            text = "💎 MVP 전당 💎",
             style = TextStyle(
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
@@ -162,7 +162,18 @@ private fun TitlesList(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = fontFamily,
-                        color = Color.Black,
+                    ),
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+
+                // 칭호 설명
+                Text(
+                    text = playerTitle.desc,
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = fontFamily,
+                        color = Color.Gray,
                     ),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
@@ -173,7 +184,6 @@ private fun TitlesList(
                     style = TextStyle(
                         fontSize = 15.sp,
                         fontFamily = fontFamily,
-                        color = Color.Black,
                     ),
                     modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
                 )

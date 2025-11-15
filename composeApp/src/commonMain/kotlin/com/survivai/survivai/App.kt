@@ -59,7 +59,7 @@ fun App(
             lastTime = 0L  // 재시작 시 타이머 리셋
 
             // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청
-            while (ColosseumInfo.gameState.value == GameState.Playing) {
+            while (ColosseumInfo.gameState.value is GameState.Playing) {
                 withFrameMillis { currentTime ->
                     if (lastTime > 0) {
                         val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산

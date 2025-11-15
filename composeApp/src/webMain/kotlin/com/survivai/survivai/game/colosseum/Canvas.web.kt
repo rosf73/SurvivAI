@@ -149,6 +149,7 @@ class WebCanvas : Canvas {
                         if (hitThisFrame.add(key)) {
                             val damaged = target.receiveDamage(attacker.x, power = 700f)
                             if (damaged) {
+
                                 if (target.currentHp > 0) {
                                     log("        ${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
                                 } else if (alivePlayers.size == players.size) { // first blood

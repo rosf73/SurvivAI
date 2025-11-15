@@ -17,11 +17,11 @@ import kotlin.math.abs
 import kotlin.math.min
 import kotlin.random.Random
 
-class Player(
+data class Player(
     val name: String,
     val radius: Float = 30f,
     val color: Color = Color.Blue,
-    startHp: Int = ColosseumInfo.defaultHp,
+    private val startHp: Int = ColosseumInfo.defaultHp,
 ) : Entity {
 
     // Position
@@ -74,6 +74,13 @@ class Player(
     // Public read-only views
     val isAttackingNow: Boolean get() = isAttacking
     val isFacingRight: Boolean get() = facingRight
+
+    // Point, Score
+    var attackPoint = 0
+    var killPoint = 0
+    var deathTime = 0L
+    var comboPoint = 0
+    var maxComboPoint = 0
 
     /**
      * 랜덤 확률을 기반으로 다음 액션을 결정

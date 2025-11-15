@@ -136,7 +136,7 @@ private fun ResponsiveRoot() {
             }
 
             // 바로 재시작 버튼 (게임 진행 중이거나 종료 시에만 표시)
-            if (currentGameState == GameState.Playing || currentGameState == GameState.Ended) {
+            if (currentGameState is GameState.Playing || currentGameState == GameState.Ended) {
                 Button(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Green,

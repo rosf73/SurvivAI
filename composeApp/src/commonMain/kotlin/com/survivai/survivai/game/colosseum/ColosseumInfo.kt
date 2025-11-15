@@ -5,10 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import com.survivai.survivai.game.colosseum.entity.Player
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 sealed interface GameState {
     data object WaitingForPlayers : GameState  // 플레이어 등록 대기
-    data object Playing : GameState  // 게임 진행 중
+    data class Playing(val startTime: Long) : GameState  // 게임 진행 중
     data object Ended : GameState  // 게임 종료
 }
 
@@ -55,10 +57,11 @@ object ColosseumInfo {
         tryInitialize()
     }
 
+    @OptIn(ExperimentalTime::class)
     fun setPlayers(newList: List<Player>) {
         players = newList
         initialized = false  // 재초기화 필요
-        _gameState.value = GameState.Playing
+        _gameState.value = GameState.Playing(Clock.System.now().toEpochMilliseconds())
         tryInitialize()
     }
 
@@ -83,6 +86,7 @@ object ColosseumInfo {
         initialized = true
     }
 
+    @OptIn(ExperimentalTime::class)
     fun restart() {
         // 현재 플레이어 정보로 새 플레이어 생성 (HP 초기화)
         val newPlayers = players.map { player ->
@@ -95,7 +99,7 @@ object ColosseumInfo {
         }
 
         // 게임 상태 리셋
-        _gameState.value = GameState.Playing
+        _gameState.value = GameState.Playing(Clock.System.now().toEpochMilliseconds())
         _logEntries.clear()
 
         // 플레이어 재설정 및 재초기화
@@ -135,5 +139,57 @@ object ColosseumInfo {
 
     fun updateGameSet() {
         _gameState.value = GameState.Ended
+    }
+
+    // 타격 횟수
+    fun updatePlayerAttackPoint(name: String) {
+        players = players.map {
+            it.apply {
+                if (this.name == name) {
+                    attackPoint += 1
+                }
+            }
+        }
+    }
+
+    // 결정타 횟수
+    fun updatePlayerKillPoint(name: String) {
+        players = players.map {
+            it.apply {
+                if (this.name == name) {
+                    killPoint += 1
+                }
+            }
+        }
+    }
+
+    // 생존시간
+    fun updatePlayerDeathTime(name: String, deathTime: Long) {
+        val gameState = gameState.value as? GameState.Playing ?: return
+
+        players = players.map {
+            it.apply {
+                if (this.name == name) {
+                    this.deathTime = deathTime - gameState.startTime
+                }
+            }
+        }
+    }
+
+    // 최장 콤보
+    fun updatePlayerComboPoint(name: String, damaged: Boolean) {
+        players = players.map {
+            it.apply {
+                if (this.name == name) {
+                    val temp = comboPoint
+                    comboPoint = if (damaged) { // 얘가 맞음
+                        0
+                    } else { // 얘가 때림
+                        comboPoint + 1
+                    }
+                    maxComboPoint = arrayOf(maxComboPoint, temp, comboPoint).max()
+                }
+            }
+        }
     }
 }

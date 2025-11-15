@@ -159,9 +159,10 @@ object ColosseumInfo {
     private fun calculateTotalScore(playingState: GameState.Playing): List<List<String>> {
         val startTime = playingState.startTime
         val endTime = Clock.System.now().toEpochMilliseconds()
-        val firstPlayerSurvivePoint = endTime - startTime + 60000
+        val totalPlayTime = endTime - startTime
+        val firstPlayerSurvivePoint = totalPlayTime + 60000
 
-        val title = listOf(listOf("NAME", "ATTACK", "KILL", "SURVIVE", "COMBO", "결과(ATTACK+SURVIVE)"))
+        val title = listOf(listOf("NAME", "ATTACK", "KILL", "SURVIVE", "COMBO", "결과"))
 
         // 순위 기준값 먼저 계산
         var totalAttackPoint = 0F
@@ -173,13 +174,16 @@ object ColosseumInfo {
 
         return title + players.map {
             val surviveTime = if (it.deathTime == 0L) firstPlayerSurvivePoint else it.deathTime - startTime
+            val surviveTimeStr =
+                if (it.deathTime == 0L) "${totalPlayTime.msToMMSS()}(+01:00)"
+                else surviveTime.msToMMSS()
             val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime.toFloat() / totalSurvivePoint) * 100
 
             listOf(
                 it.name,
                 it.attackPoint.toString(),
                 it.killPoint.toString(),
-                surviveTime.msToMMSS(),
+                surviveTimeStr,
                 it.maxComboPoint.toString(),
                 score.toInt().toString(),
             )

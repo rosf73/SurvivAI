@@ -105,7 +105,7 @@ class WebCanvas : Canvas {
             }
 
             // Check for winner (only once)
-            if (gameState != GameState.Ended && alivePlayers.size == 1) {
+            if (gameState !is GameState.Ended && alivePlayers.size == 1) {
                 log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
                 ColosseumInfo.updateGameSet()
             }

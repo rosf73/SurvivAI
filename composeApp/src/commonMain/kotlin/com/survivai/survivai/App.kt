@@ -122,12 +122,12 @@ fun App(
                     },
                 )
             }
-            
+
             // End Screen Overlay
-            if (currentGameState == GameState.Ended) {
+            if (currentGameState is GameState.Ended) {
                 ColosseumEndScreen(
                     modifier = Modifier.fillMaxSize(),
-                    statsList = emptyList(),
+                    statsList = currentGameState.statsList,
                     fontFamily = fontFamily,
                     onClickRestart = {
                         // 바로 재시작 (플레이어 유지)

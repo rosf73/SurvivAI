@@ -11,7 +11,7 @@ import kotlin.time.ExperimentalTime
 sealed interface GameState {
     data object WaitingForPlayers : GameState  // 플레이어 등록 대기
     data class Playing(val startTime: Long) : GameState  // 게임 진행 중
-    data object Ended : GameState  // 게임 종료
+    data class Ended(val statsList: List<List<String>>) : GameState  // 게임 종료
 }
 
 object ColosseumInfo {
@@ -137,8 +137,41 @@ object ColosseumInfo {
         _itemUpdateState.value = !_itemUpdateState.value
     }
 
+    // 게임이 끝났을 때만 호출
+    @OptIn(ExperimentalTime::class)
     fun updateGameSet() {
-        _gameState.value = GameState.Ended
+        val gameState = gameState.value as? GameState.Playing ?: return
+        val startTime = gameState.startTime
+        val endTime = Clock.System.now().toEpochMilliseconds()
+        val firstPlayerSurvivePoint = endTime - startTime + 60000
+
+        val title = listOf(listOf("NAME", "ATTACK", "KILL", "SURVIVE", "COMBO", "결과"))
+
+        // 순위 기준값 먼저 계산
+        var totalAttackPoint = 0F
+        var totalSurvivePoint = 0L
+        for (p in players) {
+            totalAttackPoint += p.attackPoint
+            totalSurvivePoint += if (p.deathTime == 0L) firstPlayerSurvivePoint else p.deathTime - startTime
+        }
+
+        _gameState.value = GameState.Ended(
+            title + players.map {
+                val surviveTime = if (it.deathTime == 0L) firstPlayerSurvivePoint else it.deathTime - startTime
+                val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime / totalSurvivePoint) * 100
+
+                listOf(
+                    it.name,
+                    it.attackPoint.toString(),
+                    it.killPoint.toString(),
+                    surviveTime.toString(),
+                    it.maxComboPoint.toString(),
+                    score.toString(),
+                )
+            }.sortedByDescending {
+                it.last().toInt()
+            }
+        )
     }
 
     // 타격 횟수
@@ -165,12 +198,10 @@ object ColosseumInfo {
 
     // 생존시간
     fun updatePlayerDeathTime(name: String, deathTime: Long) {
-        val gameState = gameState.value as? GameState.Playing ?: return
-
         players = players.map {
             it.apply {
                 if (this.name == name) {
-                    this.deathTime = deathTime - gameState.startTime
+                    this.deathTime = deathTime
                 }
             }
         }

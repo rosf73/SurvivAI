@@ -140,10 +140,16 @@ object ColosseumInfo {
     }
 
     // 게임이 끝났을 때만 호출
-    @OptIn(ExperimentalTime::class)
     fun updateGameSet() {
         val gameState = gameState.value as? GameState.Playing ?: return
-        val startTime = gameState.startTime
+
+        val statsList = calculateTotalScore(gameState)
+        _gameState.value = GameState.Ended(statsList)
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private fun calculateTotalScore(playingState: GameState.Playing): List<List<String>> {
+        val startTime = playingState.startTime
         val endTime = Clock.System.now().toEpochMilliseconds()
         val firstPlayerSurvivePoint = endTime - startTime + 60000
 
@@ -157,23 +163,21 @@ object ColosseumInfo {
             totalSurvivePoint += if (p.deathTime == 0L) firstPlayerSurvivePoint else p.deathTime - startTime
         }
 
-        _gameState.value = GameState.Ended(
-            title + players.map {
-                val surviveTime = if (it.deathTime == 0L) firstPlayerSurvivePoint else it.deathTime - startTime
-                val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime.toFloat() / totalSurvivePoint) * 100
+        return title + players.map {
+            val surviveTime = if (it.deathTime == 0L) firstPlayerSurvivePoint else it.deathTime - startTime
+            val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime.toFloat() / totalSurvivePoint) * 100
 
-                listOf(
-                    it.name,
-                    it.attackPoint.toString(),
-                    it.killPoint.toString(),
-                    surviveTime.msToMMSS(),
-                    it.maxComboPoint.toString(),
-                    score.toInt().toString(),
-                )
-            }.sortedByDescending {
-                it.last().toInt()
-            }
-        )
+            listOf(
+                it.name,
+                it.attackPoint.toString(),
+                it.killPoint.toString(),
+                surviveTime.msToMMSS(),
+                it.maxComboPoint.toString(),
+                score.toInt().toString(),
+            )
+        }.sortedByDescending {
+            it.last().toInt()
+        }
     }
 
     // 타격 횟수

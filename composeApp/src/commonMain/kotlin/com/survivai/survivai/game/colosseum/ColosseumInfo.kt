@@ -168,7 +168,7 @@ object ColosseumInfo {
                     it.killPoint.toString(),
                     surviveTime.msToMMSS(),
                     it.maxComboPoint.toString(),
-                    score.toString(),
+                    score.toInt().toString(),
                 )
             }.sortedByDescending {
                 it.last().toInt()

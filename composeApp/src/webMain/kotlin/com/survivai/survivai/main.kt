@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
 import com.survivai.survivai.common.createGitHubIcon
 import com.survivai.survivai.game.colosseum.ColosseumInfo
+import com.survivai.survivai.game.colosseum.GameState
 import org.jetbrains.compose.resources.Font
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
@@ -38,7 +39,8 @@ private fun ResponsiveRoot() {
     val containerSize = LocalWindowInfo.current.containerSize
     val isLandscape = containerSize.width >= containerSize.height
 
-    val fullUpdater = ColosseumInfo.fullUpdateState.value
+    // 게임 상태 추적 (recomposition 트리거용)
+    val currentGameState = ColosseumInfo.gameState.value
 
     // 플랫폼별로 이모지 폰트 preload
     val fontFamilyResolver = LocalFontFamilyResolver.current
@@ -133,14 +135,36 @@ private fun ResponsiveRoot() {
                 }
             }
 
-            // Restart Button TODO : EndScreen 으로 이전
+            // 바로 재시작 버튼 (게임 진행 중이거나 종료 시에만 표시)
+            if (currentGameState is GameState.Playing || currentGameState is GameState.Ended) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Green,
+                        contentColor = Color.White,
+                    ),
+                    onClick = {
+                        ColosseumInfo.restart()
+                    },
+                ) {
+                    Text(
+                        text = "바로 재시작",
+                        fontFamily = fontFamily,
+                    )
+                }
+            }
+
+            // 재설정 버튼
             Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Cyan,
+                    contentColor = Color.Blue,
+                ),
                 onClick = {
-                    ColosseumInfo.clear()
+                    ColosseumInfo.reset()
                 },
             ) {
                 Text(
-                    text = "재시작",
+                    text = "경기 재설정",
                     fontFamily = fontFamily,
                 )
             }

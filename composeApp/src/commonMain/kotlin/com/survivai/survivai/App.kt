@@ -15,6 +15,8 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.colosseum.ColosseumInfo
+import com.survivai.survivai.game.colosseum.GameState
+import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.entity.Player
@@ -50,18 +52,14 @@ fun App(
         // 1. Set game loop
         var lastTime by remember { mutableStateOf(0L) }
 
-        // 게임 실행 상태 추적
-        val gameRestartTrigger = ColosseumInfo.fullUpdateState.value
-        val isGameRunning = ColosseumInfo.isGameRunning.value
+        // 게임 상태 추적
+        val currentGameState = ColosseumInfo.gameState.value
 
-        // 게임 시작 여부 상태 (재시작 시 리셋)
-        var gameStarted by remember(gameRestartTrigger) { mutableStateOf(false) }
-
-        LaunchedEffect(gameRestartTrigger) {
+        LaunchedEffect(currentGameState) {
             lastTime = 0L  // 재시작 시 타이머 리셋
 
             // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청
-            while (ColosseumInfo.isGameRunning.value) {
+            while (ColosseumInfo.gameState.value is GameState.Playing) {
                 withFrameMillis { currentTime ->
                     if (lastTime > 0) {
                         val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산
@@ -99,7 +97,7 @@ fun App(
             }
 
             // Start Screen Overlay
-            if (!gameStarted) {
+            if (currentGameState == GameState.WaitingForPlayers) {
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
                     fontFamily = fontFamily,
@@ -120,8 +118,25 @@ fun App(
                                 )
                             }
                             ColosseumInfo.setPlayers(players)
-                            gameStarted = true
                         }
+                    },
+                )
+            }
+
+            // End Screen Overlay
+            if (currentGameState is GameState.Ended) {
+                ColosseumEndScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    statsList = currentGameState.statsList,
+                    titles = currentGameState.titleList,
+                    fontFamily = fontFamily,
+                    onClickRestart = {
+                        // 바로 재시작 (플레이어 유지)
+                        ColosseumInfo.restart()
+                    },
+                    onClickReset = {
+                        // 경기 재설정 (처음부터)
+                        ColosseumInfo.reset()
                     },
                 )
             }

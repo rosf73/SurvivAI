@@ -81,7 +81,7 @@ class WebCanvas : Canvas {
     // TODO : 게임 유형 확장성 추가
     private val world get() = ColosseumInfo.world
     private val players get() = ColosseumInfo.players
-    private val winnerAnnounced get() = ColosseumInfo.winnerAnnounced
+    private val gameState get() = ColosseumInfo.gameState.value
 
     // Simple combat/event log -> delegate to shared store
     private fun log(message: String) {
@@ -105,7 +105,7 @@ class WebCanvas : Canvas {
             }
 
             // Check for winner (only once)
-            if (!winnerAnnounced && alivePlayers.size == 1) {
+            if (gameState !is GameState.Ended && alivePlayers.size == 1) {
                 log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
                 ColosseumInfo.updateGameSet()
             }
@@ -149,12 +149,22 @@ class WebCanvas : Canvas {
                         if (hitThisFrame.add(key)) {
                             val damaged = target.receiveDamage(attacker.x, power = 700f)
                             if (damaged) {
+                                // 스탯 업데이트
+                                ColosseumInfo.updatePlayerAttackPoint(alivePlayers[i].name)
+
                                 if (target.currentHp > 0) {
                                     log("        ${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
-                                } else if (alivePlayers.size == players.size) { // first blood
-                                    log("        ${alivePlayers[i].name} 에 의해 ${target.name} First Blood! 😭")
                                 } else {
-                                    log("        ${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
+                                    // 스탯 업데이트
+                                    ColosseumInfo.updatePlayerKillPoint(
+                                        killerName = alivePlayers[i].name,
+                                        victimName = target.name,
+                                    )
+                                    if (alivePlayers.size == players.size) { // first blood
+                                        log("        ${alivePlayers[i].name} 에 의해 ${target.name} First Blood! 😭")
+                                    } else {
+                                        log("        ${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
+                                    }
                                 }
                             }
                         }

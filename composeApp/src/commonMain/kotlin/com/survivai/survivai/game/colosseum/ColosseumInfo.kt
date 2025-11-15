@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.survivai.survivai.game.colosseum.entity.Player
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import kotlin.math.max
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -158,7 +159,7 @@ object ColosseumInfo {
         _gameState.value = GameState.Ended(
             title + players.map {
                 val surviveTime = if (it.deathTime == 0L) firstPlayerSurvivePoint else it.deathTime - startTime
-                val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime / totalSurvivePoint) * 100
+                val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime.toFloat() / totalSurvivePoint) * 100
 
                 listOf(
                     it.name,
@@ -180,45 +181,33 @@ object ColosseumInfo {
             it.apply {
                 if (this.name == name) {
                     attackPoint += 1
+                    comboPoint += 1
+                    maxComboPoint = max(maxComboPoint, comboPoint)
                 }
             }
         }
     }
 
-    // 결정타 횟수
-    fun updatePlayerKillPoint(name: String) {
+    // 결정타 횟수, 탈락자 생존시간
+    @OptIn(ExperimentalTime::class)
+    fun updatePlayerKillPoint(killerName: String, victimName: String) {
         players = players.map {
             it.apply {
-                if (this.name == name) {
+                if (name == killerName) {
                     killPoint += 1
-                }
-            }
-        }
-    }
-
-    // 생존시간
-    fun updatePlayerDeathTime(name: String, deathTime: Long) {
-        players = players.map {
-            it.apply {
-                if (this.name == name) {
-                    this.deathTime = deathTime
+                } else if (name == victimName) {
+                    deathTime = Clock.System.now().toEpochMilliseconds()
                 }
             }
         }
     }
 
     // 최장 콤보
-    fun updatePlayerComboPoint(name: String, damaged: Boolean) {
+    fun resetPlayerComboPoint(name: String) {
         players = players.map {
             it.apply {
                 if (this.name == name) {
-                    val temp = comboPoint
-                    comboPoint = if (damaged) { // 얘가 맞음
-                        0
-                    } else { // 얘가 때림
-                        comboPoint + 1
-                    }
-                    maxComboPoint = arrayOf(maxComboPoint, temp, comboPoint).max()
+                    comboPoint = 0
                 }
             }
         }

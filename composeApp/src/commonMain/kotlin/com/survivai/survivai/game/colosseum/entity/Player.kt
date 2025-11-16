@@ -1,8 +1,11 @@
 package com.survivai.survivai.game.colosseum.entity
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -24,7 +27,7 @@ data class Player(
     private val startHp: Int = ColosseumInfo.defaultHp,
 ) : Entity {
 
-    // Position
+    // Position (Center offset)
     var x = 0f
     var y = 0f
 
@@ -41,8 +44,9 @@ data class Player(
 
     // Behavior
     private var facingRight = true // 바라보는 방향
-    private var isAttacking = false
+    private var attackState = AttackState.NONE
     private var attackTimer = 0f
+    val attackReach get() = radius * 2 + 5f
     private var isSpeeching = false
     private var speechTimer = 0f
     private var selectedSpeechList = listOf("")
@@ -72,8 +76,9 @@ data class Player(
     private var justSpeeched = ""
 
     // Public read-only views
-    val isAttackingNow: Boolean get() = isAttacking
+    val isAttackingNow: Boolean get() = attackState == AttackState.EXECUTING
     val isFacingRight: Boolean get() = facingRight
+    val isPreparingAttack: Boolean get() = attackState == AttackState.PREPARING
 
     // Point, Score
     var attackPoint = 0
@@ -120,10 +125,23 @@ data class Player(
         }
 
         // 공격 타이머 처리
-        if (isAttacking) {
-            attackTimer -= clampedDeltaTime
-            if (attackTimer <= 0f) {
-                isAttacking = false
+        when (attackState) {
+            AttackState.PREPARING -> {
+                attackTimer -= clampedDeltaTime
+                if (attackTimer <= 0f) {
+                    // 선딜 끝 -> 실제 공격 시작
+                    attackState = AttackState.EXECUTING
+                    attackTimer = ATTACK_EXECUTE_DURATION
+                }
+            }
+            AttackState.EXECUTING -> {
+                attackTimer -= clampedDeltaTime
+                if (attackTimer <= 0f) {
+                    attackState = AttackState.NONE
+                }
+            }
+            AttackState.NONE -> {
+                // 아무것도 안함
             }
         }
 
@@ -183,7 +201,7 @@ data class Player(
         val wasInAction = inAction
         val onGround = onPlatform
         if (inAction) {
-            val attackFinished = !isAttacking
+            val attackFinished = attackState == AttackState.NONE
             val moveFinished = velocityX == 0f
             val jumpFinished = onGround && velocityY == 0f
             val speechFinished = !isSpeeching
@@ -217,26 +235,104 @@ data class Player(
             style = textStyle,
         )
 
-        // Attack effect
-        if (isAttacking) {
-            // arc size
-            val attackRadius = radius
-            // arc offset
+        // Attack effect - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
+        if (isPreparingAttack) {
+            val progress = 1f - (attackTimer / ATTACK_PREPARE_DURATION)  // 0 -> 1
+            val attackRadius = radius * (0.5f + progress * 0.3f)  // 점점 커짐
             val offsetDistance = radius + 5f
-            val top = y
-            val left = x + if (facingRight) offsetDistance else -offsetDistance
-            // arc angle
-            val startAngle = if (facingRight) -90f else 90f
-            val sweepAngle = 180f
+            val centerX = x + if (facingRight) offsetDistance else -offsetDistance
+            val centerY = y
 
-            context.drawArc(
-                color = Color.Black,
-                topLeft = Offset(left - attackRadius, top - attackRadius),
-                width = attackRadius * 2f,
-                height = attackRadius * 2f,
-                startAngle = startAngle,
-                sweepAngle = sweepAngle,
-                useCenter = false,
+            // 바깥쪽 작은 원
+            val outerRadius = attackRadius * 0.8f
+            val outerRect = Rect(
+                left = centerX - outerRadius,
+                top = centerY - outerRadius,
+                right = centerX + outerRadius,
+                bottom = centerY + outerRadius,
+            )
+
+            // 안쪽 큰 원
+            val innerRadius = attackRadius
+            val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
+            val innerRect = Rect(
+                left = centerX + innerOffsetX - innerRadius,
+                top = centerY - innerRadius,
+                right = centerX + innerOffsetX + innerRadius,
+                bottom = centerY + innerRadius,
+            )
+
+            val outerPath = Path().apply {
+                if (facingRight) {
+                    arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+                } else {
+                    arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+                }
+                close()
+            }
+
+            val innerPath = Path().apply {
+                addOval(innerRect)
+            }
+
+            val crescentPath = Path().apply {
+                op(outerPath, innerPath, PathOperation.Difference)
+            }
+
+            // 선딜은 반투명, 점점 진해짐
+            val alpha = (100 + (progress * 120)).toInt()
+            context.drawPath(
+                path = crescentPath,
+                color = Color(123, 30, 30, alpha),
+            )
+        }
+
+        // Attack effect - 실제 공격 (진한 색, 원래 크기)
+        if (isAttackingNow) {
+            val attackRadius = radius
+            val offsetDistance = radius + 5f
+            val centerX = x + if (facingRight) offsetDistance else -offsetDistance
+            val centerY = y
+
+            // 바깥쪽 작은 원
+            val outerRadius = attackRadius * 0.8f
+            val outerRect = Rect(
+                left = centerX - outerRadius,
+                top = centerY - outerRadius,
+                right = centerX + outerRadius,
+                bottom = centerY + outerRadius,
+            )
+
+            // 안쪽 큰 원
+            val innerRadius = attackRadius
+            val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
+            val innerRect = Rect(
+                left = centerX + innerOffsetX - innerRadius,
+                top = centerY - innerRadius,
+                right = centerX + innerOffsetX + innerRadius,
+                bottom = centerY + innerRadius,
+            )
+
+            val outerPath = Path().apply {
+                if (facingRight) {
+                    arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+                } else {
+                    arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+                }
+                close()
+            }
+
+            val innerPath = Path().apply {
+                addOval(innerRect)
+            }
+
+            val crescentPath = Path().apply {
+                op(outerPath, innerPath, PathOperation.Difference)
+            }
+
+            context.drawPath(
+                path = crescentPath,
+                color = Color(123, 30, 30, 220),
             )
         }
 
@@ -275,7 +371,7 @@ data class Player(
         inAction = true
     }
 
-    fun move(
+    private fun move(
         direction: MoveDirection,
         power: Float = Random.nextFloat() * 1500 + 500f, // 500f ~ 2000f
     ) {
@@ -294,7 +390,7 @@ data class Player(
         }
     }
 
-    fun jump() {
+    private fun jump() {
         if (inAction) return
         // 점프는 바닥이나 플랫폼 위에서만 가능
         val canJump = (y >= floorY - 1f) || onPlatform
@@ -304,17 +400,17 @@ data class Player(
         velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
     }
 
-    fun attack() {
+    private fun attack() {
         if (inAction) return
         setAction()
 
-        if (!isAttacking) {
-            isAttacking = true
-            attackTimer = ATTACK_DURATION
+        if (attackState == AttackState.NONE) {
+            attackState = AttackState.PREPARING
+            attackTimer = ATTACK_PREPARE_DURATION
         }
     }
 
-    fun speech() {
+    private fun speech() {
         if (inAction) return
         setAction()
 
@@ -358,7 +454,7 @@ data class Player(
         invincibleTimer = INVINCIBLE_DURATION
 
         // 액션 취소
-        isAttacking = false
+        attackState = AttackState.NONE
         attackTimer = 0f
         inAction = true
 
@@ -369,11 +465,11 @@ data class Player(
     }
 
     companion object {
-        private const val ATTACK_DURATION = 0.3f
+        private const val ATTACK_PREPARE_DURATION = 1.0f   // 선딜
+        private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격
         private const val SPEECH_DURATION = 2.0f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
-        private const val START_HP = 3 // TODO : 시작 체력 지정 기능 추가
         private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
     }
 }
@@ -381,4 +477,10 @@ data class Player(
 enum class MoveDirection {
     LEFT, RIGHT,
     ;
+}
+
+enum class AttackState {
+    NONE,       // 공격 안함
+    PREPARING,  // 선딜 (1초)
+    EXECUTING   // 실제 공격 (0.3초)
 }

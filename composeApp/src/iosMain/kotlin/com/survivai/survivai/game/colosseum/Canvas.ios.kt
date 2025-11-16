@@ -3,6 +3,7 @@ package com.survivai.survivai.game.colosseum
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
@@ -64,6 +65,13 @@ class IOSDrawScope(private val drawScope: DrawScope) : GameDrawScope {
             style = style,
             softWrap = softWrap,
             size = size,
+        )
+    }
+
+    override fun drawPath(path: Path, color: Color) {
+        drawScope.drawPath(
+            path = path,
+            color = color,
         )
     }
 }

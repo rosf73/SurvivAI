@@ -9,11 +9,9 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
-import com.survivai.survivai.game.colosseum.entity.Player
-import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.random.Random
 
 class WebDrawScope(private val drawScope: DrawScope) : GameDrawScope {
     override fun drawCircle(
@@ -97,86 +95,68 @@ class WebCanvas : Canvas {
     }
 
     override fun update(deltaTime: Double) {
-        if (viewportWidth > 0 && viewportHeight > 0) {
-            // Get alive players
-            val alivePlayers = players.filter { it.isAlive }
+        if (viewportWidth <= 0 || viewportHeight <= 0) {
+            return
+        }
 
-            // Call Entity::update
-            alivePlayers.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
+        // Get alive players
+        val alivePlayers = players.filter { it.isAlive }
 
-            // (중계 로그) 대사
-            alivePlayers.forEachIndexed { i, p ->
-                val text = p.pollJustSpeeched()
-                if (text.isNotBlank()) {
-                    log("${p.name} : \"$text\"")
+        // Call Entity::update
+        alivePlayers.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
+
+        // (중계 로그) 대사
+        alivePlayers.forEachIndexed { _, p ->
+            val text = p.pollJustSpeeched()
+            if (text.isNotBlank()) {
+                log("${p.name} : \"$text\"")
+            }
+        }
+
+        // Check for winner (only once)
+        if (gameState !is GameState.Ended && alivePlayers.size == 1) {
+            log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
+            ColosseumInfo.updateGameSet()
+        }
+
+        // Player-player overlap resolution (simple horizontal push)
+        for (i in alivePlayers.indices) {
+            for (j in i + 1 until alivePlayers.size) {
+                val a = alivePlayers[i]
+                val b = alivePlayers[j]
+                val rSum = a.radius + b.radius
+                val dx = b.x - a.x
+                val dy = b.y - a.y
+                if (abs(dy) < max(a.radius, b.radius) * 1.2f && abs(dx) < rSum) {
+                    val overlap = rSum - abs(dx)
+                    val dir = if (dx >= 0f) 1f else -1f
+                    val push = overlap / 2f
+                    a.x -= push * dir
+                    b.x += push * dir
+                    // Clamp to viewport bounds
+                    if (a.x - a.radius < 0f) a.x = a.radius
+                    if (b.x + b.radius > viewportWidth) b.x = viewportWidth - b.radius
                 }
             }
+        }
 
-            // Check for winner (only once)
-            if (gameState !is GameState.Ended && alivePlayers.size == 1) {
-                log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
-                ColosseumInfo.updateGameSet()
-            }
+        // Attack detection
+        alivePlayers.detectAttackDamagedThisFrame { attacker, target ->
+            // 스탯 업데이트
+            ColosseumInfo.updatePlayerAttackPoint(attacker.name)
 
-            // Player-player overlap resolution (simple horizontal push)
-            for (i in alivePlayers.indices) {
-                for (j in i + 1 until alivePlayers.size) {
-                    val a = alivePlayers[i]
-                    val b = alivePlayers[j]
-                    val rSum = a.radius + b.radius
-                    val dx = b.x - a.x
-                    val dy = b.y - a.y
-                    if (abs(dy) < max(a.radius, b.radius) * 1.2f && abs(dx) < rSum) {
-                        val overlap = rSum - abs(dx)
-                        val dir = if (dx >= 0f) 1f else -1f
-                        val push = overlap / 2f
-                        a.x -= push * dir
-                        b.x += push * dir
-                        // Clamp to viewport bounds
-                        if (a.x - a.radius < 0f) a.x = a.radius
-                        if (b.x + b.radius > viewportWidth) b.x = viewportWidth - b.radius
-                    }
-                }
-            }
-
-            // Attack detection and damage/knockback
-            val hitThisFrame = mutableSetOf<Pair<Int, Int>>()
-            for (i in alivePlayers.indices) {
-                val attacker = alivePlayers[i]
-                if (!attacker.isAttackingNow) continue
-                val reach = attacker.attackReach
-                val heightTol = attacker.radius * 1.2f
-                for (j in alivePlayers.indices) {
-                    if (i == j) continue
-                    val target = alivePlayers[j]
-                    val dx = target.x - attacker.x
-                    val dy = target.y - attacker.y
-                    val inFront = if (attacker.isFacingRight) dx > 0f else dx < 0f
-                    if (inFront && abs(dx) <= reach && abs(dy) <= heightTol) {
-                        val key = i to j
-                        if (hitThisFrame.add(key)) {
-                            val damaged = target.receiveDamage(attacker.x, power = 700f)
-                            if (damaged) {
-                                // 스탯 업데이트
-                                ColosseumInfo.updatePlayerAttackPoint(alivePlayers[i].name)
-
-                                if (target.currentHp > 0) {
-                                    log("        ${alivePlayers[i].name} 🤜 ${target.name} (HP=${target.currentHp})")
-                                } else {
-                                    // 스탯 업데이트
-                                    ColosseumInfo.updatePlayerKillPoint(
-                                        killerName = alivePlayers[i].name,
-                                        victimName = target.name,
-                                    )
-                                    if (alivePlayers.size == players.size) { // first blood
-                                        log("        ${alivePlayers[i].name} 에 의해 ${target.name} First Blood! 😭")
-                                    } else {
-                                        log("        ${alivePlayers[i].name} 에 의해 ${target.name} 탈락! 😭")
-                                    }
-                                }
-                            }
-                        }
-                    }
+            if (target.currentHp > 0) {
+                log("        ${attacker.name} 🤜 ${target.name} (HP=${target.currentHp})")
+            } else {
+                // 스탯 업데이트
+                ColosseumInfo.updatePlayerKillPoint(
+                    killerName = attacker.name,
+                    victimName = target.name,
+                )
+                if (alivePlayers.size == players.size) { // first blood
+                    log("        ${attacker.name} 에 의해 ${target.name} First Blood! 😭")
+                } else {
+                    log("        ${attacker.name} 에 의해 ${target.name} 탈락! 😭")
                 }
             }
         }

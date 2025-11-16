@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -26,7 +27,7 @@ data class Player(
     private val startHp: Int = ColosseumInfo.defaultHp,
 ) : Entity {
 
-    // Position
+    // Position (Center offset)
     var x = 0f
     var y = 0f
 
@@ -45,6 +46,7 @@ data class Player(
     private var facingRight = true // 바라보는 방향
     private var isAttacking = false
     private var attackTimer = 0f
+    val attackReach get() = radius * 2 + 5f
     private var isSpeeching = false
     private var speechTimer = 0f
     private var selectedSpeechList = listOf("")
@@ -219,26 +221,55 @@ data class Player(
             style = textStyle,
         )
 
-        // Attack effect
+        // Attack effect - 초승달 (Path 차집합 연산)
         if (isAttacking) {
-            // arc size
             val attackRadius = radius
-            // arc offset
             val offsetDistance = radius + 5f
-            val top = y
-            val left = x + if (facingRight) offsetDistance else -offsetDistance
-            // arc angle
-            val startAngle = if (facingRight) -90f else 90f
-            val sweepAngle = 180f
+            val centerX = x + if (facingRight) offsetDistance else -offsetDistance
+            val centerY = y
 
-            context.drawArc(
-                color = Color.Black,
-                topLeft = Offset(left - attackRadius, top - attackRadius),
-                width = attackRadius * 2f,
-                height = attackRadius * 2f,
-                startAngle = startAngle,
-                sweepAngle = sweepAngle,
-                useCenter = false,
+            // 바깥쪽 작은 원 (초승달의 볼록한 부분)
+            val outerRadius = attackRadius * 0.8f
+            val outerRect = Rect(
+                left = centerX - outerRadius,
+                top = centerY - outerRadius,
+                right = centerX + outerRadius,
+                bottom = centerY + outerRadius,
+            )
+
+            // 안쪽 큰 원
+            val innerRadius = attackRadius
+            val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
+            val innerRect = Rect(
+                left = centerX + innerOffsetX - innerRadius,
+                top = centerY - innerRadius,
+                right = centerX + innerOffsetX + innerRadius,
+                bottom = centerY + innerRadius,
+            )
+
+            // 바깥쪽 반원 Path
+            val outerPath = Path().apply {
+                if (facingRight) {
+                    arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+                } else {
+                    arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+                }
+                close()
+            }
+
+            // 안쪽 원 Path (전체 원)
+            val innerPath = Path().apply {
+                addOval(innerRect)
+            }
+
+            // 차집합 연산: 바깥쪽 원에서 안쪽 원을 뺌
+            val crescentPath = Path().apply {
+                op(outerPath, innerPath, PathOperation.Difference)
+            }
+
+            context.drawPath(
+                path = crescentPath,
+                color = Color(123, 30, 30, 220),
             )
         }
 

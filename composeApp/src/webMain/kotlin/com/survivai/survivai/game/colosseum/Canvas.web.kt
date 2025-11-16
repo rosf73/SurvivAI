@@ -144,7 +144,7 @@ class WebCanvas : Canvas {
             for (i in alivePlayers.indices) {
                 val attacker = alivePlayers[i]
                 if (!attacker.isAttackingNow) continue
-                val reach = attacker.radius * 2.2f
+                val reach = attacker.attackReach
                 val heightTol = attacker.radius * 1.2f
                 for (j in alivePlayers.indices) {
                     if (i == j) continue

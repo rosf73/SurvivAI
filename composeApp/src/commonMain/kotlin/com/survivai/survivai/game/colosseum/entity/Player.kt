@@ -1,8 +1,10 @@
 package com.survivai.survivai.game.colosseum.entity
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -275,7 +277,7 @@ data class Player(
         inAction = true
     }
 
-    fun move(
+    private fun move(
         direction: MoveDirection,
         power: Float = Random.nextFloat() * 1500 + 500f, // 500f ~ 2000f
     ) {
@@ -294,7 +296,7 @@ data class Player(
         }
     }
 
-    fun jump() {
+    private fun jump() {
         if (inAction) return
         // 점프는 바닥이나 플랫폼 위에서만 가능
         val canJump = (y >= floorY - 1f) || onPlatform
@@ -304,7 +306,7 @@ data class Player(
         velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
     }
 
-    fun attack() {
+    private fun attack() {
         if (inAction) return
         setAction()
 
@@ -314,7 +316,7 @@ data class Player(
         }
     }
 
-    fun speech() {
+    private fun speech() {
         if (inAction) return
         setAction()
 
@@ -373,7 +375,6 @@ data class Player(
         private const val SPEECH_DURATION = 2.0f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
-        private const val START_HP = 3 // TODO : 시작 체력 지정 기능 추가
         private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
     }
 }

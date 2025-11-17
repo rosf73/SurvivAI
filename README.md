@@ -7,6 +7,6 @@ https://rosf73.github.io/SurvivAI/
 <img width="848" height="274" alt="스크린샷 2025-10-27 오후 6 30 35" src="https://github.com/user-attachments/assets/824c468e-f3c5-4704-8c28-6db6d31cb0aa" />
 
 ### Play
-<img width="1546" height="805" alt="스크린샷 2025-10-27 오후 6 31 50" src="https://github.com/user-attachments/assets/65d8cc26-1d7f-4e97-989e-00cfe6e89a8b" />
+<img width="1507" height="759" alt="스크린샷 2025-11-15 오후 9 46 38" src="https://github.com/user-attachments/assets/9d5ae5de-833f-4292-a02c-195f530b2f41" />
 
 ## New Game Coming Soon 🎲

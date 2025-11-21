@@ -18,6 +18,7 @@ import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import kotlin.enums.EnumEntries
 import kotlin.math.min
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 data class Player(
@@ -87,6 +88,17 @@ data class Player(
     var comboPoint = 0
     var maxComboPoint = 0
 
+    // 적들과의 상대적 위치 정보 (매 프레임 업데이트)
+    private var nearestEnemyDistance: Float = Float.MAX_VALUE
+    private var nearestEnemyInFront: Boolean = false // 가장 가까운 적이 전방에 있는지
+    private var enemiesInAttackRange: Int = 0
+    private var enemiesInAttackRangeInFront: Int = 0 // 전방에 있는 적의 수
+    private var nearestEnemyDirection: Float = 0f // -1(왼쪽) ~ 1(오른쪽)
+
+    // 주변 범위 (attackReach 기반으로 동적 계산)
+    private val nearbyRange: Float
+        get() = attackReach * NEARBY_RANGE_MULTIPLIER
+
     // Action weights
     private val validActionWeights: MutableMap<ActionType, Float> = mutableMapOf(
         ActionType.Valid.MOVE to 1f,
@@ -153,11 +165,103 @@ data class Player(
      */
     private fun randomAction() {
         when (selectWeightedRandomAction()) {
-            ActionType.Valid.MOVE -> move(MoveDirection.entries.random())
+            ActionType.Valid.MOVE -> move()
             ActionType.Valid.JUMP -> jump()
             ActionType.Valid.ATTACK -> attack()
             ActionType.Idle.SPEECH -> speech()
         }
+    }
+
+    /**
+     * 적들의 위치 정보를 업데이트
+     */
+    private fun updateEnemyPositions() {
+        val enemies = ColosseumInfo.players.filter { it != this && it.isAlive }
+
+        if (enemies.isEmpty()) {
+            nearestEnemyDistance = Float.MAX_VALUE
+            nearestEnemyInFront = false
+            enemiesInAttackRange = 0
+            enemiesInAttackRangeInFront = 0
+            nearestEnemyDirection = 0f
+            return
+        }
+
+        // 가장 가까운 적 찾기
+        var minDistance = Float.MAX_VALUE
+        var nearestEnemy: Player? = null
+
+        enemies.forEach { enemy ->
+            val dx = enemy.x - x
+            val dy = enemy.y - y
+            val distance = sqrt(dx * dx + dy * dy)
+
+            if (distance < minDistance) {
+                minDistance = distance
+                nearestEnemy = enemy
+            }
+        }
+
+        nearestEnemyDistance = minDistance
+        nearestEnemy?.let { enemy ->
+            nearestEnemyDirection = if (enemy.x > x) 1f else -1f
+            // 적이 전방에 있는지 확인
+            nearestEnemyInFront = (facingRight && enemy.x > x) || (!facingRight && enemy.x < x)
+        }
+
+        // 사정거리 내 적 수 계산
+        val effectiveAttackRange = attackReach * ATTACK_RANGE_MULTIPLIER
+        enemiesInAttackRange = 0
+        enemiesInAttackRangeInFront = 0
+
+        enemies.forEach { enemy ->
+            val dx = enemy.x - x
+            val dy = enemy.y - y
+            val distance = sqrt(dx * dx + dy * dy)
+
+            if (distance <= effectiveAttackRange) {
+                enemiesInAttackRange++
+                // 전방에 있는 적만 카운트
+                val isInFront = (facingRight && enemy.x > x) || (!facingRight && enemy.x < x)
+                if (isInFront) {
+                    enemiesInAttackRangeInFront++
+                }
+            }
+        }
+    }
+
+    /**
+     * 적들의 위치를 고려하여 가중치를 동적으로 조정
+     */
+    private fun adjustWeightsBasedOnEnemies() {
+        // 기본 가중치로 리셋
+        validActionWeights[ActionType.Valid.MOVE] = 1f
+        validActionWeights[ActionType.Valid.JUMP] = 1f
+        validActionWeights[ActionType.Valid.ATTACK] = 1f
+        
+        // 1. 사정거리 내에 전방의 적이 있으면 공격 가중치 증가
+        if (enemiesInAttackRangeInFront > 0) {
+            validActionWeights[ActionType.Valid.ATTACK] = 
+                WEIGHT_ATTACK_IN_RANGE * enemiesInAttackRangeInFront
+            return
+        }
+        
+        // 2. 가장 가까운 적이 주변에 없거나 전방이 아니면 공격 가중치 감소
+        if (nearestEnemyDistance > nearbyRange || !nearestEnemyInFront) {
+            validActionWeights[ActionType.Valid.ATTACK] = WEIGHT_ATTACK_FAR
+        } else {
+            // 3. 가까운 적이 전방에 있으면 (사정거리 밖이지만 근처) 공격 가중치 증가
+            validActionWeights[ActionType.Valid.ATTACK] = WEIGHT_ATTACK_NEARBY
+        }
+    }
+
+    /**
+     * 가까운 적의 방향을 고려하여 이동 방향 결정
+     */
+    private fun decideMovementDirection(): MoveDirection {
+        // 가까운 적이 있으면 그쪽으로 이동
+        return if (nearestEnemyDirection > 0) MoveDirection.RIGHT 
+               else MoveDirection.LEFT
     }
 
     override fun update(
@@ -170,6 +274,9 @@ data class Player(
         this.viewportHeight = viewportHeight
 
         val clampedDeltaTime = min(deltaTime, 0.03).toFloat()
+
+        // 적들의 위치 정보 업데이트 (매 프레임)
+        updateEnemyPositions()
 
         // 무적 타이머 처리
         if (isInvincible) {
@@ -265,7 +372,13 @@ data class Player(
 
         if (!inAction) {
             if (wasInAction) idleTime = Random.nextFloat()
-            if (idleTime > 0f) idleTime -= clampedDeltaTime else randomAction()
+            if (idleTime > 0f) {
+                idleTime -= clampedDeltaTime
+            } else {
+                // 가중치 조정 후 액션 결정
+                adjustWeightsBasedOnEnemies()
+                randomAction()
+            }
         }
     }
 
@@ -427,7 +540,7 @@ data class Player(
     }
 
     private fun move(
-        direction: MoveDirection,
+        direction: MoveDirection = decideMovementDirection(),
         power: Float = Random.nextFloat() * 1500 + 500f, // 500f ~ 2000f
     ) {
         if (inAction) return
@@ -483,6 +596,10 @@ data class Player(
         return j
     }
 
+    // 디버깅/UI용 공개 메서드
+    fun getNearestEnemyDistance(): Float = nearestEnemyDistance
+    fun getEnemiesInAttackRange(): Int = enemiesInAttackRange
+
     // damaged
     fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
         // 무적 상태인 경우 return
@@ -527,6 +644,13 @@ data class Player(
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
         private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
+        
+        // 가중치 조정 파라미터
+        private const val NEARBY_RANGE_MULTIPLIER = 4f // attackReach의 배수로 주변 범위 결정
+        private const val ATTACK_RANGE_MULTIPLIER = 1.5f // attackReach의 배수로 공격 가능 범위 결정
+        private const val WEIGHT_ATTACK_NEARBY = 1.5f // 적이 전방 근처에 있을 때 공격 가중치
+        private const val WEIGHT_ATTACK_FAR = 0.5f // 적이 멀거나 후방에 있을 때 공격 가중치
+        private const val WEIGHT_ATTACK_IN_RANGE = 2.5f // 사정거리 내 전방 공격 가중치
     }
 }
 

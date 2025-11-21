@@ -91,8 +91,8 @@ data class Player(
     // 적들과의 상대적 위치 정보 (매 프레임 업데이트)
     private var nearestEnemyDistance: Float = Float.MAX_VALUE
     private var nearestEnemyInFront: Boolean = false // 가장 가까운 적이 전방에 있는지
-    private var enemiesInAttackRange: Int = 0
     private var enemiesInAttackRangeInFront: Int = 0 // 전방에 있는 적의 수
+    private var enemiesPreparingAttackInRange: Int = 0 // 사정거리 내에서 공격 준비 중인 적의 수
     private var nearestEnemyDirection: Float = 0f // -1(왼쪽) ~ 1(오른쪽)
 
     // 주변 범위 (attackReach 기반으로 동적 계산)
@@ -181,8 +181,8 @@ data class Player(
         if (enemies.isEmpty()) {
             nearestEnemyDistance = Float.MAX_VALUE
             nearestEnemyInFront = false
-            enemiesInAttackRange = 0
             enemiesInAttackRangeInFront = 0
+            enemiesPreparingAttackInRange = 0
             nearestEnemyDirection = 0f
             return
         }
@@ -211,8 +211,8 @@ data class Player(
 
         // 사정거리 내 적 수 계산
         val effectiveAttackRange = attackReach * ATTACK_RANGE_MULTIPLIER
-        enemiesInAttackRange = 0
         enemiesInAttackRangeInFront = 0
+        enemiesPreparingAttackInRange = 0
 
         enemies.forEach { enemy ->
             val dx = enemy.x - x
@@ -220,11 +220,14 @@ data class Player(
             val distance = sqrt(dx * dx + dy * dy)
 
             if (distance <= effectiveAttackRange) {
-                enemiesInAttackRange++
                 // 전방에 있는 적만 카운트
                 val isInFront = (facingRight && enemy.x > x) || (!facingRight && enemy.x < x)
                 if (isInFront) {
                     enemiesInAttackRangeInFront++
+                }
+                // 공격 준비 중인 적 카운트
+                if (enemy.isPreparingAttack) {
+                    enemiesPreparingAttackInRange++
                 }
             }
         }
@@ -239,13 +242,21 @@ data class Player(
         validActionWeights[ActionType.Valid.JUMP] = 1f
         validActionWeights[ActionType.Valid.ATTACK] = 1f
         
+        // 0. 사정거리 내에 공격 준비 중인 적이 있으면 회피 우선
+        if (enemiesPreparingAttackInRange > 0) {
+            validActionWeights[ActionType.Valid.MOVE] = WEIGHT_EVADE
+            validActionWeights[ActionType.Valid.JUMP] = WEIGHT_EVADE
+            validActionWeights[ActionType.Valid.ATTACK] = WEIGHT_ATTACK_FAR
+            return
+        }
+
         // 1. 사정거리 내에 전방의 적이 있으면 공격 가중치 증가
         if (enemiesInAttackRangeInFront > 0) {
             validActionWeights[ActionType.Valid.ATTACK] = 
                 WEIGHT_ATTACK_IN_RANGE * enemiesInAttackRangeInFront
             return
         }
-        
+
         // 2. 가장 가까운 적이 주변에 없거나 전방이 아니면 공격 가중치 감소
         if (nearestEnemyDistance > nearbyRange || !nearestEnemyInFront) {
             validActionWeights[ActionType.Valid.ATTACK] = WEIGHT_ATTACK_FAR
@@ -371,7 +382,7 @@ data class Player(
         }
 
         if (!inAction) {
-            if (wasInAction) idleTime = Random.nextFloat()
+            if (wasInAction) idleTime = Random.nextFloat() * IDLE_MAX_DURATION
             if (idleTime > 0f) {
                 idleTime -= clampedDeltaTime
             } else {
@@ -598,7 +609,6 @@ data class Player(
 
     // 디버깅/UI용 공개 메서드
     fun getNearestEnemyDistance(): Float = nearestEnemyDistance
-    fun getEnemiesInAttackRange(): Int = enemiesInAttackRange
 
     // damaged
     fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
@@ -641,6 +651,7 @@ data class Player(
         private const val ATTACK_PREPARE_DURATION = 1.0f   // 선딜
         private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격
         private const val SPEECH_DURATION = 2.0f
+        private const val IDLE_MAX_DURATION = 0.7f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
         private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
@@ -650,7 +661,8 @@ data class Player(
         private const val ATTACK_RANGE_MULTIPLIER = 1.5f // attackReach의 배수로 공격 가능 범위 결정
         private const val WEIGHT_ATTACK_NEARBY = 1.5f // 적이 전방 근처에 있을 때 공격 가중치
         private const val WEIGHT_ATTACK_FAR = 0.5f // 적이 멀거나 후방에 있을 때 공격 가중치
-        private const val WEIGHT_ATTACK_IN_RANGE = 2.5f // 사정거리 내 전방 공격 가중치
+        private const val WEIGHT_ATTACK_IN_RANGE = 2f // 사정거리 내 전방 공격 가중치
+        private const val WEIGHT_EVADE = 1.5f // 적이 공격 준비 중일 때 회피(이동/점프) 가중치
     }
 }
 

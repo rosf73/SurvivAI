@@ -16,7 +16,7 @@ import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
-import kotlin.math.abs
+import kotlin.enums.EnumEntries
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -87,21 +87,76 @@ data class Player(
     var comboPoint = 0
     var maxComboPoint = 0
 
+    // Action weights
+    private val validActionWeights: MutableMap<ActionType, Float> = mutableMapOf(
+        ActionType.Valid.MOVE to 1f,
+        ActionType.Valid.JUMP to 1f,
+        ActionType.Valid.ATTACK to 1f,
+    )
+    private val idleActionWeights: MutableMap<ActionType, Float> = mutableMapOf(
+        ActionType.Idle.SPEECH to 1f,
+    )
+
+    /**
+     * 특정 액션의 가중치를 설정
+     */
+    fun setActionWeight(actionType: ActionType, weight: Float) {
+        require(weight >= 0f) { "Weight must be non-negative" }
+        when (actionType) {
+            is ActionType.Valid -> {
+                validActionWeights[actionType] = weight
+            }
+            is ActionType.Idle -> {
+                idleActionWeights[actionType] = weight
+            }
+        }
+    }
+
+    /**
+     * 모든 액션의 가중치를 한번에 설정
+     */
+    fun setActionWeights(weights: Map<ActionType, Float>) {
+        weights.forEach { (actionType, weight) ->
+            setActionWeight(actionType, weight)
+        }
+    }
+
+    /**
+     * 가중치 기반 랜덤 액션 선택
+     */
+    private fun selectWeightedRandomAction(): ActionType {
+        val actionWeights: Map<ActionType, Float>
+        val entries: EnumEntries<*>
+        // 1. valid / idle 결정
+        if (Random.nextFloat() < ACTION_IDLE_PROBABILITY) { // 0 ... < 0.02
+            actionWeights = idleActionWeights
+            entries = ActionType.Idle.entries
+        } else {
+            actionWeights = validActionWeights
+            entries = ActionType.Valid.entries
+        }
+
+        // 2. 결정된 type 내에서 행동 계산
+        val totalWeight = actionWeights.values.sum()
+        if (totalWeight <= 0f) return entries.random() // 비정상 이지만 계속 진행
+
+        var random = Random.nextFloat() * totalWeight
+        for ((actionType, weight) in actionWeights) {
+            random -= weight
+            if (random <= 0f) return actionType
+        }
+        return actionWeights.keys.first()
+    }
+
     /**
      * 랜덤 확률을 기반으로 다음 액션을 결정
      */
     private fun randomAction() {
-        // 95 : 5 비율
-        if (Random.nextFloat() < 0.98) {
-            // 98% 확률로 BEHAVIOR
-            when (Random.nextInt(3)) {
-                0 -> move(MoveDirection.entries.random())
-                1 -> jump()
-                2 -> attack()
-            }
-        } else {
-            // 2% 확률로 IDLE
-            speech()
+        when (selectWeightedRandomAction()) {
+            ActionType.Valid.MOVE -> move(MoveDirection.entries.random())
+            ActionType.Valid.JUMP -> jump()
+            ActionType.Valid.ATTACK -> attack()
+            ActionType.Idle.SPEECH -> speech()
         }
     }
 
@@ -465,6 +520,7 @@ data class Player(
     }
 
     companion object {
+        private const val ACTION_IDLE_PROBABILITY = 0.02
         private const val ATTACK_PREPARE_DURATION = 1.0f   // 선딜
         private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격
         private const val SPEECH_DURATION = 2.0f
@@ -483,4 +539,21 @@ enum class AttackState {
     NONE,       // 공격 안함
     PREPARING,  // 선딜 (1초)
     EXECUTING   // 실제 공격 (0.3초)
+}
+
+/**
+ * 플레이어가 수행할 수 있는 액션 타입
+ * 새로운 액션을 추가할 때는 이 enum에 항목을 추가하고,
+ * randomAction() 함수에 해당 케이스를 처리하는 로직을 추가하면 됨
+ */
+sealed interface ActionType {
+    enum class Valid : ActionType {
+        MOVE,
+        JUMP,
+        ATTACK,
+    }
+
+    enum class Idle : ActionType {
+        SPEECH,
+    }
 }

@@ -104,6 +104,7 @@ data class Player(
         ActionType.Valid.MOVE to 1f,
         ActionType.Valid.JUMP to 1f,
         ActionType.Valid.ATTACK to 1f,
+        ActionType.Valid.MOVE_JUMP to 1f,
     )
     private val idleActionWeights: MutableMap<ActionType, Float> = mutableMapOf(
         ActionType.Idle.SPEECH to 1f,
@@ -168,6 +169,7 @@ data class Player(
             ActionType.Valid.MOVE -> move()
             ActionType.Valid.JUMP -> jump()
             ActionType.Valid.ATTACK -> attack()
+            ActionType.Valid.MOVE_JUMP -> moveJump()
             ActionType.Idle.SPEECH -> speech()
         }
     }
@@ -241,11 +243,13 @@ data class Player(
         validActionWeights[ActionType.Valid.MOVE] = 1f
         validActionWeights[ActionType.Valid.JUMP] = 1f
         validActionWeights[ActionType.Valid.ATTACK] = 1f
-        
+        validActionWeights[ActionType.Valid.MOVE_JUMP] = 1f
+
         // 0. 사정거리 내에 공격 준비 중인 적이 있으면 회피 우선
         if (enemiesPreparingAttackInRange > 0) {
             validActionWeights[ActionType.Valid.MOVE] = WEIGHT_EVADE
             validActionWeights[ActionType.Valid.JUMP] = WEIGHT_EVADE
+            validActionWeights[ActionType.Valid.MOVE_JUMP] = WEIGHT_EVADE_MOVEJUMP // 회피 시 더 높은 가중치
             validActionWeights[ActionType.Valid.ATTACK] = WEIGHT_ATTACK_FAR
             return
         }
@@ -579,6 +583,36 @@ data class Player(
         velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
     }
 
+    private fun moveJump() {
+        if (inAction) return
+
+        // 점프 가능 여부 확인
+        val canJump = (y >= floorY - 1f) || onPlatform
+
+        // 이동 방향 결정
+        val direction = decideMovementDirection()
+        val power = Random.nextFloat() * 1500 + 500f // 500f ~ 2000f
+
+        setAction()
+
+        // 이동
+        when (direction) {
+            MoveDirection.LEFT -> {
+                velocityX = (velocityX - power).coerceAtLeast(-MAX_SPEED)
+                facingRight = false
+            }
+            MoveDirection.RIGHT -> {
+                velocityX = (velocityX + power).coerceAtMost(MAX_SPEED)
+                facingRight = true
+            }
+        }
+
+        // 점프 (가능한 경우에만)
+        if (canJump) {
+            velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
+        }
+    }
+
     private fun attack() {
         if (inAction) return
         setAction()
@@ -663,6 +697,7 @@ data class Player(
         private const val WEIGHT_ATTACK_FAR = 0.5f // 적이 멀거나 후방에 있을 때 공격 가중치
         private const val WEIGHT_ATTACK_IN_RANGE = 2f // 사정거리 내 전방 공격 가중치
         private const val WEIGHT_EVADE = 1.5f // 적이 공격 준비 중일 때 회피(이동/점프) 가중치
+        private const val WEIGHT_EVADE_MOVEJUMP = 2f // 적이 공격 준비 중일 때 회피(이동+점프) 가중치
     }
 }
 
@@ -687,6 +722,7 @@ sealed interface ActionType {
         MOVE,
         JUMP,
         ATTACK,
+        MOVE_JUMP, // 이동과 점프를 동시에 수행
     }
 
     enum class Idle : ActionType {

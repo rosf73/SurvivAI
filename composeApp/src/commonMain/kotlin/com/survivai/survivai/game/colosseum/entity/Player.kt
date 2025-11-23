@@ -556,7 +556,7 @@ data class Player(
 
     private fun move(
         direction: MoveDirection = decideMovementDirection(),
-        power: Float = Random.nextFloat() * 1500 + 500f, // 500f ~ 2000f
+        power: Float = Random.nextFloat() * 1000 + 500f, // 500f ~ 1500f
     ) {
         if (inAction) return
         setAction()
@@ -585,7 +585,7 @@ data class Player(
 
     private fun moveJump(
         direction: MoveDirection = decideMovementDirection(),
-        power: Float = Random.nextFloat() * 1500 + 500f, // 500f ~ 2000f
+        power: Float = Random.nextFloat() * 1000 + 500f, // 500f ~ 1500f
     ) {
         if (inAction) return
         // 점프는 바닥이나 플랫폼 위에서만 가능

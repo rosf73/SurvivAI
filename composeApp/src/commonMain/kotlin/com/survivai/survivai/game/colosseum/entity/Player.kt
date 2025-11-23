@@ -583,16 +583,14 @@ data class Player(
         velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
     }
 
-    private fun moveJump() {
+    private fun moveJump(
+        direction: MoveDirection = decideMovementDirection(),
+        power: Float = Random.nextFloat() * 1500 + 500f, // 500f ~ 2000f
+    ) {
         if (inAction) return
-
-        // 점프 가능 여부 확인
+        // 점프는 바닥이나 플랫폼 위에서만 가능
         val canJump = (y >= floorY - 1f) || onPlatform
-
-        // 이동 방향 결정
-        val direction = decideMovementDirection()
-        val power = Random.nextFloat() * 1500 + 500f // 500f ~ 2000f
-
+        // 하지만 jump() 와 달리 조기종료 하지 않음
         setAction()
 
         // 이동

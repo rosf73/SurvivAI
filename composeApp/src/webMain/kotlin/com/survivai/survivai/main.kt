@@ -16,10 +16,12 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
 import com.survivai.survivai.common.createGitHubIcon
+import com.survivai.survivai.config.BuildConfig
 import com.survivai.survivai.game.colosseum.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameState
 import org.jetbrains.compose.resources.Font
@@ -107,6 +109,12 @@ private fun ResponsiveRoot() {
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            // Version
+            VersionText(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                fontFamily = fontFamily,
+            )
+
             // GitHub Link Button
             Button(
                 onClick = {
@@ -170,4 +178,18 @@ private fun ResponsiveRoot() {
             }
         }
     }
+}
+
+@Composable
+private fun VersionText(
+    modifier: Modifier = Modifier,
+    fontFamily: FontFamily,
+) {
+    Spacer(modifier = Modifier.size(5.dp))
+    Text(
+        modifier = modifier,
+        text = "v${BuildConfig.VERSION_NAME}",
+        style = TextStyle(fontSize = 12.sp, color = Color.Gray, fontFamily = fontFamily),
+    )
+    Spacer(modifier = Modifier.size(5.dp))
 }

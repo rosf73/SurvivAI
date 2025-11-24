@@ -573,19 +573,22 @@ data class Player(
         }
     }
 
-    private fun jump() {
+    private fun jump(
+        power: Float = Random.nextFloat() * -500 - 500f, // -500f ~ -1000f
+    ) {
         if (inAction) return
         // 점프는 바닥이나 플랫폼 위에서만 가능
         val canJump = (y >= floorY - 1f) || onPlatform
         if (!canJump) return
         setAction()
 
-        velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
+        velocityY = power
     }
 
     private fun moveJump(
         direction: MoveDirection = decideMovementDirection(),
-        power: Float = Random.nextFloat() * 800 + 200f, // 200f ~ 1000f
+        movePower: Float = Random.nextFloat() * 800 + 200f, // 200f ~ 1000f
+        jumpPower: Float = Random.nextFloat() * -500 - 500f, // -500f ~ -1000f
     ) {
         if (inAction) return
         // 점프는 바닥이나 플랫폼 위에서만 가능
@@ -596,18 +599,18 @@ data class Player(
         // 이동
         when (direction) {
             MoveDirection.LEFT -> {
-                velocityX = (velocityX - power).coerceAtLeast(-MAX_SPEED)
+                velocityX = (velocityX - movePower).coerceAtLeast(-MAX_SPEED)
                 facingRight = false
             }
             MoveDirection.RIGHT -> {
-                velocityX = (velocityX + power).coerceAtMost(MAX_SPEED)
+                velocityX = (velocityX + movePower).coerceAtMost(MAX_SPEED)
                 facingRight = true
             }
         }
 
         // 점프 (가능한 경우에만)
         if (canJump) {
-            velocityY = Random.nextFloat() * -500 - 500f // -500f ~ -1000f
+            velocityY = jumpPower
         }
     }
 

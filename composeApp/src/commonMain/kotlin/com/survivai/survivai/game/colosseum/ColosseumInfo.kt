@@ -139,7 +139,7 @@ object ColosseumInfo {
         // Keep a reasonable cap
         if (_logEntries.size > 200) {
             // remove oldest extra elements to keep list bounded
-            repeat(_logEntries.size - 200) { _logEntries.removeAt(0) }
+            repeat(_logEntries.size - 200) { _logEntries.removeAt(_logEntries.size - 1) }
         }
 
         // recomposition event

@@ -114,9 +114,14 @@ class WebCanvas : Canvas {
         }
 
         // Check for winner (only once)
-        if (gameState !is GameState.Ended && alivePlayers.size == 1) {
-            log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
-            ColosseumInfo.updateGameSet()
+        if (gameState !is GameState.Ended && players.isNotEmpty()) {
+            if (alivePlayers.size == 1) {
+                log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
+                ColosseumInfo.updateGameSet()
+            } else if (alivePlayers.isEmpty()) {
+                log("        💀 전원 탈락! 살아남은 플레이어가 없습니다!")
+                ColosseumInfo.updateGameSet()
+            }
         }
 
         // Player-player overlap resolution (simple horizontal push)

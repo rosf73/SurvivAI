@@ -140,6 +140,9 @@ class WebCanvas : Canvas {
             }
         }
 
+        // first blood 체크 (race condition 방지)
+        var isFirstBloodFrame = (alivePlayers.size == players.size)
+
         // Attack detection
         alivePlayers.detectAttackDamagedThisFrame { attacker, target ->
             // 스탯 업데이트
@@ -153,8 +156,10 @@ class WebCanvas : Canvas {
                     killerName = attacker.name,
                     victimName = target.name,
                 )
-                if (alivePlayers.size == players.size) { // first blood
+
+                if (isFirstBloodFrame) { // first blood
                     log("        ${attacker.name} 에 의해 ${target.name} First Blood! 😭")
+                    isFirstBloodFrame = false
                 } else {
                     log("        ${attacker.name} 에 의해 ${target.name} 탈락! 😭")
                 }

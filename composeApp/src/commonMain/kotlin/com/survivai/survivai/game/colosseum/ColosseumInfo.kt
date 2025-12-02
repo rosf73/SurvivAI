@@ -25,6 +25,9 @@ data class PlayerTitle(
 
 object ColosseumInfo {
 
+    // 상수
+    private const val COUNT_LOG_MAX = 200
+
     // 게임 초기화됨
     var initialized = false
         private set
@@ -137,9 +140,9 @@ object ColosseumInfo {
     fun addLog(message: String) {
         _logEntries.add(0, message)
         // Keep a reasonable cap
-        if (_logEntries.size > 200) {
+        if (_logEntries.size > COUNT_LOG_MAX) {
             // remove oldest extra elements to keep list bounded
-            repeat(_logEntries.size - 200) { _logEntries.removeAt(0) }
+            repeat(_logEntries.size - COUNT_LOG_MAX) { _logEntries.removeAt(_logEntries.size - 1) }
         }
 
         // recomposition event

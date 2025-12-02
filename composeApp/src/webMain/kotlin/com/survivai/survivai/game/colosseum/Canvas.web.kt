@@ -114,9 +114,14 @@ class WebCanvas : Canvas {
         }
 
         // Check for winner (only once)
-        if (gameState !is GameState.Ended && alivePlayers.size == 1) {
-            log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
-            ColosseumInfo.updateGameSet()
+        if (gameState !is GameState.Ended && players.isNotEmpty()) {
+            if (alivePlayers.size == 1) {
+                log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
+                ColosseumInfo.updateGameSet()
+            } else if (alivePlayers.isEmpty()) {
+                log("        💀 전원 탈락! 살아남은 플레이어가 없습니다!")
+                ColosseumInfo.updateGameSet()
+            }
         }
 
         // Player-player overlap resolution (simple horizontal push)
@@ -140,6 +145,9 @@ class WebCanvas : Canvas {
             }
         }
 
+        // first blood 체크 (race condition 방지)
+        var isFirstBloodFrame = (alivePlayers.size == players.size)
+
         // Attack detection
         alivePlayers.detectAttackDamagedThisFrame { attacker, target ->
             // 스탯 업데이트
@@ -153,8 +161,10 @@ class WebCanvas : Canvas {
                     killerName = attacker.name,
                     victimName = target.name,
                 )
-                if (alivePlayers.size == players.size) { // first blood
+
+                if (isFirstBloodFrame) { // first blood
                     log("        ${attacker.name} 에 의해 ${target.name} First Blood! 😭")
+                    isFirstBloodFrame = false
                 } else {
                     log("        ${attacker.name} 에 의해 ${target.name} 탈락! 😭")
                 }

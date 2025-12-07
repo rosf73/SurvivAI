@@ -409,7 +409,7 @@ data class Player(
 
         // render player name - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
         if (isPreparingAttack) {
-            renderAttack(context)
+            renderAttackPrepare(context)
         }
 
         // render attack - 실제 공격 (진한 색, 원래 크기)
@@ -531,7 +531,7 @@ data class Player(
         )
     }
 
-    private fun renderAttack(context: GameDrawScope) {
+    private fun renderAttackPrepare(context: GameDrawScope) {
         val progress = 1f - (attackTimer / ATTACK_PREPARE_DURATION)  // 0 -> 1
         val attackRadius = radius * (0.5f + progress * 0.3f)  // 점점 커짐
         val offsetDistance = radius + 5f
@@ -579,6 +579,54 @@ data class Player(
         context.drawPath(
             path = crescentPath,
             color = Color(123, 30, 30, alpha),
+        )
+    }
+
+    private fun renderAttack(context: GameDrawScope) {
+        val attackRadius = radius
+        val offsetDistance = radius + 5f
+        val centerX = x + if (facingRight) offsetDistance else -offsetDistance
+        val centerY = y
+
+        // 바깥쪽 작은 원
+        val outerRadius = attackRadius * 0.8f
+        val outerRect = Rect(
+            left = centerX - outerRadius,
+            top = centerY - outerRadius,
+            right = centerX + outerRadius,
+            bottom = centerY + outerRadius,
+        )
+
+        // 안쪽 큰 원
+        val innerRadius = attackRadius
+        val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
+        val innerRect = Rect(
+            left = centerX + innerOffsetX - innerRadius,
+            top = centerY - innerRadius,
+            right = centerX + innerOffsetX + innerRadius,
+            bottom = centerY + innerRadius,
+        )
+
+        val outerPath = Path().apply {
+            if (facingRight) {
+                arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+            } else {
+                arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+            }
+            close()
+        }
+
+        val innerPath = Path().apply {
+            addOval(innerRect)
+        }
+
+        val crescentPath = Path().apply {
+            op(outerPath, innerPath, PathOperation.Difference)
+        }
+
+        context.drawPath(
+            path = crescentPath,
+            color = Color(123, 30, 30, 220),
         )
     }
 

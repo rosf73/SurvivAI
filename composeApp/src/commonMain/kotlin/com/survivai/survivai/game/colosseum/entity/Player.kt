@@ -404,9 +404,8 @@ data class Player(
             center = Offset(x, y),
             radius = radius
         )
-
-        // render player name
         renderName(context, textMeasurer, fontFamily)
+        renderHP(context)
 
         // render player name - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
         if (isPreparingAttack) {
@@ -606,6 +605,37 @@ data class Player(
             ),
             style = textStyle,
         )
+    }
+
+    private fun renderHP(context: GameDrawScope) {
+        val max = ColosseumInfo.defaultHp
+        val totalWidth = radius * 4
+        val totalX = x - radius * 2
+        val totalY = y + radius * 1.3f
+        val dividerCount = max - 1
+        val dividerWidth = if (dividerCount > 0) totalWidth / max / dividerCount / 2 else 0f
+        val barWidth = (totalWidth - dividerWidth * dividerCount) / max
+        val barHeight = radius / 4
+
+        // dividers
+        val emptyPath = Path().apply {
+            for (i in 0 until max) {
+                val x = totalX + (barWidth + dividerWidth) * i
+                addRect(Rect(x, totalY, x + barWidth, totalY + barHeight))
+            }
+        }
+        context.drawPath(emptyPath, Color.LightGray)
+
+        // hp
+        if (hp > 0) {
+            val filledPath = Path().apply {
+                for (i in 0 until hp) {
+                    val x = totalX + (barWidth + dividerWidth) * i
+                    addRect(Rect(x, totalY, x + barWidth, totalY + barHeight))
+                }
+            }
+            context.drawPath(filledPath, Color.Green)
+        }
     }
 
     fun pollJustSpeeched(): String {

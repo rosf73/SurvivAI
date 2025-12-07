@@ -518,15 +518,18 @@ data class Player(
      * render functions
      */
     private  fun renderName(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
-        val displayName = name.take(2)
-        val textStyle = TextStyle(fontSize = (radius * 0.5f).sp, color = Color.Black, fontFamily = fontFamily) // TODO : color
-        val measuredText = textMeasurer.measure(text = displayName, style = textStyle)
+        val textStyle = TextStyle(
+            fontSize = (radius * 0.25f).sp,
+            color = Color.Black,
+            fontFamily = fontFamily,
+        )
+        val measuredText = textMeasurer.measure(text = name, style = textStyle)
         context.drawText(
             textMeasurer = textMeasurer,
-            text = displayName,
+            text = name,
             topLeft = Offset(
                 x - measuredText.size.width / 2f,
-                y - measuredText.size.height / 2f
+                y - measuredText.size.height / 2f - radius * 1.5f
             ),
             style = textStyle,
         )

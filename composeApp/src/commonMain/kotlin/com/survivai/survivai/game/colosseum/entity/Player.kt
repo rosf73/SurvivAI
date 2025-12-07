@@ -23,7 +23,7 @@ import kotlin.random.Random
 
 data class Player(
     val name: String,
-    val radius: Float = 30f,
+    val radius: Float = 36f,
     val color: Color = Color.Blue,
     private val startHp: Int = ColosseumInfo.defaultHp,
 ) : Entity {

@@ -398,151 +398,29 @@ data class Player(
     }
 
     override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
+        // render player
         context.drawCircle(
             color = color,
             center = Offset(x, y),
             radius = radius
         )
 
-        // 이름 표시 (앞 2글자)
-        val displayName = name.take(2)
-        val textStyle = TextStyle(fontSize = (radius * 0.5f).sp, color = Color.Black, fontFamily = fontFamily) // TODO : color
-        val measuredText = textMeasurer.measure(text = displayName, style = textStyle)
-        context.drawText(
-            textMeasurer = textMeasurer,
-            text = displayName,
-            topLeft = Offset(
-                x - measuredText.size.width / 2f,
-                y - measuredText.size.height / 2f
-            ),
-            style = textStyle,
-        )
+        // render player name
+        renderName(context, textMeasurer, fontFamily)
 
-        // Attack effect - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
+        // render player name - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
         if (isPreparingAttack) {
-            val progress = 1f - (attackTimer / ATTACK_PREPARE_DURATION)  // 0 -> 1
-            val attackRadius = radius * (0.5f + progress * 0.3f)  // 점점 커짐
-            val offsetDistance = radius + 5f
-            val centerX = x + if (facingRight) offsetDistance else -offsetDistance
-            val centerY = y
-
-            // 바깥쪽 작은 원
-            val outerRadius = attackRadius * 0.8f
-            val outerRect = Rect(
-                left = centerX - outerRadius,
-                top = centerY - outerRadius,
-                right = centerX + outerRadius,
-                bottom = centerY + outerRadius,
-            )
-
-            // 안쪽 큰 원
-            val innerRadius = attackRadius
-            val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
-            val innerRect = Rect(
-                left = centerX + innerOffsetX - innerRadius,
-                top = centerY - innerRadius,
-                right = centerX + innerOffsetX + innerRadius,
-                bottom = centerY + innerRadius,
-            )
-
-            val outerPath = Path().apply {
-                if (facingRight) {
-                    arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-                } else {
-                    arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-                }
-                close()
-            }
-
-            val innerPath = Path().apply {
-                addOval(innerRect)
-            }
-
-            val crescentPath = Path().apply {
-                op(outerPath, innerPath, PathOperation.Difference)
-            }
-
-            // 선딜은 반투명, 점점 진해짐
-            val alpha = (100 + (progress * 120)).toInt()
-            context.drawPath(
-                path = crescentPath,
-                color = Color(123, 30, 30, alpha),
-            )
+            renderAttack(context)
         }
 
-        // Attack effect - 실제 공격 (진한 색, 원래 크기)
+        // render attack - 실제 공격 (진한 색, 원래 크기)
         if (isAttackingNow) {
-            val attackRadius = radius
-            val offsetDistance = radius + 5f
-            val centerX = x + if (facingRight) offsetDistance else -offsetDistance
-            val centerY = y
-
-            // 바깥쪽 작은 원
-            val outerRadius = attackRadius * 0.8f
-            val outerRect = Rect(
-                left = centerX - outerRadius,
-                top = centerY - outerRadius,
-                right = centerX + outerRadius,
-                bottom = centerY + outerRadius,
-            )
-
-            // 안쪽 큰 원
-            val innerRadius = attackRadius
-            val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
-            val innerRect = Rect(
-                left = centerX + innerOffsetX - innerRadius,
-                top = centerY - innerRadius,
-                right = centerX + innerOffsetX + innerRadius,
-                bottom = centerY + innerRadius,
-            )
-
-            val outerPath = Path().apply {
-                if (facingRight) {
-                    arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-                } else {
-                    arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-                }
-                close()
-            }
-
-            val innerPath = Path().apply {
-                addOval(innerRect)
-            }
-
-            val crescentPath = Path().apply {
-                op(outerPath, innerPath, PathOperation.Difference)
-            }
-
-            context.drawPath(
-                path = crescentPath,
-                color = Color(123, 30, 30, 220),
-            )
+            renderAttack(context)
         }
 
-        // Speech effect
+        // render speech
         if (isSpeeching) {
-            // text style
-            val textStyle = TextStyle(fontSize = 14.sp, color = Color.Black, fontFamily = fontFamily)
-            // text size
-            val textSize = cachedTextSize
-                ?: textMeasurer.measure(
-                    text = selectedSpeechList[speechIndex],
-                    style = textStyle,
-                ).size.toSize().also { cachedTextSize = it }
-            // speech offset
-            val offsetDistance = radius + 20f // TODO : magic number
-            val centerY = y - offsetDistance
-            val centerX = x
-
-            context.drawText(
-                textMeasurer = textMeasurer,
-                text = selectedSpeechList[speechIndex],
-                topLeft = Offset(
-                    x = centerX - textSize.width / 2,
-                    y = centerY - textSize.height / 2
-                ),
-                style = textStyle,
-            )
+            renderSpeech(context, textMeasurer, fontFamily)
         }
     }
 
@@ -634,6 +512,100 @@ data class Player(
             justSpeeched = selectedSpeechList[speechIndex]
             speechTimer = SPEECH_DURATION
         }
+    }
+
+    /**
+     * render functions
+     */
+    private  fun renderName(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
+        val displayName = name.take(2)
+        val textStyle = TextStyle(fontSize = (radius * 0.5f).sp, color = Color.Black, fontFamily = fontFamily) // TODO : color
+        val measuredText = textMeasurer.measure(text = displayName, style = textStyle)
+        context.drawText(
+            textMeasurer = textMeasurer,
+            text = displayName,
+            topLeft = Offset(
+                x - measuredText.size.width / 2f,
+                y - measuredText.size.height / 2f
+            ),
+            style = textStyle,
+        )
+    }
+
+    private fun renderAttack(context: GameDrawScope) {
+        val progress = 1f - (attackTimer / ATTACK_PREPARE_DURATION)  // 0 -> 1
+        val attackRadius = radius * (0.5f + progress * 0.3f)  // 점점 커짐
+        val offsetDistance = radius + 5f
+        val centerX = x + if (facingRight) offsetDistance else -offsetDistance
+        val centerY = y
+
+        // 바깥쪽 작은 원
+        val outerRadius = attackRadius * 0.8f
+        val outerRect = Rect(
+            left = centerX - outerRadius,
+            top = centerY - outerRadius,
+            right = centerX + outerRadius,
+            bottom = centerY + outerRadius,
+        )
+
+        // 안쪽 큰 원
+        val innerRadius = attackRadius
+        val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
+        val innerRect = Rect(
+            left = centerX + innerOffsetX - innerRadius,
+            top = centerY - innerRadius,
+            right = centerX + innerOffsetX + innerRadius,
+            bottom = centerY + innerRadius,
+        )
+
+        val outerPath = Path().apply {
+            if (facingRight) {
+                arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+            } else {
+                arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
+            }
+            close()
+        }
+
+        val innerPath = Path().apply {
+            addOval(innerRect)
+        }
+
+        val crescentPath = Path().apply {
+            op(outerPath, innerPath, PathOperation.Difference)
+        }
+
+        // 선딜은 반투명, 점점 진해짐
+        val alpha = (100 + (progress * 120)).toInt()
+        context.drawPath(
+            path = crescentPath,
+            color = Color(123, 30, 30, alpha),
+        )
+    }
+
+    private fun renderSpeech(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
+        // text style
+        val textStyle = TextStyle(fontSize = 14.sp, color = Color.Black, fontFamily = fontFamily)
+        // text size
+        val textSize = cachedTextSize
+            ?: textMeasurer.measure(
+                text = selectedSpeechList[speechIndex],
+                style = textStyle,
+            ).size.toSize().also { cachedTextSize = it }
+        // speech offset
+        val offsetDistance = radius + 20f // TODO : magic number
+        val centerY = y - offsetDistance
+        val centerX = x
+
+        context.drawText(
+            textMeasurer = textMeasurer,
+            text = selectedSpeechList[speechIndex],
+            topLeft = Offset(
+                x = centerX - textSize.width / 2,
+                y = centerY - textSize.height / 2
+            ),
+            style = textStyle,
+        )
     }
 
     fun pollJustSpeeched(): String {

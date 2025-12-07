@@ -736,7 +736,7 @@ data class Player(
         private const val ATTACK_PREPARE_DURATION = 1.0f   // 선딜
         private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격
         private const val SPEECH_DURATION = 2.0f
-        private const val IDLE_MAX_DURATION = 0.7f
+        private const val IDLE_MAX_DURATION = 0.5f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
         private const val INVINCIBLE_DURATION = 0.4f // 무적 시간

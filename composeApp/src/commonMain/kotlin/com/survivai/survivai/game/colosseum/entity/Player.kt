@@ -404,6 +404,7 @@ data class Player(
             center = Offset(x, y),
             radius = radius
         )
+        renderEyes(context)
         renderName(context, textMeasurer, fontFamily)
         renderHP(context)
 
@@ -684,6 +685,38 @@ data class Player(
             }
             context.drawPath(filledPath, Color.Green)
         }
+    }
+
+    private fun renderEyes(context: GameDrawScope) {
+        val eyeRadius = radius * 0.3f
+        val eyeYOffset = -radius * 0.2f
+        val eyeXSpacing = radius * 0.3f
+        val pupilRadius = eyeRadius * 0.6f
+        val pupilXOffset = if (facingRight) eyeRadius * 0.4f else -eyeRadius * 0.4f
+
+        // 왼쪽 눈
+        context.drawCircle(
+            color = Color.White,
+            center = Offset(x - eyeXSpacing, y + eyeYOffset),
+            radius = eyeRadius
+        )
+        context.drawCircle(
+            color = Color.Black,
+            center = Offset(x - eyeXSpacing + pupilXOffset, y + eyeYOffset),
+            radius = pupilRadius
+        )
+
+        // 오른쪽 눈
+        context.drawCircle(
+            color = Color.White,
+            center = Offset(x + eyeXSpacing, y + eyeYOffset),
+            radius = eyeRadius
+        )
+        context.drawCircle(
+            color = Color.Black,
+            center = Offset(x + eyeXSpacing + pupilXOffset, y + eyeYOffset),
+            radius = pupilRadius
+        )
     }
 
     fun pollJustSpeeched(): String {

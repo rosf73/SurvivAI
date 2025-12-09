@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -43,10 +42,6 @@ private fun ResponsiveRoot() {
 
     // 게임 상태 추적 (recomposition 트리거용)
     val currentGameState = ColosseumInfo.gameState.value
-
-    // 플랫폼별로 이모지 폰트 preload
-    val fontFamilyResolver = LocalFontFamilyResolver.current
-    preloadEmojiFontForFallback(fontFamilyResolver)
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Colosseum

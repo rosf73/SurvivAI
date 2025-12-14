@@ -3,12 +3,17 @@ package com.survivai.survivai.game.colosseum
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import kotlin.math.abs
 import kotlin.math.max
@@ -77,6 +82,28 @@ class WebDrawScope(private val drawScope: DrawScope) : GameDrawScope {
             color = color,
         )
     }
+
+    override fun drawImage(
+        image: ImageBitmap,
+        srcOffset: IntOffset,
+        srcSize: IntSize,
+        dstOffset: IntOffset,
+        dstSize: IntSize,
+        alpha: Float,
+        style: DrawStyle,
+        colorFilter: ColorFilter?
+    ) {
+        drawScope.drawImage(
+            image = image,
+            srcOffset = srcOffset,
+            srcSize = srcSize,
+            dstOffset = dstOffset,
+            dstSize = dstSize,
+            alpha = alpha,
+            style = style,
+            colorFilter = colorFilter,
+        )
+    }
 }
 
 class WebCanvas : Canvas {
@@ -103,7 +130,7 @@ class WebCanvas : Canvas {
         val alivePlayers = players.filter { it.isAlive }
 
         // Call Entity::update
-        alivePlayers.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
+        players.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
 
         // (중계 로그) 대사
         alivePlayers.forEachIndexed { _, p ->
@@ -114,9 +141,14 @@ class WebCanvas : Canvas {
         }
 
         // Check for winner (only once)
-        if (gameState !is GameState.Ended && alivePlayers.size == 1) {
-            log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
-            ColosseumInfo.updateGameSet()
+        if (gameState !is GameState.Ended && players.isNotEmpty()) {
+            if (alivePlayers.size == 1) {
+                log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
+                ColosseumInfo.updateGameSet()
+            } else if (alivePlayers.isEmpty()) {
+                log("        💀 전원 탈락! 살아남은 플레이어가 없습니다!")
+                ColosseumInfo.updateGameSet()
+            }
         }
 
         // Player-player overlap resolution (simple horizontal push)
@@ -140,6 +172,9 @@ class WebCanvas : Canvas {
             }
         }
 
+        // first blood 체크 (race condition 방지)
+        var isFirstBloodFrame = (alivePlayers.size == players.size)
+
         // Attack detection
         alivePlayers.detectAttackDamagedThisFrame { attacker, target ->
             // 스탯 업데이트
@@ -153,8 +188,10 @@ class WebCanvas : Canvas {
                     killerName = attacker.name,
                     victimName = target.name,
                 )
-                if (alivePlayers.size == players.size) { // first blood
+
+                if (isFirstBloodFrame) { // first blood
                     log("        ${attacker.name} 에 의해 ${target.name} First Blood! 😭")
+                    isFirstBloodFrame = false
                 } else {
                     log("        ${attacker.name} 에 의해 ${target.name} 탈락! 😭")
                 }
@@ -168,7 +205,6 @@ class WebCanvas : Canvas {
 
         // 엔티티
         players
-            .filter { it.isAlive }
             .forEach { it.render(context, textMeasurer, fontFamily) }
     }
 

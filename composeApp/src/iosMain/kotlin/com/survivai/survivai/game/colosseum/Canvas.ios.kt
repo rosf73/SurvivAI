@@ -3,12 +3,17 @@ package com.survivai.survivai.game.colosseum
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 
 class IOSDrawScope(private val drawScope: DrawScope) : GameDrawScope {
     override fun drawCircle(
@@ -72,6 +77,28 @@ class IOSDrawScope(private val drawScope: DrawScope) : GameDrawScope {
         drawScope.drawPath(
             path = path,
             color = color,
+        )
+    }
+
+    override fun drawImage(
+        image: ImageBitmap,
+        srcOffset: IntOffset,
+        srcSize: IntSize,
+        dstOffset: IntOffset,
+        dstSize: IntSize,
+        alpha: Float,
+        style: DrawStyle,
+        colorFilter: ColorFilter?
+    ) {
+        drawScope.drawImage(
+            image = image,
+            srcOffset = srcOffset,
+            srcSize = srcSize,
+            dstOffset = dstOffset,
+            dstSize = dstSize,
+            alpha = alpha,
+            style = style,
+            colorFilter = colorFilter,
         )
     }
 }

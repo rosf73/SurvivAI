@@ -5,8 +5,14 @@ import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import survivai.composeapp.generated.resources.Res
 import androidx.compose.ui.text.platform.Font
+import kotlinx.browser.window
+import kotlinx.coroutines.await
+import kotlinx.coroutines.delay
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Int8Array
+import org.w3c.fetch.Response
 
-@OptIn(ExperimentalResourceApi::class)
+@OptIn(ExperimentalResourceApi::class, ExperimentalWasmJsInterop::class)
 @Composable
 actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver) {
     var fontsLoaded by remember { mutableStateOf(false) }
@@ -23,6 +29,7 @@ actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver) 
             println("✅ Emoji font preloaded successfully")
         } catch (e: Exception) {
             println("❌ Failed to preload emoji font: ${e.message}")
+            e.printStackTrace()
         }
     }
 }

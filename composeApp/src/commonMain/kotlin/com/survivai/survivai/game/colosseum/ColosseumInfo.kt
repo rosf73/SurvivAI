@@ -106,7 +106,8 @@ object ColosseumInfo {
                 name = player.name,
                 color = player.color,
                 radius = player.radius,
-                startHp = defaultHp
+                startHp = defaultHp,
+                ripIcons = player.ripIcons,
             )
         }
 

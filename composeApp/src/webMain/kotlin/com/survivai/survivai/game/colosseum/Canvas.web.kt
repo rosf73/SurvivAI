@@ -3,12 +3,17 @@ package com.survivai.survivai.game.colosseum
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import kotlin.math.abs
 import kotlin.math.max
@@ -77,6 +82,28 @@ class WebDrawScope(private val drawScope: DrawScope) : GameDrawScope {
             color = color,
         )
     }
+
+    override fun drawImage(
+        image: ImageBitmap,
+        srcOffset: IntOffset,
+        srcSize: IntSize,
+        dstOffset: IntOffset,
+        dstSize: IntSize,
+        alpha: Float,
+        style: DrawStyle,
+        colorFilter: ColorFilter?
+    ) {
+        drawScope.drawImage(
+            image = image,
+            srcOffset = srcOffset,
+            srcSize = srcSize,
+            dstOffset = dstOffset,
+            dstSize = dstSize,
+            alpha = alpha,
+            style = style,
+            colorFilter = colorFilter,
+        )
+    }
 }
 
 class WebCanvas : Canvas {
@@ -103,7 +130,7 @@ class WebCanvas : Canvas {
         val alivePlayers = players.filter { it.isAlive }
 
         // Call Entity::update
-        alivePlayers.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
+        players.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
 
         // (중계 로그) 대사
         alivePlayers.forEachIndexed { _, p ->
@@ -178,7 +205,6 @@ class WebCanvas : Canvas {
 
         // 엔티티
         players
-            .filter { it.isAlive }
             .forEach { it.render(context, textMeasurer, fontFamily) }
     }
 

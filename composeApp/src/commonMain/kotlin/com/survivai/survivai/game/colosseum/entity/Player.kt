@@ -4,6 +4,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.text.TextMeasurer
@@ -26,6 +28,7 @@ data class Player(
     val radius: Float = 36f,
     val color: Color = Color.Blue,
     private val startHp: Int = ColosseumInfo.defaultHp,
+    val ripIcons: Pair<ImageBitmap, ImageBitmap>,
 ) : Entity {
 
     // Position (Center offset)
@@ -398,15 +401,19 @@ data class Player(
     }
 
     override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
-        // render player
-        context.drawCircle(
-            color = color,
-            center = Offset(x, y),
-            radius = radius
-        )
-        renderEyes(context)
-        renderName(context, textMeasurer, fontFamily)
-        renderHP(context)
+        if (isAlive) {
+            // render player
+            context.drawCircle(
+                color = color,
+                center = Offset(x, y),
+                radius = radius
+            )
+            renderEyes(context)
+            renderName(context, textMeasurer, fontFamily)
+            renderHP(context)
+        } else {
+            renderRIP(context)
+        }
 
         // render player name - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
         if (isPreparingAttack) {
@@ -719,6 +726,24 @@ data class Player(
             color = Color.Black,
             center = Offset(x + eyeXSpacing + pupilXOffset, y + eyeYOffset),
             radius = pupilRadius
+        )
+    }
+
+    private fun renderRIP(context: GameDrawScope) {
+        val top = y - radius
+        val left = x - radius
+        val offset = Offset(left, top)
+        context.drawImage(
+            image = ripIcons.first,
+            topLeft = offset,
+            alpha = 1.0f,
+            colorFilter = ColorFilter.tint(color)
+        )
+        context.drawImage(
+            image = ripIcons.second,
+            topLeft = offset,
+            alpha = 0.5f,
+            colorFilter = ColorFilter.tint(color)
         )
     }
 

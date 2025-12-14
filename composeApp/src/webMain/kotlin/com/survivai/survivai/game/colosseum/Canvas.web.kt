@@ -202,7 +202,6 @@ class WebCanvas : Canvas {
 
         // 엔티티
         players
-            .filter { it.isAlive }
             .forEach { it.render(context, textMeasurer, fontFamily) }
     }
 

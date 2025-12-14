@@ -12,6 +12,8 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 
 class AndroidDrawScope(private val drawScope: DrawScope) : GameDrawScope {
     override fun drawCircle(
@@ -80,14 +82,20 @@ class AndroidDrawScope(private val drawScope: DrawScope) : GameDrawScope {
 
     override fun drawImage(
         image: ImageBitmap,
-        topLeft: Offset,
+        srcOffset: IntOffset,
+        srcSize: IntSize,
+        dstOffset: IntOffset,
+        dstSize: IntSize,
         alpha: Float,
         style: DrawStyle,
         colorFilter: ColorFilter?
     ) {
         drawScope.drawImage(
             image = image,
-            topLeft = topLeft,
+            srcOffset = srcOffset,
+            srcSize = srcSize,
+            dstOffset = dstOffset,
+            dstSize = dstSize,
             alpha = alpha,
             style = style,
             colorFilter = colorFilter,

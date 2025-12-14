@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
@@ -730,18 +732,23 @@ data class Player(
     }
 
     private fun renderRIP(context: GameDrawScope) {
-        val top = y - radius
-        val left = x - radius
-        val offset = Offset(left, top)
+        val iconSize = (radius * 2).toInt()  // 플레이어 지름에 맞춤
+
         context.drawImage(
             image = ripIcons.first,
-            topLeft = offset,
+            srcOffset = IntOffset(0, 0),
+            srcSize = IntSize(ripIcons.first.width, ripIcons.first.height),
+            dstOffset = IntOffset((x - radius).toInt(), (y - radius).toInt()),
+            dstSize = IntSize(iconSize, iconSize),
             alpha = 1.0f,
             colorFilter = ColorFilter.tint(color)
         )
         context.drawImage(
             image = ripIcons.second,
-            topLeft = offset,
+            srcOffset = IntOffset(0, 0),
+            srcSize = IntSize(ripIcons.first.width, ripIcons.first.height),
+            dstOffset = IntOffset((x - radius).toInt(), (y - radius).toInt()),
+            dstSize = IntSize(iconSize, iconSize),
             alpha = 0.5f,
             colorFilter = ColorFilter.tint(color)
         )

@@ -130,7 +130,7 @@ class WebCanvas : Canvas {
         val alivePlayers = players.filter { it.isAlive }
 
         // Call Entity::update
-        alivePlayers.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
+        players.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
 
         // (중계 로그) 대사
         alivePlayers.forEachIndexed { _, p ->

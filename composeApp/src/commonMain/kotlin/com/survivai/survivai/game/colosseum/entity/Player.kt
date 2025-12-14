@@ -746,7 +746,7 @@ data class Player(
         context.drawImage(
             image = ripIcons.second,
             srcOffset = IntOffset(0, 0),
-            srcSize = IntSize(ripIcons.first.width, ripIcons.first.height),
+            srcSize = IntSize(ripIcons.second.width, ripIcons.second.height),
             dstOffset = IntOffset((x - radius).toInt(), (y - radius).toInt()),
             dstSize = IntSize(iconSize, iconSize),
             alpha = 0.5f,

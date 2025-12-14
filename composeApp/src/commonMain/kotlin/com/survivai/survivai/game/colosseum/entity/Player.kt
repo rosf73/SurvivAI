@@ -415,6 +415,7 @@ data class Player(
             renderHP(context)
         } else {
             renderRIP(context)
+            renderName(context, textMeasurer, fontFamily)
         }
 
         // render player name - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)

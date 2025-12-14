@@ -290,6 +290,8 @@ data class Player(
         viewportHeight: Float,
         world: World,
     ) {
+        if (!isAlive) return
+
         this.viewportWidth = viewportWidth
         this.viewportHeight = viewportHeight
 
@@ -403,20 +405,21 @@ data class Player(
     }
 
     override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
-        if (isAlive) {
-            // render player
-            context.drawCircle(
-                color = color,
-                center = Offset(x, y),
-                radius = radius
-            )
-            renderEyes(context)
-            renderName(context, textMeasurer, fontFamily)
-            renderHP(context)
-        } else {
+        if (!isAlive) {
             renderRIP(context)
             renderName(context, textMeasurer, fontFamily)
+            return
         }
+
+        // render player
+        context.drawCircle(
+            color = color,
+            center = Offset(x, y),
+            radius = radius
+        )
+        renderEyes(context)
+        renderName(context, textMeasurer, fontFamily)
+        renderHP(context)
 
         // render player name - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
         if (isPreparingAttack) {

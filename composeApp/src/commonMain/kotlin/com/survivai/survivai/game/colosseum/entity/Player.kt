@@ -733,13 +733,15 @@ data class Player(
 
     private fun renderRIP(context: GameDrawScope) {
         val iconSize = (radius * 2).toInt()  // 플레이어 지름에 맞춤
+        val dstOffset = IntOffset((x - radius).toInt(), (y - radius).toInt())
+        val dstSize = IntSize(iconSize, iconSize)
 
         context.drawImage(
             image = ripIcons.first,
             srcOffset = IntOffset(0, 0),
             srcSize = IntSize(ripIcons.first.width, ripIcons.first.height),
-            dstOffset = IntOffset((x - radius).toInt(), (y - radius).toInt()),
-            dstSize = IntSize(iconSize, iconSize),
+            dstOffset = dstOffset,
+            dstSize = dstSize,
             alpha = 1.0f,
             colorFilter = ColorFilter.tint(color)
         )
@@ -747,8 +749,8 @@ data class Player(
             image = ripIcons.second,
             srcOffset = IntOffset(0, 0),
             srcSize = IntSize(ripIcons.second.width, ripIcons.second.height),
-            dstOffset = IntOffset((x - radius).toInt(), (y - radius).toInt()),
-            dstSize = IntSize(iconSize, iconSize),
+            dstOffset = dstOffset,
+            dstSize = dstSize,
             alpha = 0.5f,
             colorFilter = ColorFilter.tint(color)
         )

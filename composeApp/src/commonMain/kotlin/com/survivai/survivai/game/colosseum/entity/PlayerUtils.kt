@@ -20,6 +20,13 @@ val speechDocs = listOf(
 )
 
 /**
+ * 사용 가능한 플레이어 이름 리스트
+ */
+private val playerNames = listOf(
+    "홍길동", "김철수", "이영희", "박지성", "손흥민", "김연아", "봉준호", "페이커"
+)
+
+/**
  * 사용 가능한 플레이어 색상 팔레트
  */
 private val playerColorPalette = listOf(
@@ -33,6 +40,12 @@ private val playerColorPalette = listOf(
     Color(0xFFAAAAAA), // Gray
 )
 
+data class PlayerInitPair(
+    val name: String,
+    val color: Color,
+)
+private var playerInitPairs: List<PlayerInitPair> = listOf()
+
 /**
  * 랜덤 색상 생성 (선명한 색상 위주)
  */
@@ -41,15 +54,23 @@ fun generateRandomColor(): Color {
 }
 
 /**
- * 중복 없이 여러 개의 랜덤 색상 생성
- * @param count 필요한 색상의 개수 (최대 8개)
- * @return 중복 없는 색상 리스트
+ * 중복 없이 여러 개의 랜덤 이름과 색상 생성
+ * @param count 필요한 플레이어 개수 (최대 8개)
+ * @return 중복 없는 이름-색상 맵
  */
-fun generateUniqueColors(count: Int): List<Color> {
-    require(count <= playerColorPalette.size) {
-        "요청한 색상 개수($count)가 사용 가능한 색상 팔레트 크기(${playerColorPalette.size})를 초과합니다."
+fun generateUniquePlayerPool(count: Int): List<PlayerInitPair> {
+    // init on first time only
+    if (playerInitPairs.isEmpty()) {
+        val size = minOf(playerNames.size, playerColorPalette.size)
+        val shuffledNames = playerNames.shuffled()
+        val shuffledColors = playerColorPalette.shuffled()
+
+        playerInitPairs = (0 until size).map { i ->
+            PlayerInitPair(name = shuffledNames[i], color = shuffledColors[i])
+        }
     }
-    return playerColorPalette.shuffled().take(count)
+
+    return playerInitPairs.take(count)
 }
 
 /**

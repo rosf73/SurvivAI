@@ -54,15 +54,18 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.survivai.survivai.game.colosseum.entity.PlayerInitPair
+import com.survivai.survivai.game.colosseum.entity.generateUniquePlayerPool
 import kotlin.math.roundToInt
 
 @Composable
 fun ColosseumStartScreen(
-    onClickStart: (playerNames: List<String>, hp: Int) -> Unit,
+    onClickStart: (players: List<PlayerInitPair>, hp: Int) -> Unit,
     fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
-    val players = remember { mutableStateListOf("홍길동", "김철수") }
+    val initialPool = remember { generateUniquePlayerPool(2).toList() }
+    val players = remember { mutableStateListOf<PlayerInitPair>().apply { addAll(initialPool) } }
     var hpSliderValue by remember { mutableFloatStateOf(3f) }
 
     // 고전 게임 감성의 어두운 배경
@@ -160,11 +163,11 @@ fun ColosseumStartScreen(
                 }
 
                 // Players (2 Columns)
-                itemsIndexed(players) { index, name ->
+                itemsIndexed(players) { index, player ->
                     PlayerInputCard(
                         index = index,
-                        name = name,
-                        onNameChange = { newName -> players[index] = newName },
+                        name = player.name,
+                        onNameChange = { newName -> players[index] = players[index].copy(name = newName) },
                         onDelete = if (players.size > 2) {
                             { players.removeAt(index) }
                         } else null,
@@ -175,7 +178,16 @@ fun ColosseumStartScreen(
                 // Add Player Button (Full Width)
                 item(span = { GridItemSpan(2) }) {
                     OutlinedButton(
-                        onClick = { if (players.size < 8) players.add("") },
+                        onClick = { 
+                            if (players.size < 8) {
+                                // find first pair not exist in players
+                                generateUniquePlayerPool(8)
+                                    .firstOrNull { it !in players }
+                                    ?.let {
+                                        players.add(it)
+                                    }
+                            }
+                        },
                         enabled = players.size < 8,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -216,7 +228,11 @@ fun ColosseumStartScreen(
                         .padding(bottom = 8.dp)
                 ) {
                     Button(
-                        onClick = { onClickStart(players, hpSliderValue.roundToInt()) },
+                        onClick = {
+                            if (players.count { it.name.isNotBlank() } >= 2) {
+                                onClickStart(players, hpSliderValue.roundToInt())
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(64.dp)

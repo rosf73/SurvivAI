@@ -18,7 +18,6 @@ import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.entity.Player
-import com.survivai.survivai.game.colosseum.entity.generateUniqueColors
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.imageResource
@@ -105,25 +104,20 @@ fun App(
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
                     fontFamily = fontFamily,
-                    onClickStart = { playerNames, hp ->
-                        // 빈 이름 필터링 및 플레이어 생성
-                        val validNames = playerNames.filter { it.isNotBlank() }
-                        if (validNames.size >= 2) {
-                            // HP 설정
-                            ColosseumInfo.setDefaultHp(hp)
-                            
-                            // 중복 없는 색상 생성
-                            val colors = generateUniqueColors(validNames.size)
-                            val players = validNames.mapIndexed { index, name ->
-                                Player(
-                                    name = name,
-                                    color = colors[index],
-                                    startHp = hp,
-                                    ripIcons = ripEmptyIcon to ripFullIcon,
-                                )
-                            }
-                            ColosseumInfo.setPlayers(players)
+                    onClickStart = { players, hp ->
+                        // Set HP
+                        ColosseumInfo.setDefaultHp(hp)
+
+                        // 중복 없는 색상 생성
+                        val players = players.map { p ->
+                            Player(
+                                name = p.name,
+                                color = p.color,
+                                startHp = hp,
+                                ripIcons = ripEmptyIcon to ripFullIcon,
+                            )
                         }
+                        ColosseumInfo.setPlayers(players)
                     },
                 )
             }

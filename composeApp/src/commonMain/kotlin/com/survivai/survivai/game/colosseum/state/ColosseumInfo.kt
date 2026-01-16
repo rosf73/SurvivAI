@@ -25,9 +25,6 @@ data class PlayerTitle(
 
 object ColosseumInfo {
 
-    // 상수
-    private const val COUNT_LOG_MAX = 200
-
     // 게임 초기화됨
     var initialized = false
         private set
@@ -51,12 +48,10 @@ object ColosseumInfo {
     val world = ColosseumWorld()
 
     // 로그 상태 추적
-    private val _itemUpdateState = mutableStateOf(false)
-    val itemUpdateState: State<Boolean> get() = _itemUpdateState
+    val itemUpdateState: State<Boolean> get() = LogManager.itemUpdateState
 
     // 로그 리스트
-    private val _logEntries = mutableListOf<String>()
-    val logEntries: List<String> get() = _logEntries
+    val logEntries: List<Log> get() = LogManager.logEntries
 
     // Viewport 크기 캐싱
     private var viewportWidth = 0f
@@ -113,7 +108,7 @@ object ColosseumInfo {
 
         // 게임 상태 리셋
         _gameState.value = GameState.Playing(Clock.System.now().toEpochMilliseconds())
-        _logEntries.clear()
+        LogManager.clear()
 
         // 플레이어 재설정 및 재초기화
         players = newPlayers
@@ -121,7 +116,7 @@ object ColosseumInfo {
         tryInitialize()
 
         // recomposition event
-        _itemUpdateState.value = !_itemUpdateState.value
+        LogManager.triggerItemUpdate()
     }
 
     fun reset() {
@@ -129,25 +124,20 @@ object ColosseumInfo {
         worldInitialized = false  // World도 재초기화 필요
         players = emptyList()
         defaultHp = 3  // HP 초기화
-        _logEntries.clear()
+        LogManager.clear()
 
         // 게임 상태를 대기 상태로
         _gameState.value = GameState.WaitingForPlayers
 
         // recomposition event
-        _itemUpdateState.value = !_itemUpdateState.value
+        LogManager.triggerItemUpdate()
     }
 
-    fun addLog(message: String) {
-        _logEntries.add(0, message)
-        // Keep a reasonable cap
-        if (_logEntries.size > COUNT_LOG_MAX) {
-            // remove oldest extra elements to keep list bounded
-            repeat(_logEntries.size - COUNT_LOG_MAX) { _logEntries.removeAt(_logEntries.size - 1) }
-        }
+    fun addLog(log: Log) {
+        LogManager.addNewLog(log)
 
         // recomposition event
-        _itemUpdateState.value = !_itemUpdateState.value
+        LogManager.triggerItemUpdate()
     }
 
     // 게임이 끝났을 때만 호출

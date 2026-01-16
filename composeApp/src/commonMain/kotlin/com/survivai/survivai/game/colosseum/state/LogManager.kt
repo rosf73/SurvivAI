@@ -7,7 +7,7 @@ import com.survivai.survivai.game.colosseum.entity.Player
 sealed interface Log {
     data class System(val msg: String) : Log
     data class Solo(val player: Player, val msg: String) : Log
-    data class Duo(val perpetrator: Player, val victim: Player, val interaction: String) : Log
+    data class Duo(val perpetrator: Player, val victim: Player, val interaction: String, val additional: String) : Log
 }
 
 object LogManager {

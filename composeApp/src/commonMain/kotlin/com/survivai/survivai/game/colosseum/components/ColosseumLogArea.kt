@@ -99,6 +99,11 @@ private fun LogLine(
                     name = log.victim.name,
                     fontFamily = fontFamily,
                 )
+                Text(
+                    text = " ${log.additional}",
+                    fontSize = 12.sp,
+                    fontFamily = fontFamily,
+                )
             }
         }
     }

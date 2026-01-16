@@ -229,8 +229,9 @@ fun ColosseumStartScreen(
                 ) {
                     Button(
                         onClick = {
-                            if (players.count { it.name.isNotBlank() } >= 2) {
-                                onClickStart(players, hpSliderValue.roundToInt())
+                            val validPlayers = players.filter { it.name.isNotBlank() }
+                            if (validPlayers.size >= 2) {
+                                onClickStart(validPlayers, hpSliderValue.roundToInt())
                             }
                         },
                         modifier = Modifier

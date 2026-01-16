@@ -165,9 +165,9 @@ fun ColosseumStartScreen(
                 // Players (2 Columns)
                 itemsIndexed(players) { index, player ->
                     PlayerInputCard(
-                        index = index,
                         name = player.name,
-                        onNameChange = { newName -> players[index] = players[index].copy(name = newName) },
+                        color = player.color,
+                        onNameChange = { newName -> players[index] = player.copy(name = newName) },
                         onDelete = if (players.size > 2) {
                             { players.removeAt(index) }
                         } else null,
@@ -336,8 +336,8 @@ private fun HpSettingCard(
 
 @Composable
 private fun PlayerInputCard(
-    index: Int,
     name: String,
+    color: Color,
     onNameChange: (String) -> Unit,
     onDelete: (() -> Unit)?,
     fontFamily: FontFamily,
@@ -349,66 +349,35 @@ private fun PlayerInputCard(
         shape = CutCornerShape(2.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF222222)),
     ) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp), // 상하 패딩을 줄여 높이 감소
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    color = Color(0xFFD32F2F),
-                    shape = CutCornerShape(2.dp),
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "${index + 1}",
-                            style = TextStyle(
-                                fontFamily = fontFamily,
-                                fontWeight = FontWeight.Black,
-                                color = Color.White,
-                                fontSize = 12.sp
-                            )
-                        )
-                    }
-                }
-
-                if (onDelete != null) {
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Close, 
-                            contentDescription = "REMOVE",
-                            tint = Color.White.copy(alpha = 0.4f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                } else {
-                    Spacer(modifier = Modifier.size(24.dp))
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
+            // 1. color circle
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .background(color = color, shape = androidx.compose.foundation.shape.CircleShape)
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), androidx.compose.foundation.shape.CircleShape)
+            )
+            // 2. name input (weight 1)
             OutlinedTextField(
                 value = name,
                 onValueChange = { if (it.length <= 10) onNameChange(it) },
-                placeholder = { 
+                placeholder = {
                     Text(
-                        "NAME", 
+                        "NAME",
                         style = TextStyle(fontFamily = fontFamily, fontSize = 10.sp, color = Color.Gray)
-                    ) 
+                    )
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f),
                 singleLine = true,
                 textStyle = TextStyle(
-                    fontFamily = fontFamily, 
-                    fontSize = 14.sp, 
+                    fontFamily = fontFamily,
+                    fontSize = 13.sp, // 폰트 크기 살짝 조절
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 ),
@@ -421,6 +390,22 @@ private fun PlayerInputCard(
                     cursorColor = Color(0xFF00E5FF)
                 )
             )
+            // 3. delete icon
+            if (onDelete != null) {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "REMOVE",
+                        tint = Color(0xFFD32F2F).copy(alpha = 0.8f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.size(24.dp))
+            }
         }
     }
 }

@@ -182,7 +182,9 @@ fun ColosseumStartScreen(
                             if (players.size < 8) {
                                 // find first pair not exist in players
                                 generateUniquePlayerPool(8)
-                                    .firstOrNull { it !in players }
+                                    .firstOrNull { new ->
+                                        !players.any { it.color == new.color }
+                                    }
                                     ?.let {
                                         players.add(it)
                                     }

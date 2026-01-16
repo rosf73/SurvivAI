@@ -12,8 +12,8 @@ import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.toSize
-import com.survivai.survivai.game.colosseum.ColosseumInfo
-import com.survivai.survivai.game.colosseum.GameState
+import com.survivai.survivai.game.colosseum.state.ColosseumInfo
+import com.survivai.survivai.game.colosseum.state.GameState
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope

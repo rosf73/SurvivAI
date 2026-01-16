@@ -15,6 +15,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
+import com.survivai.survivai.game.colosseum.state.ColosseumInfo
+import com.survivai.survivai.game.colosseum.state.GameState
 import kotlin.math.abs
 import kotlin.math.max
 

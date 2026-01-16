@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.survivai.survivai.game.colosseum.PlayerTitle
+import com.survivai.survivai.game.colosseum.state.PlayerTitle
 
 @Composable
 fun ColosseumEndScreen(

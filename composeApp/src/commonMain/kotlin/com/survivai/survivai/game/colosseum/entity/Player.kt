@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
-import com.survivai.survivai.game.colosseum.ColosseumInfo
+import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import kotlin.enums.EnumEntries

@@ -1,7 +1,7 @@
 package com.survivai.survivai.game.colosseum.entity
 
 import androidx.compose.ui.graphics.Color
-import com.survivai.survivai.game.colosseum.ColosseumInfo
+import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import kotlin.math.abs
 import kotlin.random.Random
 

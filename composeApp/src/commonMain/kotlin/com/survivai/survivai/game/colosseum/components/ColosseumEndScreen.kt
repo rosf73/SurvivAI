@@ -27,12 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.survivai.survivai.game.colosseum.state.PlayerTitle
+import com.survivai.survivai.game.colosseum.state.MVPTitleCard
 
 @Composable
 fun ColosseumEndScreen(
     statsList: List<List<String>>,
-    titles: List<PlayerTitle>,
+    titles: List<MVPTitleCard>,
     onClickRestart: () -> Unit,
     onClickReset: () -> Unit,
     fontFamily: FontFamily,
@@ -130,7 +130,7 @@ fun ColosseumEndScreen(
 
 @Composable
 private fun TitlesList(
-    titles: List<PlayerTitle>,
+    titles: List<MVPTitleCard>,
     fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {

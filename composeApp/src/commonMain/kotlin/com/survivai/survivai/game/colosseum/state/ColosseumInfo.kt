@@ -14,10 +14,10 @@ import kotlin.time.ExperimentalTime
 sealed interface GameState {
     data object WaitingForPlayers : GameState  // 플레이어 등록 대기
     data class Playing(val startTime: Long) : GameState  // 게임 진행 중
-    data class Ended(val statsList: List<List<String>>, val titleList: List<PlayerTitle>) : GameState  // 게임 종료
+    data class Ended(val statsList: List<List<String>>, val titleList: List<MVPTitleCard>) : GameState  // 게임 종료
 }
 
-data class PlayerTitle(
+data class MVPTitleCard(
     val title: String,
     val desc: String,
     val players: String,
@@ -186,14 +186,14 @@ object ColosseumInfo {
         }
     }
 
-    private fun calculateTitles(statsList: List<List<String>>): List<PlayerTitle> {
+    private fun calculateTitles(statsList: List<List<String>>): List<MVPTitleCard> {
         if (statsList.size <= 1) return emptyList() // 헤더만 있거나 비어있음
 
-        val titles = mutableListOf<PlayerTitle>()
+        val titles = mutableListOf<MVPTitleCard>()
 
         // 1등 (이미 score 기준으로 정렬되어 있으므로 첫 번째가 1등)
         val firstPlace = statsList[1][0] // NAME 컬럼
-        titles.add(PlayerTitle("🏆 1등", "결국 점수 높은 게 1등이야", firstPlace))
+        titles.add(MVPTitleCard("🏆 1등", "결국 점수 높은 게 1등이야", firstPlace))
 
         // 반복문으로 나머지 칭호 수집
         var maxKill = -1
@@ -233,17 +233,17 @@ object ColosseumInfo {
 
         // GOSU 칭호 추가
         if (killChampions.isNotEmpty() && maxKill > 0) {
-            titles.add(PlayerTitle("⭐️ GOSU", "해골 수집가 (최다결정타)", killChampions.joinToString(", ")))
+            titles.add(MVPTitleCard("⭐️ GOSU", "해골 수집가 (최다결정타)", killChampions.joinToString(", ")))
         }
 
         // 최단기퇴물 칭호 추가
         if (quickExits.isNotEmpty()) {
-            titles.add(PlayerTitle("⏱️ 최단기퇴물", "스폰킬도 실력 (10초 이내로 사망)", quickExits.joinToString(", ")))
+            titles.add(MVPTitleCard("⏱️ 최단기퇴물", "스폰킬도 실력 (10초 이내로 사망)", quickExits.joinToString(", ")))
         }
 
         // 평화주의자 칭호 추가
         if (pacifists.isNotEmpty()) {
-            titles.add(PlayerTitle("🕊️ 평화주의자", "적을 못 맞힌 게 아니다… 바람을 맞힌 거다. (어택 횟수 0회)", pacifists.joinToString(", ")))
+            titles.add(MVPTitleCard("🕊️ 평화주의자", "적을 못 맞힌 게 아니다… 바람을 맞힌 거다. (어택 횟수 0회)", pacifists.joinToString(", ")))
         }
 
         return titles

@@ -76,7 +76,7 @@ fun generateUniquePlayerPool(count: Int): List<PlayerInitPair> {
 /**
  * 랜덤 포지션 생성
  */
-fun List<Player>.initializePositions(viewportWidth: Float, viewportHeight: Float) {
+fun List<ColosseumPlayer>.initializePositions(viewportWidth: Float, viewportHeight: Float) {
     val margin = 10f
     val placed = mutableListOf<Pair<Float, Float>>()
     forEach { p ->
@@ -105,8 +105,8 @@ fun List<Player>.initializePositions(viewportWidth: Float, viewportHeight: Float
 /**
  * 타격 성공 여부
  */
-fun List<Player>.detectAttackDamagedThisFrame(
-    onDetected: (Player, Player) -> Unit,
+fun List<ColosseumPlayer>.detectAttackDamagedThisFrame(
+    onDetected: (ColosseumPlayer, ColosseumPlayer) -> Unit,
 ) {
     val hitThisFrame = mutableSetOf<Pair<Int, Int>>()
 

@@ -17,7 +17,7 @@ import com.survivai.survivai.game.colosseum.state.GameState
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.createGameDrawScope
-import com.survivai.survivai.game.colosseum.entity.Player
+import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.imageResource
@@ -110,7 +110,7 @@ fun App(
 
                         // 중복 없는 색상 생성
                         val players = players.map { p ->
-                            Player(
+                            ColosseumPlayer(
                                 name = p.name,
                                 color = p.color,
                                 startHp = hp,

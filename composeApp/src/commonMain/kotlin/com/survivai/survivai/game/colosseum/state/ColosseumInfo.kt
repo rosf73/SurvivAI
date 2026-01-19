@@ -4,7 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import com.survivai.survivai.common.msToMMSS
-import com.survivai.survivai.game.colosseum.entity.Player
+import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import kotlin.collections.plus
@@ -39,7 +39,7 @@ object ColosseumInfo {
     private var worldInitialized = false
 
     // 엔티티
-    var players = emptyList<Player>()
+    var players = emptyList<ColosseumPlayer>()
         private set
 
     // 기본 HP 설정 (1~10)
@@ -71,7 +71,7 @@ object ColosseumInfo {
     }
 
     @OptIn(ExperimentalTime::class)
-    fun setPlayers(newList: List<Player>) {
+    fun setPlayers(newList: List<ColosseumPlayer>) {
         players = newList
         initialized = false  // 재초기화 필요
         _gameState.value = GameState.Playing(Clock.System.now().toEpochMilliseconds())
@@ -103,7 +103,7 @@ object ColosseumInfo {
     fun restart() {
         // 현재 플레이어 정보로 새 플레이어 생성 (HP 초기화)
         val newPlayers = players.map { player ->
-            Player(
+            ColosseumPlayer(
                 name = player.name,
                 color = player.color,
                 radius = player.radius,

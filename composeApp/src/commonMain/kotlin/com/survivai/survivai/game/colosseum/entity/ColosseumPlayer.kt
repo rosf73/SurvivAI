@@ -25,7 +25,7 @@ import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-data class Player(
+data class ColosseumPlayer(
     val name: String,
     val radius: Float = 36f,
     val color: Color = Color.Blue,
@@ -196,7 +196,7 @@ data class Player(
 
         // 가장 가까운 적 찾기
         var minDistance = Float.MAX_VALUE
-        var nearestEnemy: Player? = null
+        var nearestEnemy: ColosseumPlayer? = null
 
         enemies.forEach { enemy ->
             val dx = enemy.x - x
@@ -805,7 +805,7 @@ data class Player(
         return true
     }
 
-    companion object {
+    companion object Companion {
         private const val ACTION_IDLE_PROBABILITY = 0.02
         private const val ATTACK_PREPARE_DURATION = 1.0f   // 선딜
         private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격

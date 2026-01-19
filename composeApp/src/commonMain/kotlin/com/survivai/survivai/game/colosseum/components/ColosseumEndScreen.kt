@@ -193,6 +193,7 @@ private fun TitlesList(
                                 fontFamily = fontFamily,
                             ),
                             color = p.color ?: Color.Unspecified,
+                            modifier = Modifier.padding(end = 2.dp),
                         )
                     }
                 }

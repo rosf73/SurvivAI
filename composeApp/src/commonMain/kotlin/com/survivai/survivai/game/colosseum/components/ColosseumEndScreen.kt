@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
@@ -21,18 +22,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.survivai.survivai.game.colosseum.PlayerTitle
+import com.survivai.survivai.game.colosseum.state.MVPTitleCard
+import com.survivai.survivai.game.colosseum.state.StatCell
 
 @Composable
 fun ColosseumEndScreen(
-    statsList: List<List<String>>,
-    titles: List<PlayerTitle>,
+    statsList: List<List<StatCell>>,
+    titles: List<MVPTitleCard>,
     onClickRestart: () -> Unit,
     onClickReset: () -> Unit,
     fontFamily: FontFamily,
@@ -130,7 +133,7 @@ fun ColosseumEndScreen(
 
 @Composable
 private fun TitlesList(
-    titles: List<PlayerTitle>,
+    titles: List<MVPTitleCard>,
     fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
@@ -179,14 +182,21 @@ private fun TitlesList(
                 )
 
                 // 플레이어들
-                Text(
-                    text = playerTitle.players,
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontFamily = fontFamily,
-                    ),
+                LazyRow(
                     modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
-                )
+                ) {
+                    items(playerTitle.players) { p ->
+                        Text(
+                            text = p.stat,
+                            style = TextStyle(
+                                fontSize = 15.sp,
+                                fontFamily = fontFamily,
+                            ),
+                            color = p.color ?: Color.Unspecified,
+                            modifier = Modifier.padding(end = 2.dp),
+                        )
+                    }
+                }
 
                 // 칭호 간 간격
                 Spacer(modifier = Modifier.size(16.dp))
@@ -197,7 +207,7 @@ private fun TitlesList(
 
 @Composable
 private fun Dashboard(
-    statsList: List<List<String>>,
+    statsList: List<List<StatCell>>,
     fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
@@ -238,11 +248,12 @@ private fun Dashboard(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = cellText,
+                            text = cellText.stat,
                             style = TextStyle(
                                 fontFamily = fontFamily,
                                 textAlign = TextAlign.Center
-                            )
+                            ),
+                            color = cellText.color ?: Color.Unspecified,
                         )
                     }
                 }

@@ -15,6 +15,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
+import com.survivai.survivai.game.colosseum.state.ColosseumInfo
+import com.survivai.survivai.game.colosseum.state.GameState
+import com.survivai.survivai.game.colosseum.state.Log
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -117,8 +120,8 @@ class WebCanvas : Canvas {
     private val gameState get() = ColosseumInfo.gameState.value
 
     // Simple combat/event log -> delegate to shared store
-    private fun log(message: String) {
-        ColosseumInfo.addLog(message)
+    private fun log(log: Log) {
+        ColosseumInfo.addLog(log)
     }
 
     override fun update(deltaTime: Double) {
@@ -136,17 +139,17 @@ class WebCanvas : Canvas {
         alivePlayers.forEachIndexed { _, p ->
             val text = p.pollJustSpeeched()
             if (text.isNotBlank()) {
-                log("${p.name} : \"$text\"")
+                log(Log.Solo(p, text))
             }
         }
 
         // Check for winner (only once)
         if (gameState !is GameState.Ended && players.isNotEmpty()) {
             if (alivePlayers.size == 1) {
-                log("        🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!")
+                log(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
                 ColosseumInfo.updateGameSet()
             } else if (alivePlayers.isEmpty()) {
-                log("        💀 전원 탈락! 살아남은 플레이어가 없습니다!")
+                log(Log.System("💀 전원 탈락! 살아남은 플레이어가 없습니다!"))
                 ColosseumInfo.updateGameSet()
             }
         }
@@ -181,7 +184,12 @@ class WebCanvas : Canvas {
             ColosseumInfo.updatePlayerAttackPoint(attacker.name)
 
             if (target.currentHp > 0) {
-                log("        ${attacker.name} 🤜 ${target.name} (HP=${target.currentHp})")
+                log(Log.Duo(
+                    perpetrator = attacker,
+                    victim = target,
+                    interaction = "🤜",
+                    additional = "(HP=${target.currentHp})",
+                ))
             } else {
                 // 스탯 업데이트
                 ColosseumInfo.updatePlayerKillPoint(
@@ -190,10 +198,20 @@ class WebCanvas : Canvas {
                 )
 
                 if (isFirstBloodFrame) { // first blood
-                    log("        ${attacker.name} 에 의해 ${target.name} First Blood! 😭")
+                    log(Log.Duo(
+                        perpetrator = attacker,
+                        victim = target,
+                        interaction = "에 의해",
+                        additional = "First Blood! 😭",
+                    ))
                     isFirstBloodFrame = false
                 } else {
-                    log("        ${attacker.name} 에 의해 ${target.name} 탈락! 😭")
+                    log(Log.Duo(
+                        perpetrator = attacker,
+                        victim = target,
+                        interaction = "에 의해",
+                        additional = "탈락! 😭",
+                    ))
                 }
             }
         }

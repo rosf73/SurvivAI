@@ -2,13 +2,10 @@ package com.survivai.survivai
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,8 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
 import com.survivai.survivai.common.createGitHubIcon
 import com.survivai.survivai.config.BuildConfig
-import com.survivai.survivai.game.colosseum.ColosseumInfo
-import com.survivai.survivai.game.colosseum.GameState
+import com.survivai.survivai.game.colosseum.state.ColosseumInfo
+import com.survivai.survivai.game.colosseum.state.GameState
+import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import org.jetbrains.compose.resources.Font
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
@@ -71,30 +69,10 @@ private fun ResponsiveRoot() {
                 .fillMaxWidth(if(isLandscape) 0.4f else 1.0f)
                 .fillMaxHeight(if(isLandscape) 1.0f else 0.4f)
         ) {
-            Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-                Text(
-                    text = "LOG",
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = fontFamily,
-                )
-
-                LazyColumn(
-                    reverseLayout = true,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    val itemUpdater = ColosseumInfo.itemUpdateState.value
-                    items(ColosseumInfo.logEntries) { line ->
-                        Text(
-                            text = line,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(vertical = 2.dp),
-                            fontFamily = fontFamily,
-                        )
-                    }
-                }
-            }
+            ColosseumLogArea(
+                fontFamily = fontFamily,
+                modifier = Modifier.fillMaxSize().padding(12.dp),
+            )
         }
 
         // Top right buttons

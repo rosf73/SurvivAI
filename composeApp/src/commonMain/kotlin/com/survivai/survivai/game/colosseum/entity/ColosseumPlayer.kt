@@ -20,6 +20,8 @@ import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import com.survivai.survivai.game.component.AttackState
+import com.survivai.survivai.game.component.MotionableCombatEntity
 import kotlin.enums.EnumEntries
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -31,7 +33,7 @@ data class ColosseumPlayer(
     val color: Color = Color.Blue,
     private val startHp: Int = ColosseumInfo.defaultHp,
     val ripIcons: Pair<ImageBitmap, ImageBitmap>,
-) : Entity {
+) : MotionableCombatEntity() {
 
     // Position (Center offset)
     var x = 0f
@@ -50,8 +52,6 @@ data class ColosseumPlayer(
 
     // Behavior
     private var facingRight = true // 바라보는 방향
-    private var attackState = AttackState.NONE
-    private var attackTimer = 0f
     val attackReach get() = radius * 2 + 5f
     private var isSpeeching = false
     private var speechTimer = 0f
@@ -505,14 +505,11 @@ data class ColosseumPlayer(
         }
     }
 
-    private fun attack() {
+    override fun attack() {
         if (inAction) return
         setAction()
 
-        if (attackState == AttackState.NONE) {
-            attackState = AttackState.PREPARING
-            attackTimer = ATTACK_PREPARE_DURATION
-        }
+        super.attack()
     }
 
     private fun speech() {
@@ -829,12 +826,6 @@ data class ColosseumPlayer(
 enum class MoveDirection {
     LEFT, RIGHT,
     ;
-}
-
-enum class AttackState {
-    NONE,       // 공격 안함
-    PREPARING,  // 선딜 (1초)
-    EXECUTING   // 실제 공격 (0.3초)
 }
 
 /**

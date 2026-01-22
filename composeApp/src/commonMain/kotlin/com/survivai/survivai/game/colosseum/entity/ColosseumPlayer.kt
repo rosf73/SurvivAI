@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
+import com.survivai.survivai.game.EntityDirection
 import com.survivai.survivai.game.EntityState
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
@@ -45,16 +46,16 @@ data class ColosseumPlayer(
     override var y = 0f
     override var width = 128f
     override var height = 64f
-    val halfWidth get() = width / 2
-    val halfHeight get() = height / 2
-
+    override var direction = setOf(EntityDirection.LEFT, EntityDirection.RIGHT).random()
     override var state: EntityState = ActionState.IDLE
-
     override val components: MutableList<Component> = mutableListOf(
         SpriteComponent(spriteSheet = spriteSheet),
         CombatComponent(hp = startHp),
         ColorComponent(tintColor = color),
     )
+
+    val halfWidth get() = width / 2
+    val halfHeight get() = height / 2
 
     var velocityX = 0f // 수평 속도
     var velocityY = 0f // 수직 속도
@@ -67,7 +68,7 @@ data class ColosseumPlayer(
         get() = viewportHeight - halfHeight
 
     // Behavior
-    private var facingRight = true // 바라보는 방향
+    private val facingRight get() = direction == EntityDirection.RIGHT
     private var attackState = AttackState.NONE
     private var attackTimer = 0f
     val attackReach get() = width + 5f
@@ -471,11 +472,11 @@ data class ColosseumPlayer(
         when (direction) {
             MoveDirection.LEFT -> {
                 velocityX = (velocityX - power).coerceAtLeast(-MAX_SPEED)
-                facingRight = false
+                this.direction = EntityDirection.LEFT
             }
             MoveDirection.RIGHT -> {
                 velocityX = (velocityX + power).coerceAtMost(MAX_SPEED)
-                facingRight = true
+                this.direction = EntityDirection.RIGHT
             }
         }
     }
@@ -507,11 +508,11 @@ data class ColosseumPlayer(
         when (direction) {
             MoveDirection.LEFT -> {
                 velocityX = (velocityX - movePower).coerceAtLeast(-MAX_SPEED)
-                facingRight = false
+                this.direction = EntityDirection.LEFT
             }
             MoveDirection.RIGHT -> {
                 velocityX = (velocityX + movePower).coerceAtMost(MAX_SPEED)
-                facingRight = true
+                this.direction = EntityDirection.RIGHT
             }
         }
 

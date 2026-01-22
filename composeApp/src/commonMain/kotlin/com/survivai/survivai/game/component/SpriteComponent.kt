@@ -1,5 +1,6 @@
 package com.survivai.survivai.game.component
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.TextMeasurer
@@ -7,6 +8,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.toIntSize
 import com.survivai.survivai.game.Entity
+import com.survivai.survivai.game.EntityDirection
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.sprite.ActionState
@@ -58,7 +60,10 @@ class SpriteComponent(
         val dstSize = Size(owner.width, owner.height).toIntSize()
 
         animations.forEach { animation ->
-            context.drawImage(
+            context.drawScaleImage(
+                scaleX = if (owner.direction.isRight()) -1f else 1f,
+                scaleY = 1f,
+                pivot = Offset(owner.x, owner.y),
                 image = animation.image,
                 srcSize = animation.data.frameSize.toIntSize(),
                 dstOffset = dstOffset,

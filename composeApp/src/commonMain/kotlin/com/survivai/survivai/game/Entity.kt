@@ -12,9 +12,8 @@ interface Entity {
     var y: Float
     var width: Float
     var height: Float
-
+    var direction: EntityDirection
     var state: EntityState
-
     val components: MutableList<Component>
 
     fun <T : Component> getComponent(clazz: KClass<T>): T? {
@@ -32,3 +31,13 @@ interface Entity {
 }
 
 interface EntityState
+
+enum class EntityDirection {
+    LEFT, UP, RIGHT, DOWN,
+    ;
+
+    fun isLeft() = this == LEFT
+    fun isUp() = this == UP
+    fun isRight() = this == RIGHT
+    fun isDown() = this == DOWN
+}

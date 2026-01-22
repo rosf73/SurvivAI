@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -115,6 +116,37 @@ class GameDrawScope private constructor(
             style = style,
             colorFilter = colorFilter,
         )
+    }
+
+    fun drawScaleImage(
+        scaleX: Float,
+        scaleY: Float,
+        pivot: Offset,
+        image: ImageBitmap,
+        srcOffset: IntOffset = IntOffset.Zero,
+        srcSize: IntSize = IntSize(image.width, image.height),
+        dstOffset: IntOffset = IntOffset.Zero,
+        dstSize: IntSize = srcSize,
+        @FloatRange(from = 0.0, to = 1.0) alpha: Float = 1.0f,
+        style: DrawStyle = Fill,
+        colorFilter: ColorFilter? = null,
+    ) {
+        drawScope.scale(
+            scaleX = scaleX,
+            scaleY = scaleY,
+            pivot = pivot,
+        ) {
+            drawScope.drawImage(
+                image = image,
+                srcOffset = srcOffset,
+                srcSize = srcSize,
+                dstOffset = dstOffset,
+                dstSize = dstSize,
+                alpha = alpha,
+                style = style,
+                colorFilter = colorFilter,
+            )
+        }
     }
 
     companion object {

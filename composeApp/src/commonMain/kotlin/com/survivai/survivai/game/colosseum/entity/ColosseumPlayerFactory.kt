@@ -38,7 +38,7 @@ class ColosseumPlayerFactory(
         ))
 
         ColosseumPlayer(
-            name, radius, color, startHp, ripIcons, sheet
+            name, radius, color, startHp, ripIcons,
         )
     }
 }

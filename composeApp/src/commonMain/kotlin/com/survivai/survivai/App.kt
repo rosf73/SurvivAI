@@ -12,11 +12,11 @@ import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.toSize
+import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.state.GameState
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
-import com.survivai.survivai.game.colosseum.createGameDrawScope
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
 import com.survivai.survivai.game.colosseum.getCanvas
 import org.jetbrains.compose.resources.Font
@@ -95,7 +95,7 @@ fun App(
                 drawRect(Color.White)
 
                 // Draw circle
-                val drawScopeWrapper = createGameDrawScope(this)
+                val drawScopeWrapper = GameDrawScope.getInstance(this)
                 canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
             }
 

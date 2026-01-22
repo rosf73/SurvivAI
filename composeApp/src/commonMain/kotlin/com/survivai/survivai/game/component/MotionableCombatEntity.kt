@@ -3,6 +3,7 @@ package com.survivai.survivai.game.component
 import androidx.annotation.CallSuper
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import com.survivai.survivai.game.sprite.SpriteAnimation
 
 abstract class MotionableCombatEntity : CombatEntity() {
 

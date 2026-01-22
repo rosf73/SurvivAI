@@ -363,9 +363,9 @@ data class ColosseumPlayer(
         if (velocityY >= 0f || y >= prevY) {
             (world as? ColosseumWorld)?.getPlatforms()?.forEach { p ->
                 // Treat as collision if the circle horizontally overlaps the platform span
-                val overlapsX = (x + halfWidth) > p.left && (x - halfWidth) < p.right
+                val overlapsX = right > p.left && left < p.right
                 val wasAbove = prevY + halfHeight <= p.top
-                val nowBelowTop = y + halfHeight >= p.top
+                val nowBelowTop = bottom >= p.top
                 if (!onPlatform && overlapsX && wasAbove && nowBelowTop) {
                     y = p.top - halfHeight
                     velocityY = 0f
@@ -381,10 +381,10 @@ data class ColosseumPlayer(
         }
         x += velocityX * clampedDeltaTime
         // 벽 충돌
-        if (x - halfWidth < 0) {
+        if (left < 0) {
             x = halfWidth
             velocityX = 0f
-        } else if (x + halfWidth > viewportWidth) {
+        } else if (right > viewportWidth) {
             x = viewportWidth - halfWidth
             velocityX = 0f
         }
@@ -703,7 +703,7 @@ data class ColosseumPlayer(
 
     private fun renderRIP(context: GameDrawScope) {
         val iconSize = width.toInt()
-        val dstOffset = IntOffset((x - halfWidth).toInt(), (y - halfHeight).toInt())
+        val dstOffset = IntOffset(left.toInt(), top.toInt())
         val dstSize = IntSize(iconSize, iconSize)
 
         context.drawImage(

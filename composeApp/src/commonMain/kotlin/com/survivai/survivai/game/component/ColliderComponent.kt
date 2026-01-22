@@ -19,10 +19,10 @@ class ColliderComponent(
     // get bounds in World
     fun getBounds(owner: Entity): Rect {
         return Rect(
-            left = owner.x + offsetX,
-            top = owner.y + offsetY,
-            right = owner.x + offsetX + width,
-            bottom = owner.y + offsetY + height
+            left = owner.left + offsetX,
+            top = owner.top + offsetY,
+            right = owner.left + offsetX + width,
+            bottom = owner.top + offsetY + height
         )
     }
 
@@ -31,7 +31,7 @@ class ColliderComponent(
         if (BuildConfig.DEBUG) {
             context.drawRect(
                 color = Color.Red,
-                topLeft = Offset(owner.x + offsetX, owner.y + offsetY),
+                topLeft = Offset(owner.left + offsetX, owner.top + offsetY),
                 width = width,
                 height = height,
             )

@@ -12,6 +12,11 @@ interface Entity {
     var y: Float
     var width: Float
     var height: Float
+    val left get() = x - width / 2
+    val top get() = y - height / 2
+    val right get() = x + width / 2
+    val bottom get() = y + height / 2
+
     var direction: Direction
     var state: State
     val components: MutableList<Component>

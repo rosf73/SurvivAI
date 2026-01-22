@@ -17,11 +17,12 @@ import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.state.GameState
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
-import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
+import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
 import com.survivai.survivai.game.colosseum.getCanvas
+import com.survivai.survivai.game.sprite.SpriteLoader
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.imageResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
@@ -29,7 +30,6 @@ import survivai.composeapp.generated.resources.icon_r_i_p_empty
 import survivai.composeapp.generated.resources.icon_r_i_p_full
 
 @Composable
-@Preview
 fun App(
     onUpdatedViewport: (Float, Float) -> Unit = { _, _ -> },
 ) {
@@ -45,6 +45,9 @@ fun App(
             Font(Res.font.NotoEmojiColor),
         )
         val canvasState = remember { getCanvas() }
+
+        val spriteLoader = remember { SpriteLoader() }
+        val coroutineScope = rememberCoroutineScope()
 
         // UI update state
         var frameTick by remember { mutableStateOf(0) }
@@ -106,18 +109,20 @@ fun App(
                     fontFamily = fontFamily,
                     onClickStart = { players, hp ->
                         // Set HP
-                        ColosseumInfo.setDefaultHp(hp)
+                        ColosseumInfo.setDefaultHp(hp.toDouble())
 
-                        // 중복 없는 색상 생성
-                        val players = players.map { p ->
-                            ColosseumPlayer(
-                                name = p.name,
-                                color = p.color,
-                                startHp = hp,
-                                ripIcons = ripEmptyIcon to ripFullIcon,
-                            )
+                        // Set players
+                        coroutineScope.launch {
+                            val players = players.map { p ->
+                                ColosseumPlayerFactory(spriteLoader).createPlayer(
+                                    name = p.name,
+                                    color = p.color,
+                                    startHp = ColosseumInfo.defaultHp,
+                                    ripIcons = ripEmptyIcon to ripFullIcon,
+                                )
+                            }
+                            ColosseumInfo.setPlayers(players)
                         }
-                        ColosseumInfo.setPlayers(players)
                     },
                 )
             }

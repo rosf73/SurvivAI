@@ -60,18 +60,18 @@ class WebCanvas : Canvas {
             for (j in i + 1 until alivePlayers.size) {
                 val a = alivePlayers[i]
                 val b = alivePlayers[j]
-                val rSum = a.radius + b.radius
+                val rSum = a.halfWidth + b.halfWidth
                 val dx = b.x - a.x
                 val dy = b.y - a.y
-                if (abs(dy) < max(a.radius, b.radius) * 1.2f && abs(dx) < rSum) {
+                if (abs(dy) < max(a.halfHeight, b.halfHeight) * 1.2f && abs(dx) < rSum) {
                     val overlap = rSum - abs(dx)
                     val dir = if (dx >= 0f) 1f else -1f
                     val push = overlap / 2f
                     a.x -= push * dir
                     b.x += push * dir
                     // Clamp to viewport bounds
-                    if (a.x - a.radius < 0f) a.x = a.radius
-                    if (b.x + b.radius > viewportWidth) b.x = viewportWidth - b.radius
+                    if (a.x - a.halfWidth < 0f) a.x = a.halfWidth
+                    if (b.x + b.halfWidth > viewportWidth) b.x = viewportWidth - b.halfWidth
                 }
             }
         }

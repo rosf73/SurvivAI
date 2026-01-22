@@ -43,7 +43,7 @@ object ColosseumInfo {
         private set
 
     // 기본 HP 설정 (1~10)
-    var defaultHp = 3
+    var defaultHp = 3.0
         private set
 
     // 게임 상태
@@ -78,8 +78,8 @@ object ColosseumInfo {
         tryInitialize()
     }
 
-    fun setDefaultHp(hp: Int) {
-        defaultHp = hp.coerceIn(1, 10)
+    fun setDefaultHp(hp: Double) {
+        defaultHp = hp.coerceIn(1.0, 10.0)
     }
 
     private fun initializeWorld() {
@@ -106,9 +106,9 @@ object ColosseumInfo {
             ColosseumPlayer(
                 name = player.name,
                 color = player.color,
-                radius = player.radius,
                 startHp = defaultHp,
                 ripIcons = player.ripIcons,
+                spriteSheet = player.spriteSheet,
             )
         }
 
@@ -129,7 +129,7 @@ object ColosseumInfo {
         initialized = false
         worldInitialized = false  // World도 재초기화 필요
         players = emptyList()
-        defaultHp = 3  // HP 초기화
+        defaultHp = 3.0  // HP 초기화
         LogManager.clear()
 
         // 게임 상태를 대기 상태로

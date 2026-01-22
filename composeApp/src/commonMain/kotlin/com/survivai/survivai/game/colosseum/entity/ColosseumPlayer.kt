@@ -16,12 +16,17 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
+import com.survivai.survivai.game.EntityState
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
-import com.survivai.survivai.game.component.AttackState
-import com.survivai.survivai.game.component.MotionableCombatEntity
+import com.survivai.survivai.game.component.ColorComponent
+import com.survivai.survivai.game.component.CombatComponent
+import com.survivai.survivai.game.component.Component
+import com.survivai.survivai.game.component.SpriteComponent
+import com.survivai.survivai.game.sprite.ActionState
+import com.survivai.survivai.game.sprite.SpriteSheet
 import kotlin.enums.EnumEntries
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -29,18 +34,29 @@ import kotlin.random.Random
 
 data class ColosseumPlayer(
     val name: String,
-    val radius: Float = 36f,
     val color: Color = Color.Blue,
-    private val startHp: Int = ColosseumInfo.defaultHp,
+    private val startHp: Double = ColosseumInfo.defaultHp,
     val ripIcons: Pair<ImageBitmap, ImageBitmap>,
-) : MotionableCombatEntity() {
+    val spriteSheet: SpriteSheet,
+) : Entity {
 
     // Position (Center offset)
-    var x = 0f
-    var y = 0f
+    override var x = 0f
+    override var y = 0f
+    override var width = 128f
+    override var height = 64f
+    val halfWidth get() = width / 2
+    val halfHeight get() = height / 2
+
+    override var state: EntityState = ActionState.IDLE
+
+    override val components: MutableList<Component> = mutableListOf(
+        SpriteComponent(spriteSheet = spriteSheet),
+        CombatComponent(hp = startHp),
+        ColorComponent(tintColor = color),
+    )
 
     var velocityX = 0f // 수평 속도
-
     var velocityY = 0f // 수직 속도
     private val gravity = 980f // 중력 가속도 (픽셀/초^2)
 
@@ -48,11 +64,13 @@ data class ColosseumPlayer(
     private var viewportWidth = 0f
     private var viewportHeight = 0f
     private val floorY: Float
-        get() = viewportHeight - radius
+        get() = viewportHeight - halfHeight
 
     // Behavior
     private var facingRight = true // 바라보는 방향
-    val attackReach get() = radius * 2 + 5f
+    private var attackState = AttackState.NONE
+    private var attackTimer = 0f
+    val attackReach get() = width + 5f
     private var isSpeeching = false
     private var speechTimer = 0f
     private var selectedSpeechList = listOf("")
@@ -68,7 +86,7 @@ data class ColosseumPlayer(
 
     // HP
     private var hp = startHp
-    val currentHp: Int get() = hp
+    val currentHp: Double get() = hp
 
     // 무적 시간
     private var isInvincible = false
@@ -76,7 +94,7 @@ data class ColosseumPlayer(
 
     // 생존 여부
     private var _isAlive = true
-    val isAlive: Boolean get() = _isAlive
+    val isAlive: Boolean get() = _isAlive // TODO : Entity::state 로 변경
 
     // Event flags
     private var justSpeeched = ""
@@ -261,7 +279,7 @@ data class ColosseumPlayer(
 
         // 1. 사정거리 내에 전방의 적이 있으면 공격 가중치 증가
         if (enemiesInAttackRangeInFront > 0) {
-            validActionWeights[ActionType.Valid.ATTACK] = 
+            validActionWeights[ActionType.Valid.ATTACK] =
                 WEIGHT_ATTACK_IN_RANGE * enemiesInAttackRangeInFront
             return
         }
@@ -280,7 +298,7 @@ data class ColosseumPlayer(
      */
     private fun decideMovementDirection(): MoveDirection {
         // 가까운 적이 있으면 그쪽으로 이동
-        return if (nearestEnemyDirection > 0) MoveDirection.RIGHT 
+        return if (nearestEnemyDirection > 0) MoveDirection.RIGHT
                else MoveDirection.LEFT
     }
 
@@ -291,6 +309,7 @@ data class ColosseumPlayer(
         world: World,
     ) {
         if (!isAlive) return
+        super.update(deltaTime, viewportWidth, viewportHeight, world)
 
         this.viewportWidth = viewportWidth
         this.viewportHeight = viewportHeight
@@ -355,11 +374,11 @@ data class ColosseumPlayer(
         if (velocityY >= 0f || y >= prevY) {
             (world as? ColosseumWorld)?.getPlatforms()?.forEach { p ->
                 // Treat as collision if the circle horizontally overlaps the platform span
-                val overlapsX = (x + radius) > p.left && (x - radius) < p.right
-                val wasAbove = prevY + radius <= p.top
-                val nowBelowTop = y + radius >= p.top
+                val overlapsX = (x + halfWidth) > p.left && (x - halfWidth) < p.right
+                val wasAbove = prevY + halfHeight <= p.top
+                val nowBelowTop = y + halfHeight >= p.top
                 if (!onPlatform && overlapsX && wasAbove && nowBelowTop) {
-                    y = p.top - radius
+                    y = p.top - halfHeight
                     velocityY = 0f
                     onPlatform = true
                 }
@@ -373,11 +392,11 @@ data class ColosseumPlayer(
         }
         x += velocityX * clampedDeltaTime
         // 벽 충돌
-        if (x - radius < 0) {
-            x = radius
+        if (x - halfWidth < 0) {
+            x = halfWidth
             velocityX = 0f
-        } else if (x + radius > viewportWidth) {
-            x = viewportWidth - radius
+        } else if (x + halfWidth > viewportWidth) {
+            x = viewportWidth - halfWidth
             velocityX = 0f
         }
 
@@ -410,14 +429,15 @@ data class ColosseumPlayer(
             renderName(context, textMeasurer, fontFamily)
             return
         }
+        super.render(context, textMeasurer, fontFamily)
 
         // render player
-        context.drawCircle(
-            color = color,
-            center = Offset(x, y),
-            radius = radius
-        )
-        renderEyes(context)
+//        context.drawCircle(
+//            color = color,
+//            center = Offset(x, y),
+//            radius = halfWidth.toFloat(),
+//        )
+//        renderEyes(context)
         renderName(context, textMeasurer, fontFamily)
         renderHP(context)
 
@@ -435,10 +455,6 @@ data class ColosseumPlayer(
         if (isSpeeching) {
             renderSpeech(context, textMeasurer, fontFamily)
         }
-    }
-
-    override fun setViewportHeight(height: Float) {
-        viewportHeight = height
     }
 
     private fun setAction() {
@@ -505,11 +521,14 @@ data class ColosseumPlayer(
         }
     }
 
-    override fun attack() {
+    private fun attack() {
         if (inAction) return
         setAction()
 
-        super.attack()
+        if (attackState == AttackState.NONE) {
+            attackState = AttackState.PREPARING
+            attackTimer = ATTACK_PREPARE_DURATION
+        }
     }
 
     private fun speech() {
@@ -529,7 +548,7 @@ data class ColosseumPlayer(
      */
     private  fun renderName(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         val textStyle = TextStyle(
-            fontSize = (radius * 0.25f).sp,
+            fontSize = (halfWidth * 0.25f).sp,
             color = Color.Black,
             fontFamily = fontFamily,
         )
@@ -539,7 +558,7 @@ data class ColosseumPlayer(
             text = name,
             topLeft = Offset(
                 x - measuredText.size.width / 2f,
-                y - measuredText.size.height / 2f - radius * 1.5f
+                y - measuredText.size.height / 2f - halfHeight * 1.5f
             ),
             style = textStyle,
         )
@@ -547,8 +566,8 @@ data class ColosseumPlayer(
 
     private fun renderAttackPrepare(context: GameDrawScope) {
         val progress = 1f - (attackTimer / ATTACK_PREPARE_DURATION)  // 0 -> 1
-        val attackRadius = radius * (0.5f + progress * 0.3f)  // 점점 커짐
-        val offsetDistance = radius + 5f
+        val attackRadius = halfWidth * (0.5f + progress * 0.3f)  // 점점 커짐
+        val offsetDistance = halfWidth + 5f
         val centerX = x + if (facingRight) offsetDistance else -offsetDistance
         val centerY = y
 
@@ -597,8 +616,8 @@ data class ColosseumPlayer(
     }
 
     private fun renderAttack(context: GameDrawScope) {
-        val attackRadius = radius
-        val offsetDistance = radius + 5f
+        val attackRadius = halfWidth
+        val offsetDistance = halfWidth + 5f
         val centerX = x + if (facingRight) offsetDistance else -offsetDistance
         val centerY = y
 
@@ -654,7 +673,7 @@ data class ColosseumPlayer(
                 style = textStyle,
             ).size.toSize().also { cachedTextSize = it }
         // speech offset
-        val offsetDistance = radius + 20f // TODO : magic number
+        val offsetDistance = halfHeight + 40f
         val centerY = y - offsetDistance
         val centerX = x
 
@@ -670,14 +689,14 @@ data class ColosseumPlayer(
     }
 
     private fun renderHP(context: GameDrawScope) {
-        val max = ColosseumInfo.defaultHp
-        val totalWidth = radius * 4
-        val totalX = x - radius * 2
-        val totalY = y + radius * 1.3f
+        val max = ColosseumInfo.defaultHp.toInt()
+        val totalWidth = width * 2
+        val totalX = x - width
+        val totalY = y + halfHeight * 1.3f
         val dividerCount = max - 1
         val dividerWidth = if (dividerCount > 0) totalWidth / max / dividerCount / 2 else 0f
         val barWidth = (totalWidth - dividerWidth * dividerCount) / max
-        val barHeight = radius / 4
+        val barHeight = height / 8
 
         // dividers
         val emptyPath = Path().apply {
@@ -691,7 +710,7 @@ data class ColosseumPlayer(
         // hp
         if (hp > 0) {
             val filledPath = Path().apply {
-                for (i in 0 until hp) {
+                for (i in 0 until hp.toInt()) {
                     val x = totalX + (barWidth + dividerWidth) * i
                     addRect(Rect(x, totalY, x + barWidth, totalY + barHeight))
                 }
@@ -701,9 +720,9 @@ data class ColosseumPlayer(
     }
 
     private fun renderEyes(context: GameDrawScope) {
-        val eyeRadius = radius * 0.3f
-        val eyeYOffset = -radius * 0.2f
-        val eyeXSpacing = radius * 0.3f
+        val eyeRadius = width * 0.15f
+        val eyeYOffset = -height * 0.1f
+        val eyeXSpacing = width * 0.15f
         val pupilRadius = eyeRadius * 0.6f
         val pupilXOffset = if (facingRight) eyeRadius * 0.4f else -eyeRadius * 0.4f
 
@@ -733,8 +752,8 @@ data class ColosseumPlayer(
     }
 
     private fun renderRIP(context: GameDrawScope) {
-        val iconSize = (radius * 2).toInt()  // 플레이어 지름에 맞춤
-        val dstOffset = IntOffset((x - radius).toInt(), (y - radius).toInt())
+        val iconSize = width.toInt()
+        val dstOffset = IntOffset((x - halfWidth).toInt(), (y - halfHeight).toInt())
         val dstSize = IntSize(iconSize, iconSize)
 
         context.drawImage(
@@ -776,11 +795,11 @@ data class ColosseumPlayer(
         velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
 
         // 약간 점프
-        velocityY = -200f // TODO : magic number
+        velocityY = -200f
         onPlatform = false
 
         // 데미지
-        hp = (hp - 1).coerceAtLeast(0)
+        hp = (hp - 1).coerceAtLeast(0.0)
 
         // 생존 체크
         if (hp <= 0) {
@@ -811,7 +830,7 @@ data class ColosseumPlayer(
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
         private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
-        
+
         // 가중치 조정 파라미터
         private const val NEARBY_RANGE_MULTIPLIER = 4f // attackReach의 배수로 주변 범위 결정
         private const val ATTACK_RANGE_MULTIPLIER = 1.5f // attackReach의 배수로 공격 가능 범위 결정
@@ -826,6 +845,12 @@ data class ColosseumPlayer(
 enum class MoveDirection {
     LEFT, RIGHT,
     ;
+}
+
+enum class AttackState {
+    NONE,       // 공격 안함
+    PREPARING,  // 선딜 (1초)
+    EXECUTING   // 실제 공격 (0.3초)
 }
 
 /**

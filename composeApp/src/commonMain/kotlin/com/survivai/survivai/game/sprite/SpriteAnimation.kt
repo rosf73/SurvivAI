@@ -15,7 +15,7 @@ class SpriteAnimation(
             fileName: String,
             data: SpriteAnimationData,
         ): SpriteAnimation {
-            val bytes = Res.readBytes("composeApp/src/commonMain/composeResources/drawable/$fileName")
+            val bytes = Res.readBytes("drawable/$fileName")
             val bitmap = bytes.decodeToImageBitmap()
             return SpriteAnimation(bitmap, data)
         }
@@ -27,8 +27,9 @@ data class SpriteAnimationData(
     val steps: List<Double>,
     val frameSize: Size,
     val textureOffset: Offset?,
+    val useTintColor: Boolean,
     val loop: Boolean,
-    val nextAction: AnimationAction?,
+    val nextAction: ActionState?,
 ) {
     companion object {
         fun sequenced(
@@ -36,15 +37,31 @@ data class SpriteAnimationData(
             durationPerFrame: Double,
             frameSize: Size,
             textureOffset: Offset? = null,
+            useTintColor: Boolean = false,
             loop: Boolean = true,
-            nextAction: AnimationAction? = null,
+            nextAction: ActionState? = null,
         ) = SpriteAnimationData(
             frame = totalFrame,
             steps = List(totalFrame) { durationPerFrame },
             frameSize = frameSize,
             textureOffset = textureOffset,
+            useTintColor = useTintColor,
             loop = loop,
             nextAction = nextAction,
+        )
+
+        fun fixed(
+            frameSize: Size,
+            textureOffset: Offset? = null,
+            useTintColor: Boolean = false,
+        ) = SpriteAnimationData(
+            frame = 1,
+            steps = emptyList(),
+            frameSize = frameSize,
+            textureOffset = textureOffset,
+            useTintColor = useTintColor,
+            loop = false,
+            nextAction = null,
         )
     }
 }

@@ -1,12 +1,14 @@
 package com.survivai.survivai.game.sprite
 
+import com.survivai.survivai.game.EntityState
+
 class SpriteSheet(
-    val animations: Map<AnimationAction, SpriteAnimation>
+    val animations: Map<EntityState, List<SpriteAnimation>>
 ) {
-    fun get(action: AnimationAction): SpriteAnimation? = animations[action]
+    fun get(action: EntityState): List<SpriteAnimation>? = animations[action]
 }
 
-enum class AnimationAction {
+enum class ActionState : EntityState {
     IDLE, WALK, RUN, JUMP, ATTACK, HIT, DIE,
     ;
 }

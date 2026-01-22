@@ -1,23 +1,26 @@
 package com.survivai.survivai.game.component
 
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.toIntSize
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.GameDrawScope
-import com.survivai.survivai.game.sprite.AnimationAction
+import com.survivai.survivai.game.sprite.ActionState
 import com.survivai.survivai.game.sprite.SpriteSheet
 
 class SpriteComponent(
     val spriteSheet: SpriteSheet,
-    var currentAction: AnimationAction = AnimationAction.IDLE,
 ) : Component() {
     private var elapsedTime: Double = 0.0
     private var currentFrame: Int = 0
 
     override fun update(deltaTime: Double, owner: Entity, world: World) {
-        val animation = spriteSheet.get(currentAction) ?: return
-        val data = animation.data
+        val animations = spriteSheet.get(owner.state) ?: return
+        val data = animations.first().data
 
         elapsedTime += deltaTime
 
@@ -34,7 +37,7 @@ class SpriteComponent(
                     currentFrame = data.frame - 1 // fix state to last frame
                     // auto action switch
                     data.nextAction?.let {
-                        currentAction = it
+                        owner.state = it
                         currentFrame = 0
                     }
                 }
@@ -43,6 +46,25 @@ class SpriteComponent(
     }
 
     override fun render(context: GameDrawScope, owner: Entity, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
-        val animation = spriteSheet.get(currentAction) ?: return
+        val animations = spriteSheet.get(owner.state)
+            ?: spriteSheet.get(ActionState.IDLE)
+            ?: return
+
+        // get color component
+        val color = owner.getComponent(ColorComponent::class)?.tintColor
+
+        // get entity's location
+        val dstOffset = IntOffset((owner.x - owner.width / 2).toInt(), (owner.y - owner.height / 2).toInt())
+        val dstSize = Size(owner.width, owner.height).toIntSize()
+
+        animations.forEach { animation ->
+            context.drawImage(
+                image = animation.image,
+                srcSize = animation.data.frameSize.toIntSize(),
+                dstOffset = dstOffset,
+                dstSize = dstSize,
+                colorFilter = if (animation.data.useTintColor) { color?.let { ColorFilter.tint(it) } } else null,
+            )
+        }
     }
 }

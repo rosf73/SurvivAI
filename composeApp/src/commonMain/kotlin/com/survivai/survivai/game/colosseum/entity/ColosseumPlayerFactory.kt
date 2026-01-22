@@ -57,11 +57,14 @@ class ColosseumPlayerFactory(
             )
         }
 
-        val sheet = SpriteSheet(mapOf(
-            ActionState.IDLE to listOf(idleAnimation1.await(), idleAnimation2.await()),
-            ActionState.ATTACK to listOf(attackAnimation.await()),
-            ActionState.DIE to listOf(dieAnimation.await()),
-        ))
+        val sheet = SpriteSheet(
+            imageSize = Size(128f, 64f),
+            animations = mapOf(
+                ActionState.IDLE to listOf(idleAnimation1.await(), idleAnimation2.await()),
+                ActionState.ATTACK to listOf(attackAnimation.await()),
+                ActionState.DIE to listOf(dieAnimation.await()),
+            )
+        )
 
         ColosseumPlayer(
             name, color, startHp, ripIcons, sheet

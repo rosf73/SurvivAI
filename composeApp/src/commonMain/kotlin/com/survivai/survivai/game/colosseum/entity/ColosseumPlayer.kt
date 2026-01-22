@@ -44,8 +44,8 @@ data class ColosseumPlayer(
     // Position (Center offset)
     override var x = 0f
     override var y = 0f
-    override var width = 128f
-    override var height = 64f
+    override var width = spriteSheet.imageSize.width
+    override var height = spriteSheet.imageSize.height
     override var direction = setOf(EntityDirection.LEFT, EntityDirection.RIGHT).random()
     override var state: EntityState = ActionState.IDLE
     override val components: MutableList<Component> = mutableListOf(

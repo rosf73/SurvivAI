@@ -22,6 +22,7 @@ import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.ColorComponent
 import com.survivai.survivai.game.component.CombatComponent
 import com.survivai.survivai.game.component.Component
@@ -52,6 +53,7 @@ data class ColosseumPlayer(
         SpriteComponent(spriteSheet = spriteSheet),
         CombatComponent(hp = startHp),
         ColorComponent(tintColor = color),
+        ColliderComponent(width = 64f, height = 64f, offsetX = 32f),
     )
 
     val halfWidth get() = width / 2
@@ -432,13 +434,6 @@ data class ColosseumPlayer(
         }
         super.render(context, textMeasurer, fontFamily)
 
-        // render player
-//        context.drawCircle(
-//            color = color,
-//            center = Offset(x, y),
-//            radius = halfWidth.toFloat(),
-//        )
-//        renderEyes(context)
         renderName(context, textMeasurer, fontFamily)
         renderHP(context)
 
@@ -718,38 +713,6 @@ data class ColosseumPlayer(
             }
             context.drawPath(filledPath, Color.Green)
         }
-    }
-
-    private fun renderEyes(context: GameDrawScope) {
-        val eyeRadius = width * 0.15f
-        val eyeYOffset = -height * 0.1f
-        val eyeXSpacing = width * 0.15f
-        val pupilRadius = eyeRadius * 0.6f
-        val pupilXOffset = if (facingRight) eyeRadius * 0.4f else -eyeRadius * 0.4f
-
-        // 왼쪽 눈
-        context.drawCircle(
-            color = Color.White,
-            center = Offset(x - eyeXSpacing, y + eyeYOffset),
-            radius = eyeRadius
-        )
-        context.drawCircle(
-            color = Color.Black,
-            center = Offset(x - eyeXSpacing + pupilXOffset, y + eyeYOffset),
-            radius = pupilRadius
-        )
-
-        // 오른쪽 눈
-        context.drawCircle(
-            color = Color.White,
-            center = Offset(x + eyeXSpacing, y + eyeYOffset),
-            radius = eyeRadius
-        )
-        context.drawCircle(
-            color = Color.Black,
-            center = Offset(x + eyeXSpacing + pupilXOffset, y + eyeYOffset),
-            radius = pupilRadius
-        )
     }
 
     private fun renderRIP(context: GameDrawScope) {

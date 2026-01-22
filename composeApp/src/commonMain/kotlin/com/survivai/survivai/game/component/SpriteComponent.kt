@@ -56,8 +56,8 @@ class SpriteComponent(
         val color = owner.getComponent(ColorComponent::class)?.tintColor
 
         // get entity's location
-        val dstOffset = IntOffset((owner.x - owner.width / 2).toInt(), (owner.y - owner.height / 2).toInt())
-        val dstSize = Size(owner.width, owner.height).toIntSize()
+        val dstOffset = IntOffset((owner.x - owner.imageWidth / 2).toInt(), (owner.y - owner.imageHeight / 2).toInt())
+        val dstSize = Size(owner.imageWidth, owner.imageHeight).toIntSize()
 
         animations.forEach { animation ->
             context.drawScaleImage(

@@ -11,7 +11,9 @@ interface Entity {
     var x: Float
     var y: Float
     var width: Float
+    var imageWidth: Float
     var height: Float
+    var imageHeight: Float
     val left get() = x - width / 2
     val top get() = y - height / 2
     val right get() = x + width / 2

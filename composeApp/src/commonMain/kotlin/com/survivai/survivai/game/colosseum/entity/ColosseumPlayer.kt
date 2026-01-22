@@ -40,19 +40,23 @@ data class ColosseumPlayer(
     val spriteSheet: SpriteSheet,
 ) : Entity {
 
+    private val combatComponent = CombatComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
+    private val colliderComponent = ColliderComponent(width = 64f, height = 64f)
+
     // Position (Center offset)
     override var x = 0f
     override var y = 0f
-    override var width = spriteSheet.imageSize.width
-    override var height = spriteSheet.imageSize.height
+    override var width = colliderComponent.width
+    override var height = colliderComponent.height
+    override var imageWidth = spriteSheet.imageSize.width
+    override var imageHeight = spriteSheet.imageSize.height
     override var direction = setOf(Entity.Direction.LEFT, Entity.Direction.RIGHT).random()
     override var state: Entity.State = ActionState.IDLE
 
-    private val combatComponent = CombatComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
     override val components: MutableList<Component> = mutableListOf(
         SpriteComponent(spriteSheet = spriteSheet),
         ColorComponent(tintColor = color),
-        ColliderComponent(width = 64f, height = 64f, offsetX = 32f),
+        colliderComponent,
         combatComponent,
     )
 

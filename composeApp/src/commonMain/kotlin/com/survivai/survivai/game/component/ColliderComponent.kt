@@ -12,17 +12,15 @@ import com.survivai.survivai.game.colosseum.GameDrawScope
 class ColliderComponent(
     val width: Float,
     val height: Float,
-    val offsetX: Float = 0f,
-    val offsetY: Float = 0f,
 ) : Component() {
 
     // get bounds in World
     fun getBounds(owner: Entity): Rect {
         return Rect(
-            left = owner.left + offsetX,
-            top = owner.top + offsetY,
-            right = owner.left + offsetX + width,
-            bottom = owner.top + offsetY + height
+            left = owner.left,
+            top = owner.top,
+            right = owner.left + width,
+            bottom = owner.top + height
         )
     }
 
@@ -30,8 +28,8 @@ class ColliderComponent(
         // for debug
         if (BuildConfig.DEBUG) {
             context.drawRect(
-                color = Color.Red,
-                topLeft = Offset(owner.left + offsetX, owner.top + offsetY),
+                color = Color.Red.copy(alpha = 0.5f),
+                topLeft = Offset(owner.left, owner.top),
                 width = width,
                 height = height,
             )

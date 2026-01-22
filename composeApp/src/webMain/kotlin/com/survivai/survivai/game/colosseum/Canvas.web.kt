@@ -84,12 +84,12 @@ class WebCanvas : Canvas {
             // 스탯 업데이트
             ColosseumInfo.updatePlayerAttackPoint(attacker.name)
 
-            if (target.currentHp > 0) {
+            if (target.hp > 0) {
                 log(Log.Duo(
                     perpetrator = attacker,
                     victim = target,
                     interaction = "🤜",
-                    additional = "(HP=${target.currentHp})",
+                    additional = "(HP=${target.hp})",
                 ))
             } else {
                 // 스탯 업데이트

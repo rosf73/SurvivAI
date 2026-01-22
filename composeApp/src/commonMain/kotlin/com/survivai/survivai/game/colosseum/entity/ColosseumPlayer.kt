@@ -49,11 +49,13 @@ data class ColosseumPlayer(
     override var height = spriteSheet.imageSize.height
     override var direction = setOf(EntityDirection.LEFT, EntityDirection.RIGHT).random()
     override var state: EntityState = ActionState.IDLE
+
+    private val combatComponent = CombatComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
     override val components: MutableList<Component> = mutableListOf(
         SpriteComponent(spriteSheet = spriteSheet),
-        CombatComponent(hp = startHp),
         ColorComponent(tintColor = color),
         ColliderComponent(width = 64f, height = 64f, offsetX = 32f),
+        combatComponent,
     )
 
     val halfWidth get() = width / 2
@@ -88,16 +90,10 @@ data class ColosseumPlayer(
     private var inAction = false
 
     // HP
-    private var hp = startHp
-    val currentHp: Double get() = hp
-
-    // 무적 시간
-    private var isInvincible = false
-    private var invincibleTimer = 0f
+    val hp: Double get() = combatComponent.hp
 
     // 생존 여부
-    private var _isAlive = true
-    val isAlive: Boolean get() = _isAlive // TODO : Entity::state 로 변경
+    val isAlive: Boolean get() = combatComponent.isAlive
 
     // Event flags
     private var justSpeeched = ""
@@ -321,14 +317,6 @@ data class ColosseumPlayer(
 
         // 적들의 위치 정보 업데이트 (매 프레임)
         updateEnemyPositions()
-
-        // 무적 타이머 처리
-        if (isInvincible) {
-            invincibleTimer -= clampedDeltaTime
-            if (invincibleTimer <= 0f) {
-                isInvincible = false
-            }
-        }
 
         // 공격 타이머 처리
         when (attackState) {
@@ -751,8 +739,9 @@ data class ColosseumPlayer(
 
     // damaged
     fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
-        // 무적 상태인 경우 return
-        if (isInvincible) return false
+        // 데미지
+        val damaged = combatComponent.takeDamage(1.0)
+        if (!damaged) return false
 
         // 넉백
         val dir = if (attackerX < x) 1f else -1f
@@ -761,18 +750,6 @@ data class ColosseumPlayer(
         // 약간 점프
         velocityY = -200f
         onPlatform = false
-
-        // 데미지
-        hp = (hp - 1).coerceAtLeast(0.0)
-
-        // 생존 체크
-        if (hp <= 0) {
-            _isAlive = false
-        }
-
-        // 무적 on
-        isInvincible = true
-        invincibleTimer = INVINCIBLE_DURATION
 
         // 액션 취소
         attackState = AttackState.NONE
@@ -793,7 +770,7 @@ data class ColosseumPlayer(
         private const val IDLE_MAX_DURATION = 0.5f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
-        private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
+        private const val INVINCIBLE_DURATION = 0.5 // invincible time
 
         // 가중치 조정 파라미터
         private const val NEARBY_RANGE_MULTIPLIER = 4f // attackReach의 배수로 주변 범위 결정

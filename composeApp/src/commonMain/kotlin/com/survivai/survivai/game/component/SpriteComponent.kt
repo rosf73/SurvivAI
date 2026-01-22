@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.toIntSize
 import com.survivai.survivai.game.Entity
-import com.survivai.survivai.game.EntityDirection
+import com.survivai.survivai.game.Entity.Direction
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.sprite.ActionState

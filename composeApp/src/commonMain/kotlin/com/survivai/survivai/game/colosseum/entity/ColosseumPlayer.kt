@@ -16,8 +16,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
-import com.survivai.survivai.game.EntityDirection
-import com.survivai.survivai.game.EntityState
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameDrawScope
@@ -47,8 +45,8 @@ data class ColosseumPlayer(
     override var y = 0f
     override var width = spriteSheet.imageSize.width
     override var height = spriteSheet.imageSize.height
-    override var direction = setOf(EntityDirection.LEFT, EntityDirection.RIGHT).random()
-    override var state: EntityState = ActionState.IDLE
+    override var direction = setOf(Entity.Direction.LEFT, Entity.Direction.RIGHT).random()
+    override var state: Entity.State = ActionState.IDLE
 
     private val combatComponent = CombatComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
     override val components: MutableList<Component> = mutableListOf(
@@ -72,7 +70,7 @@ data class ColosseumPlayer(
         get() = viewportHeight - halfHeight
 
     // Behavior
-    private val facingRight get() = direction == EntityDirection.RIGHT
+    private val facingRight get() = direction == Entity.Direction.RIGHT
     private var attackState = AttackState.NONE
     private var attackTimer = 0f
     val attackReach get() = width + 5f
@@ -455,11 +453,11 @@ data class ColosseumPlayer(
         when (direction) {
             MoveDirection.LEFT -> {
                 velocityX = (velocityX - power).coerceAtLeast(-MAX_SPEED)
-                this.direction = EntityDirection.LEFT
+                this.direction = Entity.Direction.LEFT
             }
             MoveDirection.RIGHT -> {
                 velocityX = (velocityX + power).coerceAtMost(MAX_SPEED)
-                this.direction = EntityDirection.RIGHT
+                this.direction = Entity.Direction.RIGHT
             }
         }
     }
@@ -491,11 +489,11 @@ data class ColosseumPlayer(
         when (direction) {
             MoveDirection.LEFT -> {
                 velocityX = (velocityX - movePower).coerceAtLeast(-MAX_SPEED)
-                this.direction = EntityDirection.LEFT
+                this.direction = Entity.Direction.LEFT
             }
             MoveDirection.RIGHT -> {
                 velocityX = (velocityX + movePower).coerceAtMost(MAX_SPEED)
-                this.direction = EntityDirection.RIGHT
+                this.direction = Entity.Direction.RIGHT
             }
         }
 

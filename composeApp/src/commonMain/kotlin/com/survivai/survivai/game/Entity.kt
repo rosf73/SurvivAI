@@ -12,8 +12,8 @@ interface Entity {
     var y: Float
     var width: Float
     var height: Float
-    var direction: EntityDirection
-    var state: EntityState
+    var direction: Direction
+    var state: State
     val components: MutableList<Component>
 
     fun <T : Component> getComponent(clazz: KClass<T>): T? {
@@ -28,16 +28,16 @@ interface Entity {
     fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         components.forEach { it.render(context, this, textMeasurer, fontFamily) }
     }
-}
 
-interface EntityState
+    interface State
 
-enum class EntityDirection {
-    LEFT, UP, RIGHT, DOWN,
-    ;
+    enum class Direction {
+        LEFT, UP, RIGHT, DOWN,
+        ;
 
-    fun isLeft() = this == LEFT
-    fun isUp() = this == UP
-    fun isRight() = this == RIGHT
-    fun isDown() = this == DOWN
+        fun isLeft() = this == LEFT
+        fun isUp() = this == UP
+        fun isRight() = this == RIGHT
+        fun isDown() = this == DOWN
+    }
 }

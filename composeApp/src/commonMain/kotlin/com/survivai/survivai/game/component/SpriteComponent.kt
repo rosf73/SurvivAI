@@ -64,6 +64,7 @@ class SpriteComponent(
             val frameWidth = animation.data.frameSize.width.toInt()
             val srcOffsetX = safeFrame * frameWidth
             val srcOffsetY = 0
+            val colorAlpha = animation.data.tintColorAlpha
 
             context.drawScaleImage(
                 scaleX = if (owner.direction.isRight()) -1f else 1f,
@@ -74,7 +75,11 @@ class SpriteComponent(
                 srcSize = animation.data.frameSize.toIntSize(),
                 dstOffset = dstOffset,
                 dstSize = dstSize,
-                colorFilter = if (animation.data.useTintColor) { color?.let { ColorFilter.tint(it) } } else null,
+                colorFilter =
+                    if (colorAlpha > 0) {
+                        color?.let { ColorFilter.tint(it.copy(alpha = colorAlpha)) }
+                    }
+                    else null,
             )
         }
     }

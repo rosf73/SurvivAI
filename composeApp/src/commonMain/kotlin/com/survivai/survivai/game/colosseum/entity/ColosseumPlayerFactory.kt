@@ -23,7 +23,7 @@ class ColosseumPlayerFactory(
                 "sprite_colosseum_player_idle_1.png",
                 SpriteAnimationData.fixed(
                     frameSize = Size(128f, 64f),
-                    useTintColor = true,
+                    tintColorAlpha = 1.0f,
                 ),
             )
         }
@@ -43,7 +43,7 @@ class ColosseumPlayerFactory(
                     totalFrame = 6,
                     durationPerFrame = 1.3 / 6, // TODO : temporary, refactor order between preparing and attacking
                     frameSize = Size(128f, 64f),
-                    useTintColor = true,
+                    tintColorAlpha = 1.0f,
                     loop = false,
                     nextAction = ActionState.IDLE,
                 )
@@ -66,6 +66,7 @@ class ColosseumPlayerFactory(
                 "sprite_colosseum_player_die_full.png",
                 SpriteAnimationData.fixed(
                     frameSize = Size(128f, 64f),
+                    tintColorAlpha = 1.0f,
                 ),
             )
         }
@@ -74,6 +75,7 @@ class ColosseumPlayerFactory(
                 "sprite_colosseum_player_die_empty.png",
                 SpriteAnimationData.fixed(
                     frameSize = Size(128f, 64f),
+                    tintColorAlpha = 0.5f,
                 ),
             )
         }

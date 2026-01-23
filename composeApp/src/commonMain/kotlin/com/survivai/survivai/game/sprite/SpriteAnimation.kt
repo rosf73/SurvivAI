@@ -27,7 +27,7 @@ data class SpriteAnimationData(
     val steps: List<Double>,
     val frameSize: Size,
     val textureOffset: Offset?,
-    val useTintColor: Boolean,
+    val tintColorAlpha: Float,
     val loop: Boolean,
     val nextAction: ActionState?,
 ) {
@@ -37,7 +37,7 @@ data class SpriteAnimationData(
             durationPerFrame: Double,
             frameSize: Size,
             textureOffset: Offset? = null,
-            useTintColor: Boolean = false,
+            tintColorAlpha: Float = 0.0f,
             loop: Boolean = true,
             nextAction: ActionState? = null,
         ) = SpriteAnimationData(
@@ -45,7 +45,7 @@ data class SpriteAnimationData(
             steps = List(totalFrame) { durationPerFrame },
             frameSize = frameSize,
             textureOffset = textureOffset,
-            useTintColor = useTintColor,
+            tintColorAlpha = tintColorAlpha,
             loop = loop,
             nextAction = nextAction,
         )
@@ -53,13 +53,13 @@ data class SpriteAnimationData(
         fun fixed(
             frameSize: Size,
             textureOffset: Offset? = null,
-            useTintColor: Boolean = false,
+            tintColorAlpha: Float = 0.0f,
         ) = SpriteAnimationData(
             frame = 1,
             steps = emptyList(),
             frameSize = frameSize,
             textureOffset = textureOffset,
-            useTintColor = useTintColor,
+            tintColorAlpha = tintColorAlpha,
             loop = false,
             nextAction = null,
         )

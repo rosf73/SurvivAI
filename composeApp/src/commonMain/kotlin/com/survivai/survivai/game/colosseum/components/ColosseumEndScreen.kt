@@ -176,7 +176,19 @@ fun ColosseumEndScreen(
                     onClickRestart()
                 }
             ) {
-                Text("바로 재시작", style = TextStyle(fontFamily = fontFamily))
+                Text(
+                    "REMATCH",
+                    style = TextStyle(
+                        fontFamily = fontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black,
+                        shadow = Shadow(
+                            color = Color.Black,
+                            offset = Offset(2f, 2f)
+                        ),
+                        letterSpacing = 4.sp
+                    )
+                )
             }
 
             Spacer(modifier = Modifier.size(30.dp))
@@ -200,7 +212,19 @@ fun ColosseumEndScreen(
                     onClickReset()
                 }
             ) {
-                Text("경기 재설정", style = TextStyle(fontFamily = fontFamily))
+                Text(
+                    "MAIN MENU",
+                    style = TextStyle(
+                        fontFamily = fontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black,
+                        shadow = Shadow(
+                            color = Color.Black,
+                            offset = Offset(2f, 2f)
+                        ),
+                        letterSpacing = 4.sp
+                    )
+                )
             }
         }
     }

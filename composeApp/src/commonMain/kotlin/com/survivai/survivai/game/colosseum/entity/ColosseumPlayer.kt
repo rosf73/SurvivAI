@@ -103,8 +103,6 @@ data class ColosseumPlayer(
     var attackPoint = 0
     var killPoint = 0
     var deathTime = 0L
-    var comboPoint = 0
-    var maxComboPoint = 0
 
     // 적들과의 상대적 위치 정보 (매 프레임 업데이트)
     private var nearestEnemyDistance: Float = Float.MAX_VALUE
@@ -623,9 +621,6 @@ data class ColosseumPlayer(
         attackState = AttackState.NONE
         attackTimer = 0f
         inAction = true
-
-        // 스탯 업데이트
-        ColosseumInfo.resetPlayerComboPoint(name)
 
         return true
     }

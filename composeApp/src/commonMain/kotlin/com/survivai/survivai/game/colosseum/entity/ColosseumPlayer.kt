@@ -4,15 +4,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
@@ -20,25 +15,49 @@ import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import com.survivai.survivai.game.component.ColliderComponent
+import com.survivai.survivai.game.component.ColorComponent
+import com.survivai.survivai.game.component.CombatComponent
+import com.survivai.survivai.game.component.Component
+import com.survivai.survivai.game.component.SpriteComponent
+import com.survivai.survivai.game.sprite.ActionState
+import com.survivai.survivai.game.sprite.SpriteSheet
 import kotlin.enums.EnumEntries
 import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-data class Player(
+data class ColosseumPlayer(
     val name: String,
-    val radius: Float = 36f,
     val color: Color = Color.Blue,
-    private val startHp: Int = ColosseumInfo.defaultHp,
-    val ripIcons: Pair<ImageBitmap, ImageBitmap>,
+    private val startHp: Double = ColosseumInfo.defaultHp,
+    val spriteSheet: SpriteSheet,
 ) : Entity {
 
+    private val combatComponent = CombatComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
+    private val colliderComponent = ColliderComponent(width = 64f, height = 64f)
+
     // Position (Center offset)
-    var x = 0f
-    var y = 0f
+    override var x = 0f
+    override var y = 0f
+    override var width = colliderComponent.width
+    override var height = colliderComponent.height
+    override var imageWidth = spriteSheet.imageSize.width
+    override var imageHeight = spriteSheet.imageSize.height
+    override var direction = setOf(Entity.Direction.LEFT, Entity.Direction.RIGHT).random()
+    override var state: Entity.State = ActionState.IDLE
+
+    override val components: MutableList<Component> = mutableListOf(
+        SpriteComponent(spriteSheet = spriteSheet),
+        ColorComponent(tintColor = color),
+        colliderComponent,
+        combatComponent,
+    )
+
+    val halfWidth get() = width / 2
+    val halfHeight get() = height / 2
 
     var velocityX = 0f // 수평 속도
-
     var velocityY = 0f // 수직 속도
     private val gravity = 980f // 중력 가속도 (픽셀/초^2)
 
@@ -46,13 +65,13 @@ data class Player(
     private var viewportWidth = 0f
     private var viewportHeight = 0f
     private val floorY: Float
-        get() = viewportHeight - radius
+        get() = viewportHeight - halfHeight
 
     // Behavior
-    private var facingRight = true // 바라보는 방향
+    private val facingRight get() = direction == Entity.Direction.RIGHT
     private var attackState = AttackState.NONE
     private var attackTimer = 0f
-    val attackReach get() = radius * 2 + 5f
+    val attackReach get() = width + 5f
     private var isSpeeching = false
     private var speechTimer = 0f
     private var selectedSpeechList = listOf("")
@@ -67,16 +86,10 @@ data class Player(
     private var inAction = false
 
     // HP
-    private var hp = startHp
-    val currentHp: Int get() = hp
-
-    // 무적 시간
-    private var isInvincible = false
-    private var invincibleTimer = 0f
+    val hp: Double get() = combatComponent.hp
 
     // 생존 여부
-    private var _isAlive = true
-    val isAlive: Boolean get() = _isAlive
+    val isAlive: Boolean get() = combatComponent.isAlive
 
     // Event flags
     private var justSpeeched = ""
@@ -196,7 +209,7 @@ data class Player(
 
         // 가장 가까운 적 찾기
         var minDistance = Float.MAX_VALUE
-        var nearestEnemy: Player? = null
+        var nearestEnemy: ColosseumPlayer? = null
 
         enemies.forEach { enemy ->
             val dx = enemy.x - x
@@ -261,7 +274,7 @@ data class Player(
 
         // 1. 사정거리 내에 전방의 적이 있으면 공격 가중치 증가
         if (enemiesInAttackRangeInFront > 0) {
-            validActionWeights[ActionType.Valid.ATTACK] = 
+            validActionWeights[ActionType.Valid.ATTACK] =
                 WEIGHT_ATTACK_IN_RANGE * enemiesInAttackRangeInFront
             return
         }
@@ -280,7 +293,7 @@ data class Player(
      */
     private fun decideMovementDirection(): MoveDirection {
         // 가까운 적이 있으면 그쪽으로 이동
-        return if (nearestEnemyDirection > 0) MoveDirection.RIGHT 
+        return if (nearestEnemyDirection > 0) MoveDirection.RIGHT
                else MoveDirection.LEFT
     }
 
@@ -291,6 +304,7 @@ data class Player(
         world: World,
     ) {
         if (!isAlive) return
+        super.update(deltaTime, viewportWidth, viewportHeight, world)
 
         this.viewportWidth = viewportWidth
         this.viewportHeight = viewportHeight
@@ -299,14 +313,6 @@ data class Player(
 
         // 적들의 위치 정보 업데이트 (매 프레임)
         updateEnemyPositions()
-
-        // 무적 타이머 처리
-        if (isInvincible) {
-            invincibleTimer -= clampedDeltaTime
-            if (invincibleTimer <= 0f) {
-                isInvincible = false
-            }
-        }
 
         // 공격 타이머 처리
         when (attackState) {
@@ -355,11 +361,11 @@ data class Player(
         if (velocityY >= 0f || y >= prevY) {
             (world as? ColosseumWorld)?.getPlatforms()?.forEach { p ->
                 // Treat as collision if the circle horizontally overlaps the platform span
-                val overlapsX = (x + radius) > p.left && (x - radius) < p.right
-                val wasAbove = prevY + radius <= p.top
-                val nowBelowTop = y + radius >= p.top
+                val overlapsX = right > p.left && left < p.right
+                val wasAbove = prevY + halfHeight <= p.top
+                val nowBelowTop = bottom >= p.top
                 if (!onPlatform && overlapsX && wasAbove && nowBelowTop) {
-                    y = p.top - radius
+                    y = p.top - halfHeight
                     velocityY = 0f
                     onPlatform = true
                 }
@@ -373,11 +379,11 @@ data class Player(
         }
         x += velocityX * clampedDeltaTime
         // 벽 충돌
-        if (x - radius < 0) {
-            x = radius
+        if (left < 0) {
+            x = halfWidth
             velocityX = 0f
-        } else if (x + radius > viewportWidth) {
-            x = viewportWidth - radius
+        } else if (right > viewportWidth) {
+            x = viewportWidth - halfWidth
             velocityX = 0f
         }
 
@@ -405,40 +411,22 @@ data class Player(
     }
 
     override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
-        if (!isAlive) {
-            renderRIP(context)
-            renderName(context, textMeasurer, fontFamily)
-            return
-        }
+        super.render(context, textMeasurer, fontFamily)
 
-        // render player
-        context.drawCircle(
-            color = color,
-            center = Offset(x, y),
-            radius = radius
-        )
-        renderEyes(context)
         renderName(context, textMeasurer, fontFamily)
-        renderHP(context)
 
-        // render player name - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
         if (isPreparingAttack) {
-            renderAttackPrepare(context)
+//            renderAttackPrepare(context)
+            // TODO : temporary, refactor order between preparing and attacking
         }
 
-        // render attack - 실제 공격 (진한 색, 원래 크기)
-        if (isAttackingNow) {
-            renderAttack(context)
+        if (isAlive) {
+            renderHP(context)
+            // render speech
+            if (isSpeeching) {
+                renderSpeech(context, textMeasurer, fontFamily)
+            }
         }
-
-        // render speech
-        if (isSpeeching) {
-            renderSpeech(context, textMeasurer, fontFamily)
-        }
-    }
-
-    override fun setViewportHeight(height: Float) {
-        viewportHeight = height
     }
 
     private fun setAction() {
@@ -455,11 +443,11 @@ data class Player(
         when (direction) {
             MoveDirection.LEFT -> {
                 velocityX = (velocityX - power).coerceAtLeast(-MAX_SPEED)
-                facingRight = false
+                this.direction = Entity.Direction.LEFT
             }
             MoveDirection.RIGHT -> {
                 velocityX = (velocityX + power).coerceAtMost(MAX_SPEED)
-                facingRight = true
+                this.direction = Entity.Direction.RIGHT
             }
         }
     }
@@ -491,11 +479,11 @@ data class Player(
         when (direction) {
             MoveDirection.LEFT -> {
                 velocityX = (velocityX - movePower).coerceAtLeast(-MAX_SPEED)
-                facingRight = false
+                this.direction = Entity.Direction.LEFT
             }
             MoveDirection.RIGHT -> {
                 velocityX = (velocityX + movePower).coerceAtMost(MAX_SPEED)
-                facingRight = true
+                this.direction = Entity.Direction.RIGHT
             }
         }
 
@@ -512,6 +500,7 @@ data class Player(
         if (attackState == AttackState.NONE) {
             attackState = AttackState.PREPARING
             attackTimer = ATTACK_PREPARE_DURATION
+            state = ActionState.ATTACK
         }
     }
 
@@ -532,7 +521,7 @@ data class Player(
      */
     private  fun renderName(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         val textStyle = TextStyle(
-            fontSize = (radius * 0.25f).sp,
+            fontSize = (halfWidth * 0.25f).sp,
             color = Color.Black,
             fontFamily = fontFamily,
         )
@@ -542,108 +531,9 @@ data class Player(
             text = name,
             topLeft = Offset(
                 x - measuredText.size.width / 2f,
-                y - measuredText.size.height / 2f - radius * 1.5f
+                y - measuredText.size.height / 2f - halfHeight * 1.5f
             ),
             style = textStyle,
-        )
-    }
-
-    private fun renderAttackPrepare(context: GameDrawScope) {
-        val progress = 1f - (attackTimer / ATTACK_PREPARE_DURATION)  // 0 -> 1
-        val attackRadius = radius * (0.5f + progress * 0.3f)  // 점점 커짐
-        val offsetDistance = radius + 5f
-        val centerX = x + if (facingRight) offsetDistance else -offsetDistance
-        val centerY = y
-
-        // 바깥쪽 작은 원
-        val outerRadius = attackRadius * 0.8f
-        val outerRect = Rect(
-            left = centerX - outerRadius,
-            top = centerY - outerRadius,
-            right = centerX + outerRadius,
-            bottom = centerY + outerRadius,
-        )
-
-        // 안쪽 큰 원
-        val innerRadius = attackRadius
-        val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
-        val innerRect = Rect(
-            left = centerX + innerOffsetX - innerRadius,
-            top = centerY - innerRadius,
-            right = centerX + innerOffsetX + innerRadius,
-            bottom = centerY + innerRadius,
-        )
-
-        val outerPath = Path().apply {
-            if (facingRight) {
-                arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-            } else {
-                arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-            }
-            close()
-        }
-
-        val innerPath = Path().apply {
-            addOval(innerRect)
-        }
-
-        val crescentPath = Path().apply {
-            op(outerPath, innerPath, PathOperation.Difference)
-        }
-
-        // 선딜은 반투명, 점점 진해짐
-        val alpha = (100 + (progress * 120)).toInt()
-        context.drawPath(
-            path = crescentPath,
-            color = Color(123, 30, 30, alpha),
-        )
-    }
-
-    private fun renderAttack(context: GameDrawScope) {
-        val attackRadius = radius
-        val offsetDistance = radius + 5f
-        val centerX = x + if (facingRight) offsetDistance else -offsetDistance
-        val centerY = y
-
-        // 바깥쪽 작은 원
-        val outerRadius = attackRadius * 0.8f
-        val outerRect = Rect(
-            left = centerX - outerRadius,
-            top = centerY - outerRadius,
-            right = centerX + outerRadius,
-            bottom = centerY + outerRadius,
-        )
-
-        // 안쪽 큰 원
-        val innerRadius = attackRadius
-        val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
-        val innerRect = Rect(
-            left = centerX + innerOffsetX - innerRadius,
-            top = centerY - innerRadius,
-            right = centerX + innerOffsetX + innerRadius,
-            bottom = centerY + innerRadius,
-        )
-
-        val outerPath = Path().apply {
-            if (facingRight) {
-                arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-            } else {
-                arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-            }
-            close()
-        }
-
-        val innerPath = Path().apply {
-            addOval(innerRect)
-        }
-
-        val crescentPath = Path().apply {
-            op(outerPath, innerPath, PathOperation.Difference)
-        }
-
-        context.drawPath(
-            path = crescentPath,
-            color = Color(123, 30, 30, 220),
         )
     }
 
@@ -657,7 +547,7 @@ data class Player(
                 style = textStyle,
             ).size.toSize().also { cachedTextSize = it }
         // speech offset
-        val offsetDistance = radius + 20f // TODO : magic number
+        val offsetDistance = halfHeight + 40f
         val centerY = y - offsetDistance
         val centerX = x
 
@@ -673,14 +563,14 @@ data class Player(
     }
 
     private fun renderHP(context: GameDrawScope) {
-        val max = ColosseumInfo.defaultHp
-        val totalWidth = radius * 4
-        val totalX = x - radius * 2
-        val totalY = y + radius * 1.3f
+        val max = ColosseumInfo.defaultHp.toInt()
+        val totalWidth = width * 2
+        val totalX = x - width
+        val totalY = y + halfHeight * 1.3f
         val dividerCount = max - 1
         val dividerWidth = if (dividerCount > 0) totalWidth / max / dividerCount / 2 else 0f
         val barWidth = (totalWidth - dividerWidth * dividerCount) / max
-        val barHeight = radius / 4
+        val barHeight = height / 8
 
         // dividers
         val emptyPath = Path().apply {
@@ -694,70 +584,13 @@ data class Player(
         // hp
         if (hp > 0) {
             val filledPath = Path().apply {
-                for (i in 0 until hp) {
+                for (i in 0 until hp.toInt()) {
                     val x = totalX + (barWidth + dividerWidth) * i
                     addRect(Rect(x, totalY, x + barWidth, totalY + barHeight))
                 }
             }
             context.drawPath(filledPath, Color.Green)
         }
-    }
-
-    private fun renderEyes(context: GameDrawScope) {
-        val eyeRadius = radius * 0.3f
-        val eyeYOffset = -radius * 0.2f
-        val eyeXSpacing = radius * 0.3f
-        val pupilRadius = eyeRadius * 0.6f
-        val pupilXOffset = if (facingRight) eyeRadius * 0.4f else -eyeRadius * 0.4f
-
-        // 왼쪽 눈
-        context.drawCircle(
-            color = Color.White,
-            center = Offset(x - eyeXSpacing, y + eyeYOffset),
-            radius = eyeRadius
-        )
-        context.drawCircle(
-            color = Color.Black,
-            center = Offset(x - eyeXSpacing + pupilXOffset, y + eyeYOffset),
-            radius = pupilRadius
-        )
-
-        // 오른쪽 눈
-        context.drawCircle(
-            color = Color.White,
-            center = Offset(x + eyeXSpacing, y + eyeYOffset),
-            radius = eyeRadius
-        )
-        context.drawCircle(
-            color = Color.Black,
-            center = Offset(x + eyeXSpacing + pupilXOffset, y + eyeYOffset),
-            radius = pupilRadius
-        )
-    }
-
-    private fun renderRIP(context: GameDrawScope) {
-        val iconSize = (radius * 2).toInt()  // 플레이어 지름에 맞춤
-        val dstOffset = IntOffset((x - radius).toInt(), (y - radius).toInt())
-        val dstSize = IntSize(iconSize, iconSize)
-
-        context.drawImage(
-            image = ripIcons.first,
-            srcOffset = IntOffset(0, 0),
-            srcSize = IntSize(ripIcons.first.width, ripIcons.first.height),
-            dstOffset = dstOffset,
-            dstSize = dstSize,
-            alpha = 1.0f,
-            colorFilter = ColorFilter.tint(color)
-        )
-        context.drawImage(
-            image = ripIcons.second,
-            srcOffset = IntOffset(0, 0),
-            srcSize = IntSize(ripIcons.second.width, ripIcons.second.height),
-            dstOffset = dstOffset,
-            dstSize = dstSize,
-            alpha = 0.5f,
-            colorFilter = ColorFilter.tint(color)
-        )
     }
 
     fun pollJustSpeeched(): String {
@@ -771,28 +604,20 @@ data class Player(
 
     // damaged
     fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
-        // 무적 상태인 경우 return
-        if (isInvincible) return false
+        // 데미지
+        val damaged = combatComponent.takeDamage(1.0)
+        if (!damaged) return false
+        if (!isAlive) {
+            state = ActionState.DIE
+        }
 
         // 넉백
         val dir = if (attackerX < x) 1f else -1f
         velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
 
         // 약간 점프
-        velocityY = -200f // TODO : magic number
+        velocityY = -200f
         onPlatform = false
-
-        // 데미지
-        hp = (hp - 1).coerceAtLeast(0)
-
-        // 생존 체크
-        if (hp <= 0) {
-            _isAlive = false
-        }
-
-        // 무적 on
-        isInvincible = true
-        invincibleTimer = INVINCIBLE_DURATION
 
         // 액션 취소
         attackState = AttackState.NONE
@@ -805,7 +630,7 @@ data class Player(
         return true
     }
 
-    companion object {
+    companion object Companion {
         private const val ACTION_IDLE_PROBABILITY = 0.02
         private const val ATTACK_PREPARE_DURATION = 1.0f   // 선딜
         private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격
@@ -813,8 +638,8 @@ data class Player(
         private const val IDLE_MAX_DURATION = 0.5f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
-        private const val INVINCIBLE_DURATION = 0.4f // 무적 시간
-        
+        private const val INVINCIBLE_DURATION = 0.5 // invincible time
+
         // 가중치 조정 파라미터
         private const val NEARBY_RANGE_MULTIPLIER = 4f // attackReach의 배수로 주변 범위 결정
         private const val ATTACK_RANGE_MULTIPLIER = 1.5f // attackReach의 배수로 공격 가능 범위 결정

@@ -1,113 +1,14 @@
 package com.survivai.survivai.game.colosseum
 
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.state.GameState
 import com.survivai.survivai.game.colosseum.state.Log
 import kotlin.math.abs
 import kotlin.math.max
-
-class WebDrawScope(private val drawScope: DrawScope) : GameDrawScope {
-    override fun drawCircle(
-        color: Color,
-        center: Offset,
-        radius: Float
-    ) {
-        drawScope.drawCircle(
-            color = color,
-            center = center,
-            radius = radius,
-        )
-    }
-
-    override fun drawArc(
-        color: Color,
-        topLeft: Offset,
-        width: Float,
-        height: Float,
-        startAngle: Float,
-        sweepAngle: Float,
-        useCenter: Boolean
-    ) {
-        drawScope.drawArc(
-            color = color,
-            startAngle = startAngle,
-            sweepAngle = sweepAngle,
-            useCenter = useCenter,
-            topLeft = topLeft,
-            size = Size(width, height),
-        )
-    }
-
-    override fun drawRect(color: Color, topLeft: Offset, width: Float, height: Float) {
-        drawScope.drawRect(
-            color = color,
-            topLeft = topLeft,
-            size = Size(width, height),
-        )
-    }
-
-    override fun drawText(
-        textMeasurer: TextMeasurer,
-        text: String,
-        topLeft: Offset,
-        size: Size,
-        style: TextStyle,
-        softWrap: Boolean,
-    ) {
-        drawScope.drawText(
-            textMeasurer = textMeasurer,
-            text = text,
-            topLeft = topLeft,
-            style = style,
-            softWrap = softWrap,
-            size = size,
-        )
-    }
-
-    override fun drawPath(path: Path, color: Color) {
-        drawScope.drawPath(
-            path = path,
-            color = color,
-        )
-    }
-
-    override fun drawImage(
-        image: ImageBitmap,
-        srcOffset: IntOffset,
-        srcSize: IntSize,
-        dstOffset: IntOffset,
-        dstSize: IntSize,
-        alpha: Float,
-        style: DrawStyle,
-        colorFilter: ColorFilter?
-    ) {
-        drawScope.drawImage(
-            image = image,
-            srcOffset = srcOffset,
-            srcSize = srcSize,
-            dstOffset = dstOffset,
-            dstSize = dstSize,
-            alpha = alpha,
-            style = style,
-            colorFilter = colorFilter,
-        )
-    }
-}
 
 class WebCanvas : Canvas {
 
@@ -159,18 +60,18 @@ class WebCanvas : Canvas {
             for (j in i + 1 until alivePlayers.size) {
                 val a = alivePlayers[i]
                 val b = alivePlayers[j]
-                val rSum = a.radius + b.radius
+                val rSum = a.halfWidth + b.halfWidth
                 val dx = b.x - a.x
                 val dy = b.y - a.y
-                if (abs(dy) < max(a.radius, b.radius) * 1.2f && abs(dx) < rSum) {
+                if (abs(dy) < max(a.halfHeight, b.halfHeight) * 1.2f && abs(dx) < rSum) {
                     val overlap = rSum - abs(dx)
                     val dir = if (dx >= 0f) 1f else -1f
                     val push = overlap / 2f
                     a.x -= push * dir
                     b.x += push * dir
                     // Clamp to viewport bounds
-                    if (a.x - a.radius < 0f) a.x = a.radius
-                    if (b.x + b.radius > viewportWidth) b.x = viewportWidth - b.radius
+                    if (a.x - a.halfWidth < 0f) a.x = a.halfWidth
+                    if (b.x + b.halfWidth > viewportWidth) b.x = viewportWidth - b.halfWidth
                 }
             }
         }
@@ -183,12 +84,12 @@ class WebCanvas : Canvas {
             // 스탯 업데이트
             ColosseumInfo.updatePlayerAttackPoint(attacker.name)
 
-            if (target.currentHp > 0) {
+            if (target.hp > 0) {
                 log(Log.Duo(
                     perpetrator = attacker,
                     victim = target,
                     interaction = "🤜",
-                    additional = "(HP=${target.currentHp})",
+                    additional = "(HP=${target.hp})",
                 ))
             } else {
                 // 스탯 업데이트
@@ -234,5 +135,3 @@ class WebCanvas : Canvas {
 }
 
 actual fun getCanvas(): Canvas = WebCanvas()
-
-actual fun createGameDrawScope(drawScope: DrawScope): GameDrawScope = WebDrawScope(drawScope)

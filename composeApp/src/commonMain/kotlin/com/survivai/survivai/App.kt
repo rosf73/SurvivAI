@@ -12,24 +12,22 @@ import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.toSize
+import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.state.GameState
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
-import com.survivai.survivai.game.colosseum.createGameDrawScope
-import com.survivai.survivai.game.colosseum.entity.Player
+import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
 import com.survivai.survivai.game.colosseum.getCanvas
+import com.survivai.survivai.game.sprite.SpriteLoader
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.imageResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
-import survivai.composeapp.generated.resources.icon_r_i_p_empty
-import survivai.composeapp.generated.resources.icon_r_i_p_full
 
 @Composable
-@Preview
 fun App(
     onUpdatedViewport: (Float, Float) -> Unit = { _, _ -> },
 ) {
@@ -45,6 +43,9 @@ fun App(
             Font(Res.font.NotoEmojiColor),
         )
         val canvasState = remember { getCanvas() }
+
+        val spriteLoader = remember { SpriteLoader() }
+        val coroutineScope = rememberCoroutineScope()
 
         // UI update state
         var frameTick by remember { mutableStateOf(0) }
@@ -75,9 +76,6 @@ fun App(
 
         // 2. Rendering
         Box(modifier = Modifier.fillMaxSize()) {
-            val ripEmptyIcon = imageResource(Res.drawable.icon_r_i_p_empty)
-            val ripFullIcon = imageResource(Res.drawable.icon_r_i_p_full)
-
             // Canvas (World + Players)
             ComposeCanvas(
                 modifier = Modifier
@@ -95,7 +93,7 @@ fun App(
                 drawRect(Color.White)
 
                 // Draw circle
-                val drawScopeWrapper = createGameDrawScope(this)
+                val drawScopeWrapper = GameDrawScope.getInstance(this)
                 canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
             }
 
@@ -106,18 +104,19 @@ fun App(
                     fontFamily = fontFamily,
                     onClickStart = { players, hp ->
                         // Set HP
-                        ColosseumInfo.setDefaultHp(hp)
+                        ColosseumInfo.setDefaultHp(hp.toDouble())
 
-                        // 중복 없는 색상 생성
-                        val players = players.map { p ->
-                            Player(
-                                name = p.name,
-                                color = p.color,
-                                startHp = hp,
-                                ripIcons = ripEmptyIcon to ripFullIcon,
-                            )
+                        // Set players
+                        coroutineScope.launch {
+                            val players = players.map { p ->
+                                ColosseumPlayerFactory(spriteLoader).createPlayer(
+                                    name = p.name,
+                                    color = p.color,
+                                    startHp = ColosseumInfo.defaultHp,
+                                )
+                            }
+                            ColosseumInfo.setPlayers(players)
                         }
-                        ColosseumInfo.setPlayers(players)
                     },
                 )
             }

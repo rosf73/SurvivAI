@@ -1,107 +1,7 @@
 package com.survivai.survivai.game.colosseum
 
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
-
-class AndroidDrawScope(private val drawScope: DrawScope) : GameDrawScope {
-    override fun drawCircle(
-        color: Color,
-        center: Offset,
-        radius: Float
-    ) {
-        drawScope.drawCircle(
-            color = color,
-            center = center,
-            radius = radius,
-        )
-    }
-
-    override fun drawArc(
-        color: Color,
-        topLeft: Offset,
-        width: Float,
-        height: Float,
-        startAngle: Float,
-        sweepAngle: Float,
-        useCenter: Boolean
-    ) {
-        drawScope.drawArc(
-            color = color,
-            startAngle = startAngle,
-            sweepAngle = sweepAngle,
-            useCenter = useCenter,
-            topLeft = topLeft,
-            size = Size(width, height),
-        )
-    }
-
-    override fun drawRect(color: Color, topLeft: Offset, width: Float, height: Float) {
-        drawScope.drawRect(
-            color = color,
-            topLeft = topLeft,
-            size = Size(width, height),
-        )
-    }
-
-    override fun drawText(
-        textMeasurer: TextMeasurer,
-        text: String,
-        topLeft: Offset,
-        size: Size,
-        style: TextStyle,
-        softWrap: Boolean,
-    ) {
-        drawScope.drawText(
-            textMeasurer = textMeasurer,
-            text = text,
-            topLeft = topLeft,
-            style = style,
-            softWrap = softWrap,
-            size = size,
-        )
-    }
-
-    override fun drawPath(path: Path, color: Color) {
-        drawScope.drawPath(
-            path = path,
-            color = color,
-        )
-    }
-
-    override fun drawImage(
-        image: ImageBitmap,
-        srcOffset: IntOffset,
-        srcSize: IntSize,
-        dstOffset: IntOffset,
-        dstSize: IntSize,
-        alpha: Float,
-        style: DrawStyle,
-        colorFilter: ColorFilter?
-    ) {
-        drawScope.drawImage(
-            image = image,
-            srcOffset = srcOffset,
-            srcSize = srcSize,
-            dstOffset = dstOffset,
-            dstSize = dstSize,
-            alpha = alpha,
-            style = style,
-            colorFilter = colorFilter,
-        )
-    }
-}
 
 class AndroidCanvas : Canvas {
 
@@ -119,5 +19,3 @@ class AndroidCanvas : Canvas {
 }
 
 actual fun getCanvas(): Canvas = AndroidCanvas()
-
-actual fun createGameDrawScope(drawScope: DrawScope): GameDrawScope = AndroidDrawScope(drawScope)

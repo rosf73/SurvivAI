@@ -9,4 +9,5 @@ object BuildConfig {
 
     // 선택사항: 추가 정보
     const val APP_NAME = "SurvivAI"
+    const val DEBUG = true
 }

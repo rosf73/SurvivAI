@@ -76,15 +76,17 @@ fun generateUniquePlayerPool(count: Int): List<PlayerInitPair> {
 /**
  * 랜덤 포지션 생성
  */
-fun List<Player>.initializePositions(viewportWidth: Float, viewportHeight: Float) {
+fun List<ColosseumPlayer>.initializePositions(viewportWidth: Float, viewportHeight: Float) {
     val margin = 10f
     val placed = mutableListOf<Pair<Float, Float>>()
     forEach { p ->
-        val radius = p.radius
-        val minX = radius + margin
-        val maxX = (viewportWidth - radius - margin).coerceAtLeast(minX)
+        val halfWidth = p.halfWidth
+        val halfHeight = p.halfHeight
+
+        val minX = halfWidth + margin
+        val maxX = (viewportWidth - halfWidth - margin).coerceAtLeast(minX)
         val floorTop = ColosseumInfo.world.getFloor() ?: viewportHeight
-        val y = (floorTop - radius).coerceAtLeast(radius)
+        val y = (floorTop - halfHeight).coerceAtLeast(halfHeight)
 
         var tries = 0
         var x: Float
@@ -92,7 +94,7 @@ fun List<Player>.initializePositions(viewportWidth: Float, viewportHeight: Float
             x = if (maxX > minX) Random.nextFloat() * (maxX - minX) + minX else minX
             tries++
         } while (
-            placed.any { (ox, _) -> abs(ox - x) < (p.radius * 2 + margin) }
+            placed.any { (ox, _) -> abs(ox - x) < (halfWidth * 2 + margin) }
             && tries < 50
         )
 
@@ -105,8 +107,8 @@ fun List<Player>.initializePositions(viewportWidth: Float, viewportHeight: Float
 /**
  * 타격 성공 여부
  */
-fun List<Player>.detectAttackDamagedThisFrame(
-    onDetected: (Player, Player) -> Unit,
+fun List<ColosseumPlayer>.detectAttackDamagedThisFrame(
+    onDetected: (ColosseumPlayer, ColosseumPlayer) -> Unit,
 ) {
     val hitThisFrame = mutableSetOf<Pair<Int, Int>>()
 
@@ -114,7 +116,7 @@ fun List<Player>.detectAttackDamagedThisFrame(
         val attacker = get(i)
         if (!attacker.isAttackingNow) continue
         val reach = attacker.attackReach
-        val heightTol = attacker.radius * 1.2f
+        val heightTol = attacker.height * 0.6f
         for (j in indices) {
             if (i == j) continue
             val target = get(j)

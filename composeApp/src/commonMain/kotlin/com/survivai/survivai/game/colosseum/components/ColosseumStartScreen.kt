@@ -74,7 +74,7 @@ fun ColosseumStartScreen(
             .fillMaxSize()
             .background(Color(0xFF0A0A0A))
             .drawBehind {
-                // 미세한 격자 무늬 배경 효과
+                // fine grid pattern
                 val gridSize = 20.dp.toPx()
                 for (x in 0..size.width.toInt() step gridSize.toInt()) {
                     drawLine(
@@ -97,50 +97,45 @@ fun ColosseumStartScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Header: 강렬한 게임 타이틀 스타일
-            Surface(
+            // Header
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(color = Color(0xFF1A1A1A))
                     .border(
                         BorderStroke(
                             2.dp,
                             Brush.verticalGradient(listOf(Color(0xFFFFD700), Color(0xFFB8860B)))
                         )
-                    ),
-                color = Color(0xFF1A1A1A),
+                    )
+                    .padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "COLOSSEUM",
-                        style = TextStyle(
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Black,
-                            fontFamily = fontFamily,
-                            color = Color(0xFFFFD700),
-                            shadow = Shadow(
-                                color = Color(0xFFD32F2F),
-                                offset = Offset(4f, 4f),
-                                blurRadius = 2f
-                            ),
-                            letterSpacing = 4.sp
-                        )
+                Text(
+                    text = "COLOSSEUM",
+                    style = TextStyle(
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = fontFamily,
+                        color = Color(0xFFFFD700),
+                        shadow = Shadow(
+                            color = Color(0xFFD32F2F),
+                            offset = Offset(4f, 4f),
+                            blurRadius = 2f
+                        ),
+                        letterSpacing = 4.sp
                     )
-                    Text(
-                        text = "PLAYER REGISTRATION",
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = fontFamily,
-                            color = Color(0xFF00E5FF),
-                            letterSpacing = 2.sp
-                        )
+                )
+                Text(
+                    text = "PLAYER REGISTRATION",
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = fontFamily,
+                        color = Color(0xFF00E5FF),
+                        letterSpacing = 2.sp
                     )
-                }
+                )
             }
 
             // Scrollable Grid Content
@@ -221,51 +216,47 @@ fun ColosseumStartScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))),
+                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)))
+                    .padding(16.dp)
+                    .padding(bottom = 8.dp),
                 color = Color(0xFF0A0A0A),
             ) {
-                Box(
+                Button(
+                    onClick = {
+                        val validPlayers = players.filter { it.name.isNotBlank() }
+                        if (validPlayers.size >= 2) {
+                            onClickStart(validPlayers, hpSliderValue.roundToInt())
+                        }
+                    },
                     modifier = Modifier
-                        .padding(16.dp)
-                        .padding(bottom = 8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            val validPlayers = players.filter { it.name.isNotBlank() }
-                            if (validPlayers.size >= 2) {
-                                onClickStart(validPlayers, hpSliderValue.roundToInt())
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp)
-                            .border(
-                                BorderStroke(
-                                    3.dp,
-                                    Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))
-                                ),
-                                shape = CutCornerShape(8.dp)
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .border(
+                            BorderStroke(
+                                3.dp,
+                                Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))
                             ),
-                        shape = CutCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD32F2F),
-                            contentColor = Color.White
+                            shape = CutCornerShape(8.dp)
+                        ),
+                    shape = CutCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD32F2F),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        "FIGHT!",
+                        style = TextStyle(
+                            fontFamily = fontFamily,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Black,
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(2f, 2f)
+                            ),
+                            letterSpacing = 4.sp
                         )
-                    ) {
-                        Text(
-                            "FIGHT!",
-                            style = TextStyle(
-                                fontFamily = fontFamily,
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Black,
-                                shadow = Shadow(
-                                    color = Color.Black,
-                                    offset = Offset(2f, 2f)
-                                ),
-                                letterSpacing = 4.sp
-                            )
-                        )
-                    }
+                    )
                 }
             }
         }

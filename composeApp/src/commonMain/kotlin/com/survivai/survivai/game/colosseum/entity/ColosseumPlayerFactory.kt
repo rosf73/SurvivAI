@@ -36,13 +36,27 @@ class ColosseumPlayerFactory(
                 ),
             )
         }
-        val attackAnimation = async {
+
+        val attackAnimation1 = async {
             loader.load(
-                "sprite_colosseum_attack_right.png", // temporary
+                "sprite_colosseum_player_attack_1.png",
                 SpriteAnimationData.sequenced(
-                    totalFrame = 3,
-                    durationPerFrame = 1.2,
-                    frameSize = Size(1),
+                    totalFrame = 6,
+                    durationPerFrame = 1.3 / 6, // TODO : temporary, refactor order between preparing and attacking
+                    frameSize = Size(128f, 64f),
+                    useTintColor = true,
+                    loop = false,
+                    nextAction = ActionState.IDLE,
+                )
+            )
+        }
+        val attackAnimation2 = async {
+            loader.load(
+                "sprite_colosseum_player_attack_2.png",
+                SpriteAnimationData.sequenced(
+                    totalFrame = 6,
+                    durationPerFrame = 1.3 / 6,
+                    frameSize = Size(128f, 64f),
                     loop = false,
                     nextAction = ActionState.IDLE,
                 ),
@@ -61,7 +75,7 @@ class ColosseumPlayerFactory(
             imageSize = Size(128f, 64f),
             animations = mapOf(
                 ActionState.IDLE to listOf(idleAnimation1.await(), idleAnimation2.await()),
-                ActionState.ATTACK to listOf(attackAnimation.await()),
+                ActionState.ATTACK to listOf(attackAnimation1.await(), attackAnimation2.await()),
                 ActionState.DIE to listOf(dieAnimation.await()),
             )
         )

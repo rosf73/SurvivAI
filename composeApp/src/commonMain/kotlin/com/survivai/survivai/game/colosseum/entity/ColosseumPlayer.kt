@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -427,14 +426,9 @@ data class ColosseumPlayer(
         renderName(context, textMeasurer, fontFamily)
         renderHP(context)
 
-        // render player name - 선딜 표시 (연한 색, 작은 크기) TODO : effect 개선 (칼 들었다 내려찍기)
         if (isPreparingAttack) {
-            renderAttackPrepare(context)
-        }
-
-        // render attack - 실제 공격 (진한 색, 원래 크기)
-        if (isAttackingNow) {
-            renderAttack(context)
+//            renderAttackPrepare(context)
+            // TODO : temporary, refactor order between preparing and attacking
         }
 
         // render speech
@@ -514,6 +508,7 @@ data class ColosseumPlayer(
         if (attackState == AttackState.NONE) {
             attackState = AttackState.PREPARING
             attackTimer = ATTACK_PREPARE_DURATION
+            state = ActionState.ATTACK
         }
     }
 
@@ -547,105 +542,6 @@ data class ColosseumPlayer(
                 y - measuredText.size.height / 2f - halfHeight * 1.5f
             ),
             style = textStyle,
-        )
-    }
-
-    private fun renderAttackPrepare(context: GameDrawScope) {
-        val progress = 1f - (attackTimer / ATTACK_PREPARE_DURATION)  // 0 -> 1
-        val attackRadius = halfWidth * (0.5f + progress * 0.3f)  // 점점 커짐
-        val offsetDistance = halfWidth + 5f
-        val centerX = x + if (facingRight) offsetDistance else -offsetDistance
-        val centerY = y
-
-        // 바깥쪽 작은 원
-        val outerRadius = attackRadius * 0.8f
-        val outerRect = Rect(
-            left = centerX - outerRadius,
-            top = centerY - outerRadius,
-            right = centerX + outerRadius,
-            bottom = centerY + outerRadius,
-        )
-
-        // 안쪽 큰 원
-        val innerRadius = attackRadius
-        val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
-        val innerRect = Rect(
-            left = centerX + innerOffsetX - innerRadius,
-            top = centerY - innerRadius,
-            right = centerX + innerOffsetX + innerRadius,
-            bottom = centerY + innerRadius,
-        )
-
-        val outerPath = Path().apply {
-            if (facingRight) {
-                arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-            } else {
-                arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-            }
-            close()
-        }
-
-        val innerPath = Path().apply {
-            addOval(innerRect)
-        }
-
-        val crescentPath = Path().apply {
-            op(outerPath, innerPath, PathOperation.Difference)
-        }
-
-        // 선딜은 반투명, 점점 진해짐
-        val alpha = (100 + (progress * 120)).toInt()
-        context.drawPath(
-            path = crescentPath,
-            color = Color(123, 30, 30, alpha),
-        )
-    }
-
-    private fun renderAttack(context: GameDrawScope) {
-        val attackRadius = halfWidth
-        val offsetDistance = halfWidth + 5f
-        val centerX = x + if (facingRight) offsetDistance else -offsetDistance
-        val centerY = y
-
-        // 바깥쪽 작은 원
-        val outerRadius = attackRadius * 0.8f
-        val outerRect = Rect(
-            left = centerX - outerRadius,
-            top = centerY - outerRadius,
-            right = centerX + outerRadius,
-            bottom = centerY + outerRadius,
-        )
-
-        // 안쪽 큰 원
-        val innerRadius = attackRadius
-        val innerOffsetX = if (facingRight) -attackRadius * 0.6f else attackRadius * 0.6f
-        val innerRect = Rect(
-            left = centerX + innerOffsetX - innerRadius,
-            top = centerY - innerRadius,
-            right = centerX + innerOffsetX + innerRadius,
-            bottom = centerY + innerRadius,
-        )
-
-        val outerPath = Path().apply {
-            if (facingRight) {
-                arcTo(outerRect, startAngleDegrees = -90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-            } else {
-                arcTo(outerRect, startAngleDegrees = 90f, sweepAngleDegrees = 180f, forceMoveTo = false)
-            }
-            close()
-        }
-
-        val innerPath = Path().apply {
-            addOval(innerRect)
-        }
-
-        val crescentPath = Path().apply {
-            op(outerPath, innerPath, PathOperation.Difference)
-        }
-
-        context.drawPath(
-            path = crescentPath,
-            color = Color(123, 30, 30, 220),
         )
     }
 

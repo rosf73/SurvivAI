@@ -60,11 +60,17 @@ class SpriteComponent(
         val dstSize = Size(owner.imageWidth, owner.imageHeight).toIntSize()
 
         animations.forEach { animation ->
+            val safeFrame = currentFrame % animation.data.frame
+            val frameWidth = animation.data.frameSize.width.toInt()
+            val srcOffsetX = safeFrame * frameWidth
+            val srcOffsetY = 0
+
             context.drawScaleImage(
                 scaleX = if (owner.direction.isRight()) -1f else 1f,
                 scaleY = 1f,
                 pivot = Offset(owner.x, owner.y),
                 image = animation.image,
+                srcOffset = IntOffset(srcOffsetX, srcOffsetY),
                 srcSize = animation.data.frameSize.toIntSize(),
                 dstOffset = dstOffset,
                 dstSize = dstSize,

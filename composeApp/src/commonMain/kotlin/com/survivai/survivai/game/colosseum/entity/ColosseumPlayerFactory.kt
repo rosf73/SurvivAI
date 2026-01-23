@@ -17,7 +17,6 @@ class ColosseumPlayerFactory(
         name: String,
         color: Color,
         startHp: Double,
-        ripIcons: Pair<ImageBitmap, ImageBitmap>,
     ): ColosseumPlayer = coroutineScope {
         val idleAnimation1 = async {
             loader.load(
@@ -62,11 +61,19 @@ class ColosseumPlayerFactory(
                 ),
             )
         }
-        val dieAnimation = async {
+        val dieAnimation1 = async {
             loader.load(
-                "icon_r_i_p_full.png",
+                "sprite_colosseum_player_die_full.png",
                 SpriteAnimationData.fixed(
-                    frameSize = Size(1),
+                    frameSize = Size(128f, 64f),
+                ),
+            )
+        }
+        val dieAnimation2 = async {
+            loader.load(
+                "sprite_colosseum_player_die_empty.png",
+                SpriteAnimationData.fixed(
+                    frameSize = Size(128f, 64f),
                 ),
             )
         }
@@ -76,12 +83,12 @@ class ColosseumPlayerFactory(
             animations = mapOf(
                 ActionState.IDLE to listOf(idleAnimation1.await(), idleAnimation2.await()),
                 ActionState.ATTACK to listOf(attackAnimation1.await(), attackAnimation2.await()),
-                ActionState.DIE to listOf(dieAnimation.await()),
+                ActionState.DIE to listOf(dieAnimation1.await(), dieAnimation2.await()),
             )
         )
 
         ColosseumPlayer(
-            name, color, startHp, ripIcons, sheet
+            name, color, startHp, sheet
         )
     }
 }

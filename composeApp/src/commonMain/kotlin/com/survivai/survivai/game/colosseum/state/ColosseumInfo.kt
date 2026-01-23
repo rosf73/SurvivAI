@@ -107,7 +107,6 @@ object ColosseumInfo {
                 name = player.name,
                 color = player.color,
                 startHp = defaultHp,
-                ripIcons = player.ripIcons,
                 spriteSheet = player.spriteSheet,
             )
         }

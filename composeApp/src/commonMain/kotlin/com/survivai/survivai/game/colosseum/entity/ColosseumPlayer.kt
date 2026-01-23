@@ -4,14 +4,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
@@ -35,7 +31,6 @@ data class ColosseumPlayer(
     val name: String,
     val color: Color = Color.Blue,
     private val startHp: Double = ColosseumInfo.defaultHp,
-    val ripIcons: Pair<ImageBitmap, ImageBitmap>,
     val spriteSheet: SpriteSheet,
 ) : Entity {
 
@@ -416,24 +411,21 @@ data class ColosseumPlayer(
     }
 
     override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
-        if (!isAlive) {
-            renderRIP(context)
-            renderName(context, textMeasurer, fontFamily)
-            return
-        }
         super.render(context, textMeasurer, fontFamily)
 
         renderName(context, textMeasurer, fontFamily)
-        renderHP(context)
 
         if (isPreparingAttack) {
 //            renderAttackPrepare(context)
             // TODO : temporary, refactor order between preparing and attacking
         }
 
-        // render speech
-        if (isSpeeching) {
-            renderSpeech(context, textMeasurer, fontFamily)
+        if (isAlive) {
+            renderHP(context)
+            // render speech
+            if (isSpeeching) {
+                renderSpeech(context, textMeasurer, fontFamily)
+            }
         }
     }
 
@@ -601,31 +593,6 @@ data class ColosseumPlayer(
         }
     }
 
-    private fun renderRIP(context: GameDrawScope) {
-        val iconSize = width.toInt()
-        val dstOffset = IntOffset(left.toInt(), top.toInt())
-        val dstSize = IntSize(iconSize, iconSize)
-
-        context.drawImage(
-            image = ripIcons.first,
-            srcOffset = IntOffset(0, 0),
-            srcSize = IntSize(ripIcons.first.width, ripIcons.first.height),
-            dstOffset = dstOffset,
-            dstSize = dstSize,
-            alpha = 1.0f,
-            colorFilter = ColorFilter.tint(color)
-        )
-        context.drawImage(
-            image = ripIcons.second,
-            srcOffset = IntOffset(0, 0),
-            srcSize = IntSize(ripIcons.second.width, ripIcons.second.height),
-            dstOffset = dstOffset,
-            dstSize = dstSize,
-            alpha = 0.5f,
-            colorFilter = ColorFilter.tint(color)
-        )
-    }
-
     fun pollJustSpeeched(): String {
         val j = justSpeeched
         justSpeeched = ""
@@ -640,6 +607,9 @@ data class ColosseumPlayer(
         // 데미지
         val damaged = combatComponent.takeDamage(1.0)
         if (!damaged) return false
+        if (!isAlive) {
+            state = ActionState.DIE
+        }
 
         // 넉백
         val dir = if (attackerX < x) 1f else -1f

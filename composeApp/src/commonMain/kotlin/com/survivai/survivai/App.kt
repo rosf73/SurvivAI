@@ -26,8 +26,6 @@ import org.jetbrains.compose.resources.imageResource
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
-import survivai.composeapp.generated.resources.icon_r_i_p_empty
-import survivai.composeapp.generated.resources.icon_r_i_p_full
 
 @Composable
 fun App(
@@ -78,9 +76,6 @@ fun App(
 
         // 2. Rendering
         Box(modifier = Modifier.fillMaxSize()) {
-            val ripEmptyIcon = imageResource(Res.drawable.icon_r_i_p_empty)
-            val ripFullIcon = imageResource(Res.drawable.icon_r_i_p_full)
-
             // Canvas (World + Players)
             ComposeCanvas(
                 modifier = Modifier
@@ -118,7 +113,6 @@ fun App(
                                     name = p.name,
                                     color = p.color,
                                     startHp = ColosseumInfo.defaultHp,
-                                    ripIcons = ripEmptyIcon to ripFullIcon,
                                 )
                             }
                             ColosseumInfo.setPlayers(players)

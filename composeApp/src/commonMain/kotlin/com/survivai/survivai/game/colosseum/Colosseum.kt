@@ -35,12 +35,10 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Colosseum(
-    ratio: Pair<Int, Int>,
+    isLandscape: Boolean,
     fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
-    val isLandscape = ratio.first >= ratio.second
-
     val textMeasurer = rememberTextMeasurer()
 
     // font preload

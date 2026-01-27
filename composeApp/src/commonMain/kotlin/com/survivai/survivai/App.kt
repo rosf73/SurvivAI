@@ -2,6 +2,7 @@ package com.survivai.survivai
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,8 +35,7 @@ fun App(
     openLink: (String) -> Unit,
 ) {
     val containerSize = LocalWindowInfo.current.containerSize
-    val ratioV = containerSize.height.toDouble() / (containerSize.width + containerSize.height) * 10
-    val ratioH = containerSize.width.toDouble() / (containerSize.width + containerSize.height) * 10
+    val isLandscape = containerSize.width >= containerSize.height
 
     val fontFamily = FontFamily(
         Font(Res.font.NotoSansKR),
@@ -46,50 +46,45 @@ fun App(
         Box(modifier = Modifier.fillMaxSize()) {
             // Colosseum
             Colosseum(
-                ratio = ratioH.toInt() to ratioV.toInt(),
+                isLandscape = isLandscape,
                 fontFamily = fontFamily,
                 modifier = Modifier.fillMaxSize(),
             )
 
             // Top right buttons
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                // Version
-                VersionText(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    fontFamily = fontFamily,
-                )
-
-                // GitHub Link Button
-                Button(
-                    onClick = {
-                        openLink("https://github.com/rosf73/SurvivAI")
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        contentColor = Color.White,
-                    ),
+            if (isLandscape) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        // GitHub 아이콘
-                        Icon(
-                            imageVector = createGitHubIcon(),
-                            contentDescription = "GitHub",
-                            modifier = Modifier.size(18.dp),
-                            tint = Color.White,
-                        )
-                        Text(
-                            text = "GitHub",
-                            fontFamily = fontFamily,
-                        )
-                    }
+                    VersionText(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        fontFamily = fontFamily,
+                    )
+
+                    GitHubButton(
+                        fontFamily = fontFamily,
+                        openLink = openLink,
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    GitHubButton(
+                        fontFamily = fontFamily,
+                        openLink = openLink,
+                    )
+
+                    VersionText(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        fontFamily = fontFamily,
+                    )
                 }
             }
         }
@@ -108,4 +103,39 @@ private fun VersionText(
         style = TextStyle(fontSize = 12.sp, color = Color.Gray, fontFamily = fontFamily),
     )
     Spacer(modifier = Modifier.size(5.dp))
+}
+
+@Composable
+private fun GitHubButton(
+    fontFamily: FontFamily,
+    openLink: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = {
+            openLink("https://github.com/rosf73/SurvivAI")
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Black,
+            contentColor = Color.White,
+        ),
+        modifier = modifier,
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // GitHub 아이콘
+            Icon(
+                imageVector = createGitHubIcon(),
+                contentDescription = "GitHub",
+                modifier = Modifier.size(18.dp),
+                tint = Color.White,
+            )
+            Text(
+                text = "GitHub",
+                fontFamily = fontFamily,
+            )
+        }
+    }
 }

@@ -517,7 +517,7 @@ data class ColosseumPlayer(
     /**
      * render functions
      */
-    private  fun renderName(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
+    private fun renderName(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         val textStyle = TextStyle(
             fontSize = (halfWidth * 0.25f).sp,
             color = Color.Black,
@@ -528,7 +528,7 @@ data class ColosseumPlayer(
             textMeasurer = textMeasurer,
             text = name,
             topLeft = Offset(
-                x - measuredText.size.width / 2f,
+                x - measuredText.size.width / 2f, // TODO : x, y 값이 화면 비율이 변함에도 그대로라 문제임
                 y - measuredText.size.height / 2f - halfHeight * 1.5f
             ),
             style = textStyle,

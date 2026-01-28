@@ -1,11 +1,14 @@
 package com.survivai.survivai.game.colosseum
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas as ComposeCanvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,7 +20,9 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -77,7 +82,28 @@ fun Colosseum(
     }
 
     // 2. Rendering
-    Box(modifier = modifier) {
+    BoxWithConstraints(
+        modifier = modifier
+            .background(Color.Black), // letter box
+        contentAlignment = Alignment.Center,
+    ) {
+        val density = LocalDensity.current
+
+        val screenWidthPx = with(density) { maxWidth.toPx() }
+        val screenHeightPx = with(density) { maxHeight.toPx() }
+
+        val logicalWidth = 1920f
+        val logicalHeight = 1080f
+        val targetRatio = logicalWidth / logicalHeight
+
+        val isWide = screenWidthPx / screenHeightPx > targetRatio
+
+        val scale = if (isWide) {
+            screenHeightPx / logicalHeight
+        } else {
+            screenWidthPx / logicalWidth
+        }
+
         when (currentGameState) {
             GameState.WaitingForPlayers -> {
                 ColosseumStartScreen(
@@ -105,9 +131,14 @@ fun Colosseum(
                 // Canvas (World + Players)
                 ComposeCanvas(
                     modifier = Modifier
-                        .align(if (isLandscape) Alignment.CenterStart else Alignment.TopCenter)
-                        .fillMaxHeight(if (isLandscape) 1.0f else 0.6f)
-                        .fillMaxWidth(if (isLandscape) 0.6f else 1.0f)
+                        .requiredSize( // fixed logical screen
+                            width = with(density) { logicalWidth.toDp() },
+                            height = with(density) { logicalHeight.toDp() },
+                        )
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                        )
                         .onSizeChanged {
                             val size = it.toSize()
                             canvasState.setViewportSize(size.width, size.height)
@@ -127,9 +158,9 @@ fun Colosseum(
                 // Log
                 Box(
                     modifier = Modifier
-                        .align(if (isLandscape) Alignment.CenterEnd else Alignment.BottomCenter)
+                        .align(if (isLandscape) Alignment.TopEnd else Alignment.BottomCenter)
                         .fillMaxWidth(if(isLandscape) 0.4f else 1.0f)
-                        .fillMaxHeight(if(isLandscape) 1.0f else 0.4f)
+                        .fillMaxHeight(if(isLandscape) 0.5f else 0.4f)
                 ) {
                     ColosseumLogArea(
                         fontFamily = fontFamily,

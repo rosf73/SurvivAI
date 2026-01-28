@@ -86,6 +86,7 @@ private fun LogLine(
                 Text(
                     text = log.msg,
                     fontSize = 12.sp,
+                    color = Color.Gray,
                 )
             }
             is Log.Solo -> {
@@ -96,6 +97,7 @@ private fun LogLine(
                 Text(
                     text = ": \"${log.msg}\"",
                     fontSize = 12.sp,
+                    color = Color.Gray,
                 )
             }
             is Log.Duo -> {
@@ -107,6 +109,7 @@ private fun LogLine(
                 Text(
                     text = " ${log.interaction} ",
                     fontSize = 12.sp,
+                    color = Color.Gray,
                 )
                 PlayerLabel(
                     color = log.victim.color,
@@ -115,6 +118,7 @@ private fun LogLine(
                 Text(
                     text = " ${log.additional}",
                     fontSize = 12.sp,
+                    color = Color.Gray,
                 )
             }
         }

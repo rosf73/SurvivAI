@@ -13,16 +13,20 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.survivai.survivai.common.LocalFont
 import com.survivai.survivai.common.createGitHubIcon
+import com.survivai.survivai.common.withFontFamily
 import com.survivai.survivai.config.BuildConfig
 import com.survivai.survivai.game.colosseum.Colosseum
 import org.jetbrains.compose.resources.Font
@@ -42,49 +46,52 @@ fun App(
         Font(Res.font.NotoEmojiColor),
     )
 
-    MaterialTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Colosseum
-            Colosseum(
-                isLandscape = isLandscape,
-                fontFamily = fontFamily,
-                modifier = Modifier.fillMaxSize(),
-            )
+    // font preload
+    val fontFamilyResolver = LocalFontFamilyResolver.current
+    preloadEmojiFontForFallback(fontFamilyResolver)
 
-            // Top right buttons
-            if (isLandscape) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    VersionText(
-                        modifier = Modifier.align(Alignment.CenterVertically),
-                        fontFamily = fontFamily,
-                    )
+    CompositionLocalProvider(LocalFont provides fontFamily) {
+        MaterialTheme(
+            typography = Typography().withFontFamily(fontFamily),
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Colosseum
+                Colosseum(
+                    isLandscape = isLandscape,
+                    modifier = Modifier.fillMaxSize(),
+                )
 
-                    GitHubButton(
-                        fontFamily = fontFamily,
-                        openLink = openLink,
-                    )
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    GitHubButton(
-                        fontFamily = fontFamily,
-                        openLink = openLink,
-                    )
+                // Top right buttons
+                if (isLandscape) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        VersionText(
+                            modifier = Modifier.align(Alignment.CenterVertically),
+                        )
 
-                    VersionText(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        fontFamily = fontFamily,
-                    )
+                        GitHubButton(
+                            openLink = openLink,
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        GitHubButton(
+                            openLink = openLink,
+                        )
+
+                        VersionText(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                        )
+                    }
                 }
             }
         }
@@ -94,20 +101,18 @@ fun App(
 @Composable
 private fun VersionText(
     modifier: Modifier = Modifier,
-    fontFamily: FontFamily,
 ) {
     Spacer(modifier = Modifier.size(5.dp))
     Text(
         modifier = modifier,
         text = "v${BuildConfig.VERSION_NAME}",
-        style = TextStyle(fontSize = 12.sp, color = Color.Gray, fontFamily = fontFamily),
+        style = TextStyle(fontSize = 12.sp, color = Color.Gray),
     )
     Spacer(modifier = Modifier.size(5.dp))
 }
 
 @Composable
 private fun GitHubButton(
-    fontFamily: FontFamily,
     openLink: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -134,7 +139,6 @@ private fun GitHubButton(
             )
             Text(
                 text = "GitHub",
-                fontFamily = fontFamily,
             )
         }
     }

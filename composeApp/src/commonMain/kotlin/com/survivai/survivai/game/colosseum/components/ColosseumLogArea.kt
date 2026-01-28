@@ -23,7 +23,6 @@ import com.survivai.survivai.game.colosseum.state.Log
 
 @Composable
 fun ColosseumLogArea(
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -32,7 +31,6 @@ fun ColosseumLogArea(
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            fontFamily = fontFamily,
         )
 
         LazyColumn(
@@ -43,7 +41,6 @@ fun ColosseumLogArea(
             items(ColosseumInfo.logEntries) { log ->
                 LogLine(
                     log = log,
-                    fontFamily = fontFamily,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                 )
             }
@@ -54,7 +51,6 @@ fun ColosseumLogArea(
 @Composable
 private fun LogLine(
     log: Log,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -67,19 +63,16 @@ private fun LogLine(
                 Text(
                     text = log.msg,
                     fontSize = 12.sp,
-                    fontFamily = fontFamily,
                 )
             }
             is Log.Solo -> {
                 PlayerLabel(
                     color = log.player.color,
                     name = log.player.name,
-                    fontFamily = fontFamily,
                 )
                 Text(
                     text = ": \"${log.msg}\"",
                     fontSize = 12.sp,
-                    fontFamily = fontFamily,
                 )
             }
             is Log.Duo -> {
@@ -87,22 +80,18 @@ private fun LogLine(
                 PlayerLabel(
                     color = log.perpetrator.color,
                     name = log.perpetrator.name,
-                    fontFamily = fontFamily,
                 )
                 Text(
                     text = " ${log.interaction} ",
                     fontSize = 12.sp,
-                    fontFamily = fontFamily,
                 )
                 PlayerLabel(
                     color = log.victim.color,
                     name = log.victim.name,
-                    fontFamily = fontFamily,
                 )
                 Text(
                     text = " ${log.additional}",
                     fontSize = 12.sp,
-                    fontFamily = fontFamily,
                 )
             }
         }
@@ -113,7 +102,6 @@ private fun LogLine(
 private fun PlayerLabel(
     color: Color,
     name: String,
-    fontFamily: FontFamily,
 ) {
 //    Box(
 //        modifier = Modifier
@@ -124,7 +112,6 @@ private fun PlayerLabel(
     Text(
         text = " $name",
         fontSize = 12.sp,
-        fontFamily = fontFamily,
         fontWeight = FontWeight.Bold,
         color = color,
     )

@@ -29,6 +29,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -61,7 +62,6 @@ import kotlin.math.roundToInt
 @Composable
 fun ColosseumStartScreen(
     onClickStart: (players: List<PlayerInitPair>, hp: Int) -> Unit,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     val initialPool = remember { generateUniquePlayerPool(2).toList() }
@@ -113,10 +113,9 @@ fun ColosseumStartScreen(
             ) {
                 Text(
                     text = "COLOSSEUM",
-                    style = TextStyle(
+                    style = LocalTextStyle.current.copy(
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Black,
-                        fontFamily = fontFamily,
                         color = Color(0xFFFFD700),
                         shadow = Shadow(
                             color = Color(0xFFD32F2F),
@@ -128,10 +127,9 @@ fun ColosseumStartScreen(
                 )
                 Text(
                     text = "PLAYER REGISTRATION",
-                    style = TextStyle(
+                    style = LocalTextStyle.current.copy(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = fontFamily,
                         color = Color(0xFF00E5FF),
                         letterSpacing = 2.sp
                     )
@@ -153,7 +151,6 @@ fun ColosseumStartScreen(
                     HpSettingCard(
                         hpValue = hpSliderValue.roundToInt(),
                         onHpChange = { hpSliderValue = it },
-                        fontFamily = fontFamily
                     )
                 }
 
@@ -166,7 +163,6 @@ fun ColosseumStartScreen(
                         onDelete = if (players.size > 2) {
                             { players.removeAt(index) }
                         } else null,
-                        fontFamily = fontFamily
                     )
                 }
 
@@ -199,8 +195,7 @@ fun ColosseumStartScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             "ADD CHALLENGER", 
-                            style = TextStyle(
-                                fontFamily = fontFamily, 
+                            style = LocalTextStyle.current.copy(
                                 fontWeight = FontWeight.ExtraBold, 
                                 fontSize = 14.sp,
                                 letterSpacing = 1.sp
@@ -246,8 +241,7 @@ fun ColosseumStartScreen(
                 ) {
                     Text(
                         "FIGHT!",
-                        style = TextStyle(
-                            fontFamily = fontFamily,
+                        style = LocalTextStyle.current.copy(
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Black,
                             shadow = Shadow(
@@ -267,7 +261,6 @@ fun ColosseumStartScreen(
 private fun HpSettingCard(
     hpValue: Int,
     onHpChange: (Float) -> Unit,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -287,8 +280,7 @@ private fun HpSettingCard(
             ) {
                 Text(
                     text = "INITIAL HP",
-                    style = TextStyle(
-                        fontFamily = fontFamily,
+                    style = LocalTextStyle.current.copy(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFBBBBBB),
@@ -297,8 +289,7 @@ private fun HpSettingCard(
                 )
                 Text(
                     text = "$hpValue",
-                    style = TextStyle(
-                        fontFamily = fontFamily,
+                    style = LocalTextStyle.current.copy(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Black,
                         color = Color(0xFFFFD700),
@@ -331,7 +322,6 @@ private fun PlayerInputCard(
     color: Color,
     onNameChange: (String) -> Unit,
     onDelete: (() -> Unit)?,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -361,13 +351,12 @@ private fun PlayerInputCard(
                 placeholder = {
                     Text(
                         "NAME",
-                        style = TextStyle(fontFamily = fontFamily, fontSize = 10.sp, color = Color.Gray)
+                        style = LocalTextStyle.current.copy(fontSize = 10.sp, color = Color.Gray)
                     )
                 },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                textStyle = TextStyle(
-                    fontFamily = fontFamily,
+                textStyle = LocalTextStyle.current.copy(
                     fontSize = 13.sp, // 폰트 크기 살짝 조절
                     color = Color.White,
                     fontWeight = FontWeight.Bold

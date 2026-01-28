@@ -23,6 +23,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +50,6 @@ fun ColosseumEndScreen(
     titles: List<MVPTitleCard>,
     onClickRestart: () -> Unit,
     onClickReset: () -> Unit,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -93,10 +93,9 @@ fun ColosseumEndScreen(
         ) {
             Text(
                 text = "GAME RESULT",
-                style = TextStyle(
+                style = LocalTextStyle.current.copy(
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Black,
-                    fontFamily = fontFamily,
                     color = Color(0xFFFFD700),
                     shadow = Shadow(
                         color = Color(0xFFD32F2F),
@@ -108,10 +107,9 @@ fun ColosseumEndScreen(
             )
             Text(
                 text = "SCORE DASHBOARD",
-                style = TextStyle(
+                style = LocalTextStyle.current.copy(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
                     color = Color(0xFF00E5FF),
                     letterSpacing = 2.sp
                 )
@@ -130,7 +128,6 @@ fun ColosseumEndScreen(
             // 대시 보드
             Dashboard(
                 statsList = statsList,
-                fontFamily = fontFamily,
                 modifier = Modifier
                     .weight(7f)
                     .fillMaxHeight(),
@@ -141,7 +138,6 @@ fun ColosseumEndScreen(
             // 칭호 목록
             TitlesList(
                 titles = titles,
-                fontFamily = fontFamily,
                 modifier = Modifier
                     .weight(3f)
                     .fillMaxHeight()
@@ -178,8 +174,7 @@ fun ColosseumEndScreen(
             ) {
                 Text(
                     "REMATCH",
-                    style = TextStyle(
-                        fontFamily = fontFamily,
+                    style = LocalTextStyle.current.copy(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Black,
                         shadow = Shadow(
@@ -214,8 +209,7 @@ fun ColosseumEndScreen(
             ) {
                 Text(
                     "MAIN MENU",
-                    style = TextStyle(
-                        fontFamily = fontFamily,
+                    style = LocalTextStyle.current.copy(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Black,
                         shadow = Shadow(
@@ -233,7 +227,6 @@ fun ColosseumEndScreen(
 @Composable
 private fun TitlesList(
     titles: List<MVPTitleCard>,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -255,10 +248,9 @@ private fun TitlesList(
             // Header
             Text(
                 text = "💎 MVP 전당 💎",
-                style = TextStyle(
+                style = LocalTextStyle.current.copy(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = fontFamily,
                     color = Color.White,
                 ),
                 modifier = Modifier
@@ -274,10 +266,9 @@ private fun TitlesList(
                     // Title
                     Text(
                         text = playerTitle.title,
-                        style = TextStyle(
+                        style = LocalTextStyle.current.copy(
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            fontFamily = fontFamily,
                             color = Color.White,
                         ),
                         modifier = Modifier.padding(bottom = 2.dp)
@@ -286,10 +277,9 @@ private fun TitlesList(
                     // Description
                     Text(
                         text = playerTitle.desc,
-                        style = TextStyle(
+                        style = LocalTextStyle.current.copy(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            fontFamily = fontFamily,
                             color = Color.Gray,
                         ),
                         modifier = Modifier.padding(bottom = 4.dp)
@@ -302,9 +292,8 @@ private fun TitlesList(
                         items(playerTitle.players) { p ->
                             Text(
                                 text = p.stat,
-                                style = TextStyle(
+                                style = LocalTextStyle.current.copy(
                                     fontSize = 15.sp,
-                                    fontFamily = fontFamily,
                                 ),
                                 color = p.color ?: Color.Unspecified,
                                 modifier = Modifier.padding(end = 4.dp),
@@ -323,7 +312,6 @@ private fun TitlesList(
 @Composable
 private fun Dashboard(
     statsList: List<List<StatCell>>,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -364,8 +352,7 @@ private fun Dashboard(
                         ) {
                             Text(
                                 text = cellText.stat,
-                                style = TextStyle(
-                                    fontFamily = fontFamily,
+                                style = LocalTextStyle.current.copy(
                                     textAlign = TextAlign.Center
                                 ),
                                 color = cellText.color ?: Color.Unspecified,

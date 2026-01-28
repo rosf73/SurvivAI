@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import com.survivai.survivai.common.LocalFont
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
@@ -35,20 +36,15 @@ import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.state.GameState
 import com.survivai.survivai.game.sprite.SpriteLoader
-import com.survivai.survivai.preloadEmojiFontForFallback
 import kotlinx.coroutines.launch
 
 @Composable
 fun Colosseum(
     isLandscape: Boolean,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     val textMeasurer = rememberTextMeasurer()
-
-    // font preload
-    val fontFamilyResolver = LocalFontFamilyResolver.current
-    preloadEmojiFontForFallback(fontFamilyResolver)
+    val font = LocalFont.current
 
     val canvasState = remember { getCanvas() }
     val spriteLoader = remember { SpriteLoader() }
@@ -108,11 +104,9 @@ fun Colosseum(
             GameState.WaitingForPlayers -> {
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
-                    fontFamily = fontFamily,
                     onClickStart = { players, hp ->
                         // Set HP
                         ColosseumInfo.setDefaultHp(hp.toDouble())
-
                         // Set players
                         coroutineScope.launch {
                             val players = players.map { p ->
@@ -152,7 +146,7 @@ fun Colosseum(
 
                     // Draw circle
                     val drawScopeWrapper = GameDrawScope.getInstance(this)
-                    canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
+                    canvasState.render(drawScopeWrapper, textMeasurer, fontFamily = font)
                 }
 
                 // Log
@@ -163,7 +157,6 @@ fun Colosseum(
                         .fillMaxHeight(if(isLandscape) 0.5f else 0.4f)
                 ) {
                     ColosseumLogArea(
-                        fontFamily = fontFamily,
                         modifier = Modifier.fillMaxSize().padding(12.dp),
                     )
                 }
@@ -173,7 +166,6 @@ fun Colosseum(
                     modifier = Modifier.fillMaxSize(),
                     statsList = currentGameState.statsList,
                     titles = currentGameState.titleList,
-                    fontFamily = fontFamily,
                     onClickRestart = {
                         // 바로 재시작 (플레이어 유지)
                         ColosseumInfo.restart()

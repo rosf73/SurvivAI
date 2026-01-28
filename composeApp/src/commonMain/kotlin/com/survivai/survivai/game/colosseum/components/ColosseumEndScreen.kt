@@ -1,12 +1,17 @@
 package com.survivai.survivai.game.colosseum.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,16 +20,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,41 +49,181 @@ import com.survivai.survivai.game.colosseum.state.StatCell
 fun ColosseumEndScreen(
     statsList: List<List<StatCell>>,
     titles: List<MVPTitleCard>,
+    isLandscape: Boolean,
     onClickRestart: () -> Unit,
     onClickReset: () -> Unit,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
-            .background(color = Color(255, 220, 220, 180))
-            .padding(horizontal = 50.dp),
+            .background(Color(0xFF0A0A0A))
+            .drawBehind {
+                // fine grid pattern
+                val gridSize = 20.dp.toPx()
+                for (x in 0..size.width.toInt() step gridSize.toInt()) {
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.05f),
+                        start = Offset(x.toFloat(), 0f),
+                        end = Offset(x.toFloat(), size.height),
+                        strokeWidth = 1f
+                    )
+                }
+                for (y in 0..size.height.toInt() step gridSize.toInt()) {
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.05f),
+                        start = Offset(0f, y.toFloat()),
+                        end = Offset(size.width, y.toFloat()),
+                        strokeWidth = 1f
+                    )
+                }
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // 타이틀
-        Text(
+        // Header
+        Column(
             modifier = Modifier
-                .padding(top = 16.dp),
-            text = "게임 결과",
-            style = TextStyle(
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = fontFamily,
-            ),
+                .fillMaxWidth()
+                .background(color = Color(0xFF1A1A1A))
+                .border(
+                    BorderStroke(
+                        2.dp,
+                        Brush.verticalGradient(listOf(Color(0xFFFFD700), Color(0xFFB8860B)))
+                    )
+                )
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "GAME RESULT",
+                style = LocalTextStyle.current.copy(
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFFFD700),
+                    shadow = Shadow(
+                        color = Color(0xFFD32F2F),
+                        offset = Offset(4f, 4f),
+                        blurRadius = 2f
+                    ),
+                    letterSpacing = 4.sp
+                )
+            )
+            Text(
+                text = "SCORE DASHBOARD",
+                style = LocalTextStyle.current.copy(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF00E5FF),
+                    letterSpacing = 2.sp
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.size(20.dp))
+
+        // Middle
+        ResultArea(
+            statsList = statsList,
+            titles = titles,
+            isLandscape = isLandscape,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         )
 
         Spacer(modifier = Modifier.size(20.dp))
 
-        // 대시보드(70%) + 칭호 목록(30%) Row
+        // Footer
         Row(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
+                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)))
+                .padding(16.dp)
+                .padding(bottom = 8.dp),
         ) {
-            // 대시 보드
+            Button(
+                modifier = Modifier
+                    .weight(1f)
+                    .border(
+                        BorderStroke(
+                            3.dp,
+                            Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))
+                        ),
+                        shape = CutCornerShape(8.dp),
+                    ),
+                shape = CutCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F),
+                    contentColor = Color.White
+                ),
+                onClick = {
+                    onClickRestart()
+                }
+            ) {
+                Text(
+                    "REMATCH",
+                    style = LocalTextStyle.current.copy(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black,
+                        shadow = Shadow(
+                            color = Color.Black,
+                            offset = Offset(2f, 2f)
+                        ),
+                        letterSpacing = 4.sp
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.size(30.dp))
+
+            Button(
+                modifier = Modifier
+                    .weight(1f)
+                    .border(
+                        BorderStroke(
+                            3.dp,
+                            Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))
+                        ),
+                        shape = CutCornerShape(8.dp)
+                    ),
+                shape = CutCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F),
+                    contentColor = Color.White
+                ),
+                onClick = {
+                    onClickReset()
+                }
+            ) {
+                Text(
+                    "MAIN MENU",
+                    style = LocalTextStyle.current.copy(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Black,
+                        shadow = Shadow(
+                            color = Color.Black,
+                            offset = Offset(2f, 2f)
+                        ),
+                        letterSpacing = 4.sp
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResultArea(
+    statsList: List<List<StatCell>>,
+    titles: List<MVPTitleCard>,
+    isLandscape: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    if (isLandscape) {
+        Row(
+            modifier = modifier,
+        ) {
             Dashboard(
                 statsList = statsList,
-                fontFamily = fontFamily,
                 modifier = Modifier
                     .weight(7f)
                     .fillMaxHeight(),
@@ -78,122 +231,191 @@ fun ColosseumEndScreen(
 
             Spacer(modifier = Modifier.size(20.dp))
 
-            // 칭호 목록
-            TitlesList(
+            TitlesVerticalCard(
                 titles = titles,
-                fontFamily = fontFamily,
                 modifier = Modifier
                     .weight(3f)
                     .fillMaxHeight()
             )
         }
-
-        Spacer(modifier = Modifier.size(20.dp))
-
-        // 재시작 버튼
-        Row(
-            modifier = Modifier,
+    } else {
+        Column(
+            modifier = modifier,
         ) {
-            Button(
+            Dashboard(
+                statsList = statsList,
                 modifier = Modifier
-                    .padding(bottom = 16.dp),
-                colors = ButtonColors(
-                    containerColor = Color.Cyan,
-                    contentColor = Color.Blue,
-                    disabledContainerColor = Color.LightGray,
-                    disabledContentColor = Color.Gray,
-                ),
-                onClick = {
-                    onClickRestart()
-                }
-            ) {
-                Text("바로 재시작", style = TextStyle(fontFamily = fontFamily))
-            }
+                    .weight(7f)
+                    .fillMaxWidth(),
+            )
 
-            Spacer(modifier = Modifier.size(30.dp))
+            Spacer(modifier = Modifier.size(20.dp))
 
-            Button(
+            TitlesFixedCard(
+                titles = titles,
                 modifier = Modifier
-                    .padding(bottom = 16.dp),
-                colors = ButtonColors(
-                    containerColor = Color.Cyan,
-                    contentColor = Color.Blue,
-                    disabledContainerColor = Color.LightGray,
-                    disabledContentColor = Color.Gray,
+                    .fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun TitlesVerticalCard(
+    titles: List<MVPTitleCard>,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .border(
+                BorderStroke(
+                    2.dp,
+                    Brush.verticalGradient(listOf(Color(0xFFFFD700), Color(0xFFB8860B)))
                 ),
-                onClick = {
-                    onClickReset()
-                }
+            ),
+        color = Color.Transparent,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(6.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            // Header
+            Text(
+                text = "💎 MVP 전당 💎",
+                style = LocalTextStyle.current.copy(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                ),
+                modifier = Modifier
+                    .padding(bottom = 20.dp)
+                    .align(Alignment.CenterHorizontally),
+            )
+
+            // Title list
+            LazyColumn(
+                modifier = Modifier.weight(1f)
             ) {
-                Text("경기 재설정", style = TextStyle(fontFamily = fontFamily))
+                items(titles) { playerTitle ->
+                    // Title
+                    Text(
+                        text = playerTitle.title,
+                        style = LocalTextStyle.current.copy(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        ),
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
+
+                    // Description
+                    Text(
+                        text = playerTitle.desc,
+                        style = LocalTextStyle.current.copy(
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray,
+                        ),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    // Players
+                    LazyRow(
+                        modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+                    ) {
+                        items(playerTitle.players) { p ->
+                            Text(
+                                text = p.stat,
+                                style = LocalTextStyle.current.copy(
+                                    fontSize = 15.sp,
+                                ),
+                                color = p.color ?: Color.Unspecified,
+                                modifier = Modifier.padding(end = 4.dp),
+                            )
+                        }
+                    }
+
+                    // 칭호 간 간격
+                    Spacer(modifier = Modifier.size(16.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun TitlesList(
+private fun TitlesFixedCard(
     titles: List<MVPTitleCard>,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.Start,
-    ) {
-        // 제목
-        Text(
-            text = "💎 MVP 전당 💎",
-            style = TextStyle(
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = fontFamily,
-                color = Color.Black,
+    Surface(
+        modifier = modifier
+            .border(
+                BorderStroke(
+                    2.dp,
+                    Brush.verticalGradient(listOf(Color(0xFFFFD700), Color(0xFFB8860B)))
+                ),
             ),
-            modifier = Modifier.padding(bottom = 20.dp)
-        )
-
-        // 칭호 리스트
-        LazyColumn(
-            modifier = Modifier.weight(1f)
+        color = Color.Transparent,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            horizontalAlignment = Alignment.Start,
         ) {
-            items(titles) { playerTitle ->
-                // 칭호 제목
+            // Header
+            Text(
+                text = "💎 MVP 전당 💎",
+                style = LocalTextStyle.current.copy(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                ),
+                modifier = Modifier
+                    .padding(bottom = 20.dp)
+            )
+
+            // Title list
+            titles.forEach { playerTitle ->
+                // Title
                 Text(
                     text = playerTitle.title,
-                    style = TextStyle(
+                    style = LocalTextStyle.current.copy(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = fontFamily,
+                        color = Color.White,
                     ),
                     modifier = Modifier.padding(bottom = 2.dp)
                 )
 
-                // 칭호 설명
+                // Description
                 Text(
                     text = playerTitle.desc,
-                    style = TextStyle(
+                    style = LocalTextStyle.current.copy(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = fontFamily,
                         color = Color.Gray,
                     ),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
 
-                // 플레이어들
-                LazyRow(
-                    modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
+                // Players
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 2.dp, start = 4.dp)
                 ) {
-                    items(playerTitle.players) { p ->
+                    playerTitle.players.forEach { p ->
                         Text(
                             text = p.stat,
-                            style = TextStyle(
+                            style = LocalTextStyle.current.copy(
                                 fontSize = 15.sp,
-                                fontFamily = fontFamily,
                             ),
                             color = p.color ?: Color.Unspecified,
-                            modifier = Modifier.padding(end = 2.dp),
+                            modifier = Modifier.padding(end = 4.dp),
                         )
                     }
                 }
@@ -208,53 +430,53 @@ private fun TitlesList(
 @Composable
 private fun Dashboard(
     statsList: List<List<StatCell>>,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor = Color(0xFF666666)
-    val borderWidth = 1.dp
-
-    LazyColumn(
+    Card(
         modifier = modifier
-            .border(width = borderWidth, color = borderColor)
+            .border(
+                BorderStroke(3.dp, Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))),
+            ),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF222222)),
     ) {
-        itemsIndexed(statsList) { rowIndex, rowData ->
-            val backgroundColor = when (rowIndex) {
-                0 -> Color(0xFF4FC3F7) // 푸른색
-                1 -> Color(0xFFFFF9C4) // 연노란색
-                else -> Color(0x80FFFFFF) // 반투명 하얀색 (alpha 50%)
-            }
+        LazyColumn {
+            itemsIndexed(statsList) { rowIndex, rowData ->
+                val backgroundColor = when (rowIndex) {
+                    0 -> Color(0xFF4FC3F7)
+                    1 -> Color(0xFFFFF9C4)
+                    else -> Color(0x80FFFFFF)
+                }
 
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                rowData.forEachIndexed { colIndex, cellText ->
-                    val cellModifier = if (colIndex == 0) {
-                        // 첫 번째 column: max width 120.dp
-                        Modifier.width(120.dp)
-                    } else {
-                        // 나머지 column들: 같은 간격
-                        Modifier.weight(1f)
-                    }
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    rowData.forEachIndexed { colIndex, cellText ->
+                        val cellModifier = if (colIndex == 0) {
+                            Modifier.width(120.dp)
+                        } else {
+                            // same width
+                            Modifier.weight(1f)
+                        }
 
-                    Box(
-                        modifier = cellModifier
-                            .background(backgroundColor)
-                            .border(
-                                width = borderWidth,
-                                color = borderColor
+                        Box(
+                            modifier = cellModifier
+                                .background(backgroundColor)
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0xFF666666),
+                                )
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = cellText.stat,
+                                style = LocalTextStyle.current.copy(
+                                    fontSize = 12.sp,
+                                    textAlign = TextAlign.Center
+                                ),
+                                color = cellText.color ?: Color.Unspecified,
                             )
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = cellText.stat,
-                            style = TextStyle(
-                                fontFamily = fontFamily,
-                                textAlign = TextAlign.Center
-                            ),
-                            color = cellText.color ?: Color.Unspecified,
-                        )
+                        }
                     }
                 }
             }

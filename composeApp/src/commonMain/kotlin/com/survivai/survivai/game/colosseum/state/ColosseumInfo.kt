@@ -166,7 +166,6 @@ object ColosseumInfo {
             StatCell("ATTACK"),
             StatCell("KILL"),
             StatCell("SURVIVE"),
-            StatCell("COMBO"),
             StatCell("총점"),
         ))
 
@@ -190,7 +189,6 @@ object ColosseumInfo {
                 StatCell(it.attackPoint.toString()),
                 StatCell(it.killPoint.toString()),
                 StatCell(surviveTimeStr),
-                StatCell(it.maxComboPoint.toString()),
                 StatCell(score.toInt().toString()),
             )
         }.sortedByDescending {
@@ -267,8 +265,6 @@ object ColosseumInfo {
             it.apply {
                 if (this.name == name) {
                     attackPoint += 1
-                    comboPoint += 1
-                    maxComboPoint = max(maxComboPoint, comboPoint)
                 }
             }
         }
@@ -283,17 +279,6 @@ object ColosseumInfo {
                     killPoint += 1
                 } else if (name == victimName) {
                     deathTime = Clock.System.now().toEpochMilliseconds()
-                }
-            }
-        }
-    }
-
-    // 최장 콤보
-    fun resetPlayerComboPoint(name: String) {
-        players = players.map {
-            it.apply {
-                if (this.name == name) {
-                    comboPoint = 0
                 }
             }
         }

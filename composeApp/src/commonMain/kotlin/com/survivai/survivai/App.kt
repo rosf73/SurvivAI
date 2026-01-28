@@ -32,7 +32,7 @@ import survivai.composeapp.generated.resources.Res
 
 @Composable
 fun App(
-    openLink: (String) -> Unit,
+    openLink: (String) -> Unit, // TODO : hilt injection
 ) {
     val containerSize = LocalWindowInfo.current.containerSize
     val isLandscape = containerSize.width >= containerSize.height
@@ -74,7 +74,7 @@ fun App(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     GitHubButton(
                         fontFamily = fontFamily,

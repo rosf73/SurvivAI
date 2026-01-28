@@ -471,6 +471,7 @@ private fun Dashboard(
                             Text(
                                 text = cellText.stat,
                                 style = LocalTextStyle.current.copy(
+                                    fontSize = 12.sp,
                                     textAlign = TextAlign.Center
                                 ),
                                 color = cellText.color ?: Color.Unspecified,

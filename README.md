@@ -9,8 +9,12 @@
 > 아래 링크를 눌러보자.
 ```
 [WEB 에서 체험하기](https://rosf73.github.io/SurvivAI/)
+<br/>
+<br/>
+<br/>
+<br/>
 
-## Colosseum
+## GAME 1. Colosseum 👑
 ### Roadmap
 <img width="858" height="290" alt="스크린샷 2025-11-23 오후 8 32 10" src="https://github.com/user-attachments/assets/4103224c-e490-44f3-aae0-ce3c82c6a71d" />
 
@@ -19,4 +23,4 @@
 <img width="720" height="410" alt="스크린샷 2026-01-28 오후 5 39 24" src="https://github.com/user-attachments/assets/a460b46f-a335-428a-bc98-7f44a6002312" />
 <img width="720" height="410" alt="스크린샷 2026-01-28 오후 5 42 57" src="https://github.com/user-attachments/assets/f02d933e-f42c-43f7-af22-a9e2a8446139" />
 
-## New Game Coming Soon 🎲
+## GAME 2. ...New Game Coming Soon 🎲

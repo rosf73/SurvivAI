@@ -104,6 +104,7 @@ fun Colosseum(
             GameState.WaitingForPlayers -> {
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
+                    isLandscape = isLandscape,
                     onClickStart = { players, hp ->
                         // Set HP
                         ColosseumInfo.setDefaultHp(hp.toDouble())

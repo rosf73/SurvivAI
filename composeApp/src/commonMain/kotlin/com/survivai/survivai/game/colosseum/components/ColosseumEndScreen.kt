@@ -3,8 +3,11 @@ package com.survivai.survivai.game.colosseum.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,9 +20,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,10 +37,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,7 @@ import com.survivai.survivai.game.colosseum.state.StatCell
 fun ColosseumEndScreen(
     statsList: List<List<StatCell>>,
     titles: List<MVPTitleCard>,
+    isLandscape: Boolean,
     onClickRestart: () -> Unit,
     onClickReset: () -> Unit,
     modifier: Modifier = Modifier,
@@ -118,35 +120,20 @@ fun ColosseumEndScreen(
 
         Spacer(modifier = Modifier.size(20.dp))
 
-        // 대시보드(70%) + 칭호 목록(30%) Row
-        Row(
+        // Middle
+        ResultArea(
+            statsList = statsList,
+            titles = titles,
+            isLandscape = isLandscape,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(horizontal = 50.dp)
-        ) {
-            // 대시 보드
-            Dashboard(
-                statsList = statsList,
-                modifier = Modifier
-                    .weight(7f)
-                    .fillMaxHeight(),
-            )
-
-            Spacer(modifier = Modifier.size(20.dp))
-
-            // 칭호 목록
-            TitlesList(
-                titles = titles,
-                modifier = Modifier
-                    .weight(3f)
-                    .fillMaxHeight()
-            )
-        }
+                .padding(horizontal = 16.dp)
+        )
 
         Spacer(modifier = Modifier.size(20.dp))
 
-        // 재시작 버튼
+        // Footer
         Row(
             modifier = Modifier
                 .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)))
@@ -225,7 +212,56 @@ fun ColosseumEndScreen(
 }
 
 @Composable
-private fun TitlesList(
+private fun ResultArea(
+    statsList: List<List<StatCell>>,
+    titles: List<MVPTitleCard>,
+    isLandscape: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    if (isLandscape) {
+        Row(
+            modifier = modifier,
+        ) {
+            Dashboard(
+                statsList = statsList,
+                modifier = Modifier
+                    .weight(7f)
+                    .fillMaxHeight(),
+            )
+
+            Spacer(modifier = Modifier.size(20.dp))
+
+            TitlesVerticalCard(
+                titles = titles,
+                modifier = Modifier
+                    .weight(3f)
+                    .fillMaxHeight()
+            )
+        }
+    } else {
+        Column(
+            modifier = modifier,
+        ) {
+            Dashboard(
+                statsList = statsList,
+                modifier = Modifier
+                    .weight(7f)
+                    .fillMaxWidth(),
+            )
+
+            Spacer(modifier = Modifier.size(20.dp))
+
+            TitlesFixedCard(
+                titles = titles,
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun TitlesVerticalCard(
     titles: List<MVPTitleCard>,
     modifier: Modifier = Modifier,
 ) {
@@ -304,6 +340,88 @@ private fun TitlesList(
                     // 칭호 간 간격
                     Spacer(modifier = Modifier.size(16.dp))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TitlesFixedCard(
+    titles: List<MVPTitleCard>,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .border(
+                BorderStroke(
+                    2.dp,
+                    Brush.verticalGradient(listOf(Color(0xFFFFD700), Color(0xFFB8860B)))
+                ),
+            ),
+        color = Color.Transparent,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            // Header
+            Text(
+                text = "💎 MVP 전당 💎",
+                style = LocalTextStyle.current.copy(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                ),
+                modifier = Modifier
+                    .padding(bottom = 20.dp)
+            )
+
+            // Title list
+            titles.forEach { playerTitle ->
+                // Title
+                Text(
+                    text = playerTitle.title,
+                    style = LocalTextStyle.current.copy(
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    ),
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+
+                // Description
+                Text(
+                    text = playerTitle.desc,
+                    style = LocalTextStyle.current.copy(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray,
+                    ),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+
+                // Players
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 2.dp, start = 4.dp)
+                ) {
+                    playerTitle.players.forEach { p ->
+                        Text(
+                            text = p.stat,
+                            style = LocalTextStyle.current.copy(
+                                fontSize = 15.sp,
+                            ),
+                            color = p.color ?: Color.Unspecified,
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                }
+
+                // 칭호 간 간격
+                Spacer(modifier = Modifier.size(16.dp))
             }
         }
     }

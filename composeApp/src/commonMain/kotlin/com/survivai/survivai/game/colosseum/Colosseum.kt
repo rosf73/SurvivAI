@@ -167,6 +167,7 @@ fun Colosseum(
                     modifier = Modifier.fillMaxSize(),
                     statsList = currentGameState.statsList,
                     titles = currentGameState.titleList,
+                    isLandscape = isLandscape,
                     onClickRestart = {
                         // 바로 재시작 (플레이어 유지)
                         ColosseumInfo.restart()

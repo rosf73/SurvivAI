@@ -6,10 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,6 +17,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -29,6 +28,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -49,8 +49,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,21 +58,20 @@ import kotlin.math.roundToInt
 
 @Composable
 fun ColosseumStartScreen(
+    isLandscape: Boolean,
     onClickStart: (players: List<PlayerInitPair>, hp: Int) -> Unit,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     val initialPool = remember { generateUniquePlayerPool(2).toList() }
     val players = remember { mutableStateListOf<PlayerInitPair>().apply { addAll(initialPool) } }
-    var hpSliderValue by remember { mutableFloatStateOf(3f) }
+    var hpValue by remember { mutableFloatStateOf(3f) }
 
     // 고전 게임 감성의 어두운 배경
-    Box(
+    Column(
         modifier = modifier
-            .fillMaxSize()
             .background(Color(0xFF0A0A0A))
             .drawBehind {
-                // 미세한 격자 무늬 배경 효과
+                // fine grid pattern
                 val gridSize = 20.dp.toPx()
                 for (x in 0..size.width.toInt() step gridSize.toInt()) {
                     drawLine(
@@ -92,182 +89,169 @@ fun ColosseumStartScreen(
                         strokeWidth = 1f
                     )
                 }
-            }
+            },
     ) {
+        // Header
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = Color(0xFF1A1A1A))
+                .border(
+                    BorderStroke(
+                        2.dp,
+                        Brush.verticalGradient(listOf(Color(0xFFFFD700), Color(0xFFB8860B)))
+                    )
+                )
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header: 강렬한 게임 타이틀 스타일
-            Surface(
+            Text(
+                text = "COLOSSEUM",
+                style = LocalTextStyle.current.copy(
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFFFD700),
+                    shadow = Shadow(
+                        color = Color(0xFFD32F2F),
+                        offset = Offset(4f, 4f),
+                        blurRadius = 2f
+                    ),
+                    letterSpacing = 4.sp
+                )
+            )
+            Text(
+                text = "PLAYER REGISTRATION",
+                style = LocalTextStyle.current.copy(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF00E5FF),
+                    letterSpacing = 2.sp
+                )
+            )
+        }
+
+        // Game Setting
+        SettingArea(
+            players = players,
+            removePlayer = { players.removeAt(it) },
+            updatePlayer = { i, p -> players[i] = p },
+            addPlayer = { players.add(it) },
+            hp = hpValue,
+            updateHp = { hpValue = it },
+            isLandscape = isLandscape,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(16.dp, 0.dp),
+        )
+
+        // Footer / Start Button
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)))
+                .padding(16.dp)
+                .padding(bottom = 8.dp),
+            color = Color(0xFF0A0A0A),
+        ) {
+            Button(
+                onClick = {
+                    val validPlayers = players.filter { it.name.isNotBlank() }
+                    if (validPlayers.size >= 2) {
+                        onClickStart(validPlayers, hpValue.roundToInt())
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(64.dp)
                     .border(
                         BorderStroke(
-                            2.dp,
-                            Brush.verticalGradient(listOf(Color(0xFFFFD700), Color(0xFFB8860B)))
-                        )
+                            3.dp,
+                            Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))
+                        ),
+                        shape = CutCornerShape(8.dp)
                     ),
-                color = Color(0xFF1A1A1A),
+                shape = CutCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F),
+                    contentColor = Color.White
+                )
             ) {
-                Column(
+                Text(
+                    "FIGHT!",
+                    style = LocalTextStyle.current.copy(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black,
+                        shadow = Shadow(
+                            color = Color.Black,
+                            offset = Offset(2f, 2f)
+                        ),
+                        letterSpacing = 4.sp
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingArea(
+    players: List<PlayerInitPair>,
+    removePlayer: (Int) -> Unit,
+    updatePlayer: (Int, PlayerInitPair) -> Unit,
+    addPlayer: (PlayerInitPair) -> Unit,
+    hp: Float,
+    updateHp: (Float) -> Unit,
+    isLandscape: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    if (isLandscape) {
+        PlayerSettingArea(
+            players = players,
+            removePlayer = removePlayer,
+            updatePlayer = updatePlayer,
+            addPlayer = addPlayer,
+            isLandscape = isLandscape,
+            modifier = modifier,
+            header = {
+                // HP Setting
+                HpSettingCard(
+                    hpValue = hp.roundToInt(),
+                    onHpChange = updateHp,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "COLOSSEUM",
-                        style = TextStyle(
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Black,
-                            fontFamily = fontFamily,
-                            color = Color(0xFFFFD700),
-                            shadow = Shadow(
-                                color = Color(0xFFD32F2F),
-                                offset = Offset(4f, 4f),
-                                blurRadius = 2f
-                            ),
-                            letterSpacing = 4.sp
-                        )
-                    )
-                    Text(
-                        text = "PLAYER REGISTRATION",
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = fontFamily,
-                            color = Color(0xFF00E5FF),
-                            letterSpacing = 2.sp
-                        )
-                    )
-                }
+                        .fillMaxWidth(),
+                )
             }
-
-            // Scrollable Grid Content
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+        )
+    } else {
+        Row(
+            modifier = modifier,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
             ) {
-                // HP Setting (Full Width)
-                item(span = { GridItemSpan(2) }) {
-                    HpSettingCard(
-                        hpValue = hpSliderValue.roundToInt(),
-                        onHpChange = { hpSliderValue = it },
-                        fontFamily = fontFamily
-                    )
-                }
+                Spacer(modifier = Modifier.size(16.dp))
 
-                // Players (2 Columns)
-                itemsIndexed(players) { index, player ->
-                    PlayerInputCard(
-                        name = player.name,
-                        color = player.color,
-                        onNameChange = { newName -> players[index] = player.copy(name = newName) },
-                        onDelete = if (players.size > 2) {
-                            { players.removeAt(index) }
-                        } else null,
-                        fontFamily = fontFamily
-                    )
-                }
-
-                // Add Player Button (Full Width)
-                item(span = { GridItemSpan(2) }) {
-                    OutlinedButton(
-                        onClick = { 
-                            if (players.size < 8) {
-                                // find first pair not exist in players
-                                generateUniquePlayerPool(8)
-                                    .firstOrNull { new ->
-                                        !players.any { it.color == new.color }
-                                    }
-                                    ?.let {
-                                        players.add(it)
-                                    }
-                            }
-                        },
-                        enabled = players.size < 8,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        shape = CutCornerShape(4.dp),
-                        border = BorderStroke(1.dp, Color(0xFF00E5FF)),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color(0xFF00E5FF)
-                        )
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "ADD CHALLENGER", 
-                            style = TextStyle(
-                                fontFamily = fontFamily, 
-                                fontWeight = FontWeight.ExtraBold, 
-                                fontSize = 14.sp,
-                                letterSpacing = 1.sp
-                            )
-                        )
-                    }
-                }
-
-                item(span = { GridItemSpan(2) }) { Spacer(modifier = Modifier.height(16.dp)) }
-            }
-
-            // Footer / Start Button
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))),
-                color = Color(0xFF0A0A0A),
-            ) {
-                Box(
+                HpSettingCard(
+                    hpValue = hp.roundToInt(),
+                    onHpChange = updateHp,
                     modifier = Modifier
-                        .padding(16.dp)
-                        .padding(bottom = 8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            val validPlayers = players.filter { it.name.isNotBlank() }
-                            if (validPlayers.size >= 2) {
-                                onClickStart(validPlayers, hpSliderValue.roundToInt())
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp)
-                            .border(
-                                BorderStroke(
-                                    3.dp,
-                                    Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))
-                                ),
-                                shape = CutCornerShape(8.dp)
-                            ),
-                        shape = CutCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD32F2F),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(
-                            "FIGHT!",
-                            style = TextStyle(
-                                fontFamily = fontFamily,
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Black,
-                                shadow = Shadow(
-                                    color = Color.Black,
-                                    offset = Offset(2f, 2f)
-                                ),
-                                letterSpacing = 4.sp
-                            )
-                        )
-                    }
-                }
+                        .fillMaxWidth(),
+                )
+
+                /** add another settings **/
             }
+
+            Spacer(modifier = Modifier.size(18.dp))
+
+            PlayerSettingArea(
+                players = players,
+                removePlayer = removePlayer,
+                updatePlayer = updatePlayer,
+                addPlayer = addPlayer,
+                isLandscape = isLandscape,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -276,12 +260,10 @@ fun ColosseumStartScreen(
 private fun HpSettingCard(
     hpValue: Int,
     onHpChange: (Float) -> Unit,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth()
             .border(BorderStroke(1.dp, Color(0xFF333333)), CutCornerShape(4.dp)),
         shape = CutCornerShape(4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A)),
@@ -296,8 +278,7 @@ private fun HpSettingCard(
             ) {
                 Text(
                     text = "INITIAL HP",
-                    style = TextStyle(
-                        fontFamily = fontFamily,
+                    style = LocalTextStyle.current.copy(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFBBBBBB),
@@ -306,8 +287,7 @@ private fun HpSettingCard(
                 )
                 Text(
                     text = "$hpValue",
-                    style = TextStyle(
-                        fontFamily = fontFamily,
+                    style = LocalTextStyle.current.copy(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Black,
                         color = Color(0xFFFFD700),
@@ -335,12 +315,99 @@ private fun HpSettingCard(
 }
 
 @Composable
-private fun PlayerInputCard(
+private fun PlayerSettingArea(
+    players: List<PlayerInitPair>,
+    removePlayer: (Int) -> Unit,
+    updatePlayer: (Int, PlayerInitPair) -> Unit,
+    addPlayer: (PlayerInitPair) -> Unit,
+    isLandscape: Boolean,
+    modifier: Modifier = Modifier,
+    header: (@Composable () -> Unit)? = null,
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item(span = { GridItemSpan(2) }) {
+            Spacer(modifier = Modifier.size(0.dp))
+        }
+        item(span = { GridItemSpan(2) }) {
+            header?.invoke()
+        }
+
+        // Players (2 Columns)
+        itemsIndexed(players) { index, player ->
+            if (isLandscape) {
+                PlayerInputHorizontalCard(
+                    name = player.name,
+                    color = player.color,
+                    onNameChange = { newName -> updatePlayer(index, player.copy(name = newName)) },
+                    onDelete =
+                        if (players.size > 2) { { removePlayer(index) } }
+                        else null,
+                )
+            } else {
+                PlayerInputVerticalCard(
+                    name = player.name,
+                    color = player.color,
+                    onNameChange = { newName -> updatePlayer(index, player.copy(name = newName)) },
+                    onDelete =
+                        if (players.size > 2) { { removePlayer(index) } }
+                        else null,
+                )
+            }
+        }
+
+        // Add Player Button (Full Width)
+        item(span = { GridItemSpan(2) }) {
+            OutlinedButton(
+                onClick = {
+                    if (players.size < 8) {
+                        // find first pair not exist in players
+                        generateUniquePlayerPool(8)
+                            .firstOrNull { new ->
+                                !players.any { it.color == new.color }
+                            }
+                            ?.let {
+                                addPlayer(it)
+                            }
+                    }
+                },
+                enabled = players.size < 8,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                shape = CutCornerShape(4.dp),
+                border = BorderStroke(1.dp, Color(0xFF00E5FF)),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color(0xFF00E5FF)
+                )
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "ADD CHALLENGER",
+                    style = LocalTextStyle.current.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 14.sp,
+                        letterSpacing = 1.sp
+                    )
+                )
+            }
+        }
+
+        item(span = { GridItemSpan(2) }) { Spacer(modifier = Modifier.height(16.dp)) }
+    }
+}
+
+@Composable
+private fun PlayerInputHorizontalCard(
     name: String,
     color: Color,
     onNameChange: (String) -> Unit,
     onDelete: (() -> Unit)?,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -360,8 +427,8 @@ private fun PlayerInputCard(
             Box(
                 modifier = Modifier
                     .size(16.dp)
-                    .background(color = color, shape = androidx.compose.foundation.shape.CircleShape)
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), androidx.compose.foundation.shape.CircleShape)
+                    .background(color = color, shape = CircleShape)
+                    .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
             )
             // 2. name input (weight 1)
             OutlinedTextField(
@@ -370,13 +437,12 @@ private fun PlayerInputCard(
                 placeholder = {
                     Text(
                         "NAME",
-                        style = TextStyle(fontFamily = fontFamily, fontSize = 10.sp, color = Color.Gray)
+                        style = LocalTextStyle.current.copy(fontSize = 10.sp, color = Color.Gray)
                     )
                 },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                textStyle = TextStyle(
-                    fontFamily = fontFamily,
+                textStyle = LocalTextStyle.current.copy(
                     fontSize = 13.sp, // 폰트 크기 살짝 조절
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -399,7 +465,7 @@ private fun PlayerInputCard(
                     Icon(
                         Icons.Default.Close,
                         contentDescription = "REMOVE",
-                        tint = Color(0xFFD32F2F).copy(alpha = 0.8f),
+                        tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -407,5 +473,71 @@ private fun PlayerInputCard(
                 Spacer(modifier = Modifier.size(24.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun PlayerInputVerticalCard(
+    name: String,
+    color: Color,
+    onNameChange: (String) -> Unit,
+    onDelete: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier
+            .border(BorderStroke(1.dp, Color(0xFF444444)), CutCornerShape(2.dp)),
+        shape = CutCornerShape(2.dp),
+        colors = CardDefaults.cardColors(containerColor = color),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        ) {
+            // 3. delete icon
+            if (onDelete != null) {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(24.dp).align(Alignment.CenterEnd)
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "REMOVE",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.size(24.dp))
+            }
+        }
+
+        // 2. name input (weight 1)
+        OutlinedTextField(
+            value = name,
+            onValueChange = { if (it.length <= 10) onNameChange(it) },
+            placeholder = {
+                Text(
+                    "NAME",
+                    style = LocalTextStyle.current.copy(fontSize = 10.sp, color = Color.Gray)
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 13.sp, // 폰트 크기 살짝 조절
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            ),
+            shape = CutCornerShape(0.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFF111111),
+                unfocusedContainerColor = Color(0xFF111111),
+                focusedIndicatorColor = Color(0xFF00E5FF),
+                unfocusedIndicatorColor = Color(0xFF333333),
+                cursorColor = Color(0xFF00E5FF)
+            )
+        )
     }
 }

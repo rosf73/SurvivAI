@@ -1,6 +1,6 @@
 package com.survivai.survivai.game.colosseum.components
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,8 +13,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,18 +27,35 @@ import com.survivai.survivai.game.colosseum.state.Log
 
 @Composable
 fun ColosseumLogArea(
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier) {
-        Text(
-            text = "LOG",
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = fontFamily,
-        )
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                // set layer onto offscreen buffer
+                compositingStrategy = CompositingStrategy.Offscreen
+            }
+            .drawWithContent {
+                // 1. draw composable content
+                drawContent()
 
+                // 2. cover gradient
+                val fadeBrush = Brush.verticalGradient(
+                    colorStops = arrayOf(
+                        0.0f to Color.Transparent,     // Top 0%: completely transparent
+                        0.4f to Color.Black,           // Top 40%: gradient transparent
+                        1.0f to Color.Black            // 100%: opaque
+                    ),
+                    startY = 0f,
+                    endY = size.height // whole height
+                )
+
+                drawRect(
+                    brush = fadeBrush,
+                    blendMode = BlendMode.DstIn,
+                )
+            }
+    ) {
         LazyColumn(
             reverseLayout = true,
             modifier = Modifier.fillMaxSize(),
@@ -43,7 +64,6 @@ fun ColosseumLogArea(
             items(ColosseumInfo.logEntries) { log ->
                 LogLine(
                     log = log,
-                    fontFamily = fontFamily,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                 )
             }
@@ -54,7 +74,6 @@ fun ColosseumLogArea(
 @Composable
 private fun LogLine(
     log: Log,
-    fontFamily: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -67,19 +86,18 @@ private fun LogLine(
                 Text(
                     text = log.msg,
                     fontSize = 12.sp,
-                    fontFamily = fontFamily,
+                    color = Color.Gray,
                 )
             }
             is Log.Solo -> {
                 PlayerLabel(
                     color = log.player.color,
                     name = log.player.name,
-                    fontFamily = fontFamily,
                 )
                 Text(
                     text = ": \"${log.msg}\"",
                     fontSize = 12.sp,
-                    fontFamily = fontFamily,
+                    color = Color.Gray,
                 )
             }
             is Log.Duo -> {
@@ -87,22 +105,20 @@ private fun LogLine(
                 PlayerLabel(
                     color = log.perpetrator.color,
                     name = log.perpetrator.name,
-                    fontFamily = fontFamily,
                 )
                 Text(
                     text = " ${log.interaction} ",
                     fontSize = 12.sp,
-                    fontFamily = fontFamily,
+                    color = Color.Gray,
                 )
                 PlayerLabel(
                     color = log.victim.color,
                     name = log.victim.name,
-                    fontFamily = fontFamily,
                 )
                 Text(
                     text = " ${log.additional}",
                     fontSize = 12.sp,
-                    fontFamily = fontFamily,
+                    color = Color.Gray,
                 )
             }
         }
@@ -113,7 +129,6 @@ private fun LogLine(
 private fun PlayerLabel(
     color: Color,
     name: String,
-    fontFamily: FontFamily,
 ) {
 //    Box(
 //        modifier = Modifier
@@ -124,7 +139,6 @@ private fun PlayerLabel(
     Text(
         text = " $name",
         fontSize = 12.sp,
-        fontFamily = fontFamily,
         fontWeight = FontWeight.Bold,
         color = color,
     )

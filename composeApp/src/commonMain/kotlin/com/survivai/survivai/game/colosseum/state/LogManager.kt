@@ -2,12 +2,12 @@ package com.survivai.survivai.game.colosseum.state
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import com.survivai.survivai.game.colosseum.entity.Player
+import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
 
 sealed interface Log {
     data class System(val msg: String) : Log
-    data class Solo(val player: Player, val msg: String) : Log
-    data class Duo(val perpetrator: Player, val victim: Player, val interaction: String, val additional: String) : Log
+    data class Solo(val player: ColosseumPlayer, val msg: String) : Log
+    data class Duo(val perpetrator: ColosseumPlayer, val victim: ColosseumPlayer, val interaction: String, val additional: String) : Log
 }
 
 object LogManager {

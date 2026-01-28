@@ -1,144 +1,145 @@
 package com.survivai.survivai
 
-import androidx.compose.foundation.Canvas as ComposeCanvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalFontFamilyResolver
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.toSize
-import com.survivai.survivai.game.colosseum.state.ColosseumInfo
-import com.survivai.survivai.game.colosseum.state.GameState
-import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
-import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
-import com.survivai.survivai.game.colosseum.createGameDrawScope
-import com.survivai.survivai.game.colosseum.entity.Player
-import com.survivai.survivai.game.colosseum.getCanvas
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.survivai.survivai.common.LocalFont
+import com.survivai.survivai.common.createGitHubIcon
+import com.survivai.survivai.common.withFontFamily
+import com.survivai.survivai.config.BuildConfig
+import com.survivai.survivai.game.colosseum.Colosseum
 import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.imageResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
-import survivai.composeapp.generated.resources.icon_r_i_p_empty
-import survivai.composeapp.generated.resources.icon_r_i_p_full
 
 @Composable
-@Preview
 fun App(
-    onUpdatedViewport: (Float, Float) -> Unit = { _, _ -> },
+    openLink: (String) -> Unit, // TODO : hilt injection
 ) {
-    MaterialTheme {
-        val textMeasurer = rememberTextMeasurer()
+    val containerSize = LocalWindowInfo.current.containerSize
+    val isLandscape = containerSize.width >= containerSize.height
 
-        // 플랫폼별로 이모지 폰트 preload
-        val fontFamilyResolver = LocalFontFamilyResolver.current
-        preloadEmojiFontForFallback(fontFamilyResolver)
+    val fontFamily = FontFamily(
+        Font(Res.font.NotoSansKR),
+        Font(Res.font.NotoEmojiColor),
+    )
 
-        val fontFamily = FontFamily(
-            Font(Res.font.NotoSansKR),
-            Font(Res.font.NotoEmojiColor),
-        )
-        val canvasState = remember { getCanvas() }
+    // font preload
+    val fontFamilyResolver = LocalFontFamilyResolver.current
+    preloadEmojiFontForFallback(fontFamilyResolver)
 
-        // UI update state
-        var frameTick by remember { mutableStateOf(0) }
+    CompositionLocalProvider(LocalFont provides fontFamily) {
+        MaterialTheme(
+            typography = Typography().withFontFamily(fontFamily),
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Colosseum
+                Colosseum(
+                    isLandscape = isLandscape,
+                    modifier = Modifier.fillMaxSize(),
+                )
 
-        // 1. Set game loop
-        var lastTime by remember { mutableStateOf(0L) }
+                // Top right buttons
+                if (isLandscape) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        VersionText(
+                            modifier = Modifier.align(Alignment.CenterVertically),
+                        )
 
-        // 게임 상태 추적
-        val currentGameState = ColosseumInfo.gameState.value
-
-        LaunchedEffect(currentGameState) {
-            lastTime = 0L  // 재시작 시 타이머 리셋
-
-            // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청
-            while (ColosseumInfo.gameState.value is GameState.Playing) {
-                withFrameMillis { currentTime ->
-                    if (lastTime > 0) {
-                        val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산
-                        canvasState.update(deltaTime * 2)
+                        GitHubButton(
+                            openLink = openLink,
+                        )
                     }
-                    lastTime = currentTime
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        GitHubButton(
+                            openLink = openLink,
+                        )
 
-                    // Force recomposition
-                    frameTick++
+                        VersionText(
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
+                        )
+                    }
                 }
             }
         }
+    }
+}
 
-        // 2. Rendering
-        Box(modifier = Modifier.fillMaxSize()) {
-            val ripEmptyIcon = imageResource(Res.drawable.icon_r_i_p_empty)
-            val ripFullIcon = imageResource(Res.drawable.icon_r_i_p_full)
+@Composable
+private fun VersionText(
+    modifier: Modifier = Modifier,
+) {
+    Spacer(modifier = Modifier.size(5.dp))
+    Text(
+        modifier = modifier,
+        text = "v${BuildConfig.VERSION_NAME}",
+        style = TextStyle(fontSize = 12.sp, color = Color.Gray),
+    )
+    Spacer(modifier = Modifier.size(5.dp))
+}
 
-            // Canvas (World + Players)
-            ComposeCanvas(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .onSizeChanged {
-                        val size = it.toSize()
-                        canvasState.setViewportSize(size.width, size.height)
-                        onUpdatedViewport(size.width, size.height)
-                    }
-            ) {
-                // frameTick에 의존하여 매 프레임 리렌더링하기 위함
-                val currentFrame = frameTick
-
-                // Background
-                drawRect(Color.White)
-
-                // Draw circle
-                val drawScopeWrapper = createGameDrawScope(this)
-                canvasState.render(drawScopeWrapper, textMeasurer, fontFamily)
-            }
-
-            // Start Screen Overlay
-            if (currentGameState == GameState.WaitingForPlayers) {
-                ColosseumStartScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    fontFamily = fontFamily,
-                    onClickStart = { players, hp ->
-                        // Set HP
-                        ColosseumInfo.setDefaultHp(hp)
-
-                        // 중복 없는 색상 생성
-                        val players = players.map { p ->
-                            Player(
-                                name = p.name,
-                                color = p.color,
-                                startHp = hp,
-                                ripIcons = ripEmptyIcon to ripFullIcon,
-                            )
-                        }
-                        ColosseumInfo.setPlayers(players)
-                    },
-                )
-            }
-
-            // End Screen Overlay
-            if (currentGameState is GameState.Ended) {
-                ColosseumEndScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    statsList = currentGameState.statsList,
-                    titles = currentGameState.titleList,
-                    fontFamily = fontFamily,
-                    onClickRestart = {
-                        // 바로 재시작 (플레이어 유지)
-                        ColosseumInfo.restart()
-                    },
-                    onClickReset = {
-                        // 경기 재설정 (처음부터)
-                        ColosseumInfo.reset()
-                    },
-                )
-            }
+@Composable
+private fun GitHubButton(
+    openLink: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = {
+            openLink("https://github.com/rosf73/SurvivAI")
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Black,
+            contentColor = Color.White,
+        ),
+        modifier = modifier,
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // GitHub 아이콘
+            Icon(
+                imageVector = createGitHubIcon(),
+                contentDescription = "GitHub",
+                modifier = Modifier.size(18.dp),
+                tint = Color.White,
+            )
+            Text(
+                text = "GitHub",
+            )
         }
     }
 }

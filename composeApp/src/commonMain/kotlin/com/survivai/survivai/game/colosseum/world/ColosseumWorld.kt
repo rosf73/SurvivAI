@@ -1,7 +1,7 @@
 package com.survivai.survivai.game.colosseum.world
 
 import com.survivai.survivai.game.World
-import com.survivai.survivai.game.colosseum.GameDrawScope
+import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.PlatformRect
 
 class ColosseumWorld : World {

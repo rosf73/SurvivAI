@@ -2,7 +2,6 @@ package com.survivai.survivai.game
 
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
-import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.component.Component
 import kotlin.reflect.KClass
 import kotlin.reflect.cast

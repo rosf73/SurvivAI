@@ -4,7 +4,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
-import com.survivai.survivai.game.colosseum.GameDrawScope
+import com.survivai.survivai.game.GameDrawScope
 
 abstract class Component {
     open fun update(deltaTime: Double, owner: Entity, world: World) {}

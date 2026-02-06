@@ -1,16 +1,15 @@
-package com.survivai.survivai.game.colosseum
+package com.survivai.survivai.game.colosseum.logic
 
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
+import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
-import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.colosseum.state.Log
 import kotlin.math.abs
 import kotlin.math.max
 
-class WebCanvas : Canvas {
+class ColosseumEngine {
 
     private var viewportWidth = 0f
     private var viewportHeight = 0f
@@ -25,7 +24,7 @@ class WebCanvas : Canvas {
         ColosseumInfo.addLog(log)
     }
 
-    override fun update(deltaTime: Double) {
+    fun update(deltaTime: Double) {
         if (viewportWidth <= 0 || viewportHeight <= 0) {
             return
         }
@@ -118,7 +117,7 @@ class WebCanvas : Canvas {
         }
     }
 
-    override fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
+    fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
         // 맵 (플랫폼 렌더링)
         world.render(context)
 
@@ -127,11 +126,9 @@ class WebCanvas : Canvas {
             .forEach { it.render(context, textMeasurer, fontFamily) }
     }
 
-    override fun setViewportSize(width: Float, height: Float) {
+    fun setViewportSize(width: Float, height: Float) {
         viewportWidth = width
         viewportHeight = height
         ColosseumInfo.setViewportSize(width, height)
     }
 }
-
-actual fun getCanvas(): Canvas = WebCanvas()

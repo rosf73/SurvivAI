@@ -29,10 +29,12 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.common.LocalFont
+import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
+import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
@@ -46,8 +48,8 @@ fun Colosseum(
     val textMeasurer = rememberTextMeasurer()
     val font = LocalFont.current
 
-    val canvasState = remember { getCanvas() }
     val spriteLoader = remember { SpriteLoader() }
+    val gameEngine = remember { ColosseumEngine() }
     val coroutineScope = rememberCoroutineScope()
 
     // game state for recomposition
@@ -67,7 +69,7 @@ fun Colosseum(
             withFrameMillis { currentTime ->
                 if (lastTime > 0) {
                     val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산
-                    canvasState.update(deltaTime * 2)
+                    gameEngine.update(deltaTime * 2)
                 }
                 lastTime = currentTime
 
@@ -136,7 +138,7 @@ fun Colosseum(
                         )
                         .onSizeChanged {
                             val size = it.toSize()
-                            canvasState.setViewportSize(size.width, size.height)
+                            gameEngine.setViewportSize(size.width, size.height)
                         }
                 ) {
                     // frameTick에 의존하여 매 프레임 리렌더링하기 위함
@@ -147,7 +149,7 @@ fun Colosseum(
 
                     // Draw circle
                     val drawScopeWrapper = GameDrawScope.getInstance(this)
-                    canvasState.render(drawScopeWrapper, textMeasurer, fontFamily = font)
+                    gameEngine.render(drawScopeWrapper, textMeasurer, fontFamily = font)
                 }
 
                 // Log

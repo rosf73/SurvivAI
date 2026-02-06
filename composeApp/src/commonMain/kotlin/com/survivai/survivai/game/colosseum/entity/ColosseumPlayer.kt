@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
-import com.survivai.survivai.game.colosseum.GameDrawScope
+import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.ColorComponent

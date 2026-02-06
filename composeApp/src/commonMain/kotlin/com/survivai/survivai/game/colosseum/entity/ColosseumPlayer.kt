@@ -72,7 +72,7 @@ data class ColosseumPlayer(
     private val facingRight get() = direction == Entity.Direction.RIGHT
     private var attackState = AttackState.NONE
     private var attackTimer = 0f
-    val attackReach get() = width + 5f
+    val attackReach get() = width * 2
     private var isSpeeching = false
     private var speechTimer = 0f
     private var selectedSpeechList = listOf("")

@@ -20,7 +20,7 @@ object ColosseumInfo {
         private set
 
     // World 초기화 여부
-    private var worldInitialized = false
+    private val worldInitialized get() = world.viewportWidth > 0 && world.viewportHeight > 0
 
     // 엔티티
     var players = emptyList<ColosseumPlayer>()
@@ -43,14 +43,8 @@ object ColosseumInfo {
     // 로그 리스트
     val logEntries: List<Log> get() = LogManager.logEntries
 
-    // Viewport 크기 캐싱
-    private var viewportWidth = 0f
-    private var viewportHeight = 0f
-
     fun setViewportSize(width: Float, height: Float) {
-        viewportWidth = width
-        viewportHeight = height
-        initializeWorld()
+        initializeWorld(width, height)
         tryInitialize()
     }
 
@@ -66,20 +60,19 @@ object ColosseumInfo {
         defaultHp = hp.coerceIn(1.0, 10.0)
     }
 
-    private fun initializeWorld() {
+    private fun initializeWorld(width: Float, height: Float) {
         if (worldInitialized) return
-        if (viewportWidth <= 0 || viewportHeight <= 0) return
+        if (width <= 0 || height <= 0) return
 
-        world.buildMap(viewportWidth, viewportHeight)
-        worldInitialized = true
+        world.buildMap(width, height)
     }
 
     private fun tryInitialize() {
         if (initialized) return
         if (players.isEmpty()) return
-        if (viewportWidth <= 0 || viewportHeight <= 0) return
+        if (!worldInitialized) return
 
-        players.initializePositions(viewportWidth, viewportHeight)
+        players.initializePositions(world.viewportWidth, world.viewportHeight)
         initialized = true
     }
 
@@ -110,7 +103,7 @@ object ColosseumInfo {
 
     fun reset() {
         initialized = false
-        worldInitialized = false  // World도 재초기화 필요
+        world.buildMap(0f, 0f) // World 초기화
         players = emptyList()
         defaultHp = 3.0  // HP 초기화
         LogManager.clear()

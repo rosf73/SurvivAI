@@ -29,8 +29,8 @@ import kotlin.random.Random
 
 data class ColosseumPlayer(
     val name: String,
-    val color: Color = Color.Blue,
-    private val startHp: Double = ColosseumInfo.defaultHp,
+    val color: Color,
+    private val startHp: Double,
     val spriteSheet: SpriteSheet,
 ) : Entity {
 
@@ -561,7 +561,7 @@ data class ColosseumPlayer(
     }
 
     private fun renderHP(context: GameDrawScope) {
-        val max = ColosseumInfo.defaultHp.toInt()
+        val max = startHp.toInt()
         val totalWidth = width * 2
         val totalX = x - width
         val totalY = y + halfHeight * 1.3f

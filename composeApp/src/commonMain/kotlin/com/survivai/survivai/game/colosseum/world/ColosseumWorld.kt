@@ -8,8 +8,8 @@ class ColosseumWorld : World {
 
     private val platforms = mutableListOf<PlatformRect>()
 
-    private var viewportWidth = 0f
-    private var viewportHeight = 0f
+    override var viewportWidth = 0f
+    override var viewportHeight = 0f
 
     override fun buildMap(width: Float, height: Float) {
         viewportWidth = width

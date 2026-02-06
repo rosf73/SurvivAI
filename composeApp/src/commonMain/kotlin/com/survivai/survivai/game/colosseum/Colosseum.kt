@@ -160,6 +160,7 @@ fun Colosseum(
                         .fillMaxHeight(if(isLandscape) 0.5f else 0.4f)
                 ) {
                     ColosseumLogArea(
+                        gameEngine = gameEngine,
                         modifier = Modifier.fillMaxSize().padding(12.dp),
                     )
                 }
@@ -173,10 +174,12 @@ fun Colosseum(
                     onClickRestart = {
                         // 바로 재시작 (플레이어 유지)
                         ColosseumInfo.restart()
+                        gameEngine.clearLog()
                     },
                     onClickReset = {
                         // 경기 재설정 (처음부터)
                         ColosseumInfo.reset()
+                        gameEngine.clearLog()
                     },
                 )
             }

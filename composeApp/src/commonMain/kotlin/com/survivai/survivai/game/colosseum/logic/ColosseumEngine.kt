@@ -1,11 +1,11 @@
 package com.survivai.survivai.game.colosseum.logic
 
+import androidx.compose.runtime.State
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
-import com.survivai.survivai.game.colosseum.state.Log
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -19,10 +19,11 @@ class ColosseumEngine {
     private val players get() = ColosseumInfo.players
     private val gameState get() = ColosseumInfo.gameState.value
 
-    // Simple combat/event log -> delegate to shared store
-    private fun log(log: Log) {
-        ColosseumInfo.addLog(log)
-    }
+    // 로그 상태 추적
+    val logUpdateState: State<Boolean> get() = LogManager.itemUpdateState
+
+    // 로그 리스트
+    val logEntries: List<Log> get() = LogManager.logEntries
 
     fun update(deltaTime: Double) {
         if (viewportWidth <= 0 || viewportHeight <= 0) {
@@ -39,17 +40,17 @@ class ColosseumEngine {
         alivePlayers.forEachIndexed { _, p ->
             val text = p.pollJustSpeeched()
             if (text.isNotBlank()) {
-                log(Log.Solo(p, text))
+                addLog(Log.Solo(p, text))
             }
         }
 
         // Check for winner (only once)
         if (gameState !is ColosseumState.Ended && players.isNotEmpty()) {
             if (alivePlayers.size == 1) {
-                log(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
+                addLog(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
                 ColosseumInfo.updateGameSet()
             } else if (alivePlayers.isEmpty()) {
-                log(Log.System("💀 전원 탈락! 살아남은 플레이어가 없습니다!"))
+                addLog(Log.System("💀 전원 탈락! 살아남은 플레이어가 없습니다!"))
                 ColosseumInfo.updateGameSet()
             }
         }
@@ -84,7 +85,7 @@ class ColosseumEngine {
             ColosseumInfo.updatePlayerAttackPoint(attacker.name)
 
             if (target.hp > 0) {
-                log(Log.Duo(
+                addLog(Log.Duo(
                     perpetrator = attacker,
                     victim = target,
                     interaction = "🤜",
@@ -98,7 +99,7 @@ class ColosseumEngine {
                 )
 
                 if (isFirstBloodFrame) { // first blood
-                    log(Log.Duo(
+                    addLog(Log.Duo(
                         perpetrator = attacker,
                         victim = target,
                         interaction = "에 의해",
@@ -106,7 +107,7 @@ class ColosseumEngine {
                     ))
                     isFirstBloodFrame = false
                 } else {
-                    log(Log.Duo(
+                    addLog(Log.Duo(
                         perpetrator = attacker,
                         victim = target,
                         interaction = "에 의해",
@@ -130,5 +131,18 @@ class ColosseumEngine {
         viewportWidth = width
         viewportHeight = height
         ColosseumInfo.setViewportSize(width, height)
+    }
+
+    fun addLog(log: Log) {
+        LogManager.addNewLog(log)
+
+        // recomposition event
+        LogManager.triggerItemUpdate()
+    }
+
+    fun clearLog() {
+        LogManager.clear()
+        // recomposition event
+        LogManager.triggerItemUpdate()
     }
 }

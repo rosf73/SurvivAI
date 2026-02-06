@@ -37,12 +37,6 @@ object ColosseumInfo {
     // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
     val world = ColosseumWorld()
 
-    // 로그 상태 추적
-    val itemUpdateState: State<Boolean> get() = LogManager.itemUpdateState
-
-    // 로그 리스트
-    val logEntries: List<Log> get() = LogManager.logEntries
-
     fun setViewportSize(width: Float, height: Float) {
         initializeWorld(width, height)
         tryInitialize()
@@ -90,15 +84,11 @@ object ColosseumInfo {
 
         // 게임 상태 리셋
         _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
-        LogManager.clear()
 
         // 플레이어 재설정 및 재초기화
         players = newPlayers
         initialized = false
         tryInitialize()
-
-        // recomposition event
-        LogManager.triggerItemUpdate()
     }
 
     fun reset() {
@@ -106,20 +96,9 @@ object ColosseumInfo {
         world.buildMap(0f, 0f) // World 초기화
         players = emptyList()
         defaultHp = 3.0  // HP 초기화
-        LogManager.clear()
 
         // 게임 상태를 대기 상태로
         _gameState.value = ColosseumState.WaitingForPlayers
-
-        // recomposition event
-        LogManager.triggerItemUpdate()
-    }
-
-    fun addLog(log: Log) {
-        LogManager.addNewLog(log)
-
-        // recomposition event
-        LogManager.triggerItemUpdate()
     }
 
     // 게임이 끝났을 때만 호출

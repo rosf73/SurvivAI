@@ -11,9 +11,6 @@ import kotlin.math.max
 
 class ColosseumEngine {
 
-    private var viewportWidth = 0f
-    private var viewportHeight = 0f
-
     // TODO : 게임 유형 확장성 추가
     private val world get() = ColosseumInfo.world
     private val players get() = ColosseumInfo.players
@@ -26,7 +23,7 @@ class ColosseumEngine {
     val logEntries: List<Log> get() = LogManager.logEntries
 
     fun update(deltaTime: Double) {
-        if (viewportWidth <= 0 || viewportHeight <= 0) {
+        if (world.viewportWidth <= 0 || world.viewportHeight <= 0) {
             return
         }
 
@@ -34,7 +31,7 @@ class ColosseumEngine {
         val alivePlayers = players.filter { it.isAlive }
 
         // Call Entity::update
-        players.forEach { it.update(deltaTime, viewportWidth, viewportHeight, world) }
+        players.forEach { it.update(deltaTime, world) }
 
         // (중계 로그) 대사
         alivePlayers.forEachIndexed { _, p ->
@@ -71,7 +68,7 @@ class ColosseumEngine {
                     b.x += push * dir
                     // Clamp to viewport bounds
                     if (a.x - a.halfWidth < 0f) a.x = a.halfWidth
-                    if (b.x + b.halfWidth > viewportWidth) b.x = viewportWidth - b.halfWidth
+                    if (b.x + b.halfWidth > world.viewportWidth) b.x = world.viewportWidth - b.halfWidth
                 }
             }
         }
@@ -125,12 +122,6 @@ class ColosseumEngine {
         // 엔티티
         players
             .forEach { it.render(context, textMeasurer, fontFamily) }
-    }
-
-    fun setViewportSize(width: Float, height: Float) {
-        viewportWidth = width
-        viewportHeight = height
-        ColosseumInfo.setViewportSize(width, height)
     }
 
     fun addLog(log: Log) {

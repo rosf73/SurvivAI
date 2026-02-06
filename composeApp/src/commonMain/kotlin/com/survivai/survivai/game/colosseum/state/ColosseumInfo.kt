@@ -66,7 +66,7 @@ object ColosseumInfo {
         if (players.isEmpty()) return
         if (!worldInitialized) return
 
-        players.initializePositions(world.viewportWidth, world.viewportHeight)
+        players.initializePositions(world)
         initialized = true
     }
 

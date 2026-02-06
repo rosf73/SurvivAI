@@ -28,7 +28,7 @@ interface Entity {
             ?.let { clazz.cast(it) }
     }
 
-    fun update(deltaTime: Double, viewportWidth: Float, viewportHeight: Float, world: World) {
+    fun update(deltaTime: Double, world: World) {
         components.forEach { it.update(deltaTime, this, world) }
     }
     fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {

@@ -62,8 +62,8 @@ data class ColosseumPlayer(
     private val gravity = 980f // 중력 가속도 (픽셀/초^2)
 
     // Viewport
-    private var viewportWidth = 0f
-    private var viewportHeight = 0f
+    private val viewportWidth get() = ColosseumInfo.world.viewportWidth
+    private val viewportHeight get() = ColosseumInfo.world.viewportHeight
     private val floorY: Float
         get() = viewportHeight - halfHeight
 
@@ -297,15 +297,10 @@ data class ColosseumPlayer(
 
     override fun update(
         deltaTime: Double,
-        viewportWidth: Float,
-        viewportHeight: Float,
         world: World,
     ) {
         if (!isAlive) return
-        super.update(deltaTime, viewportWidth, viewportHeight, world)
-
-        this.viewportWidth = viewportWidth
-        this.viewportHeight = viewportHeight
+        super.update(deltaTime, world)
 
         val clampedDeltaTime = min(deltaTime, 0.03).toFloat()
 

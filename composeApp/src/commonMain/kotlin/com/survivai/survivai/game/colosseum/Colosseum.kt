@@ -138,7 +138,7 @@ fun Colosseum(
                         )
                         .onSizeChanged {
                             val size = it.toSize()
-                            gameEngine.setViewportSize(size.width, size.height)
+                            ColosseumInfo.setViewportSize(size.width, size.height)
                         }
                 ) {
                     // frameTick에 의존하여 매 프레임 리렌더링하기 위함

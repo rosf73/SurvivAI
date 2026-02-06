@@ -1,7 +1,7 @@
 package com.survivai.survivai.game.colosseum.entity
 
 import androidx.compose.ui.graphics.Color
-import com.survivai.survivai.game.colosseum.state.ColosseumInfo
+import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -76,7 +76,7 @@ fun generateUniquePlayerPool(count: Int): List<PlayerInitPair> {
 /**
  * 랜덤 포지션 생성
  */
-fun List<ColosseumPlayer>.initializePositions(viewportWidth: Float, viewportHeight: Float) {
+fun List<ColosseumPlayer>.initializePositions(world: ColosseumWorld) {
     val margin = 10f
     val placed = mutableListOf<Pair<Float, Float>>()
     forEach { p ->
@@ -84,8 +84,8 @@ fun List<ColosseumPlayer>.initializePositions(viewportWidth: Float, viewportHeig
         val halfHeight = p.halfHeight
 
         val minX = halfWidth + margin
-        val maxX = (viewportWidth - halfWidth - margin).coerceAtLeast(minX)
-        val floorTop = ColosseumInfo.world.getFloor() ?: viewportHeight
+        val maxX = (world.viewportWidth - halfWidth - margin).coerceAtLeast(minX)
+        val floorTop = world.getFloor() ?: world.viewportHeight
         val y = (floorTop - halfHeight).coerceAtLeast(halfHeight)
 
         var tries = 0

@@ -1,4 +1,4 @@
-package com.survivai.survivai.game.colosseum
+package com.survivai.survivai.game
 
 import androidx.annotation.FloatRange
 import androidx.compose.ui.geometry.Offset
@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -161,11 +160,3 @@ class GameDrawScope private constructor(
         }
     }
 }
-
-interface Canvas {
-    fun update(deltaTime: Double)
-    fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily)
-    fun setViewportSize(width: Float, height: Float)
-}
-
-expect fun getCanvas(): Canvas

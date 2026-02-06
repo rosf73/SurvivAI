@@ -29,12 +29,13 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.common.LocalFont
+import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
-import com.survivai.survivai.game.colosseum.state.ColosseumInfo
-import com.survivai.survivai.game.colosseum.state.GameState
+import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
 import kotlinx.coroutines.launch
 
@@ -46,12 +47,12 @@ fun Colosseum(
     val textMeasurer = rememberTextMeasurer()
     val font = LocalFont.current
 
-    val canvasState = remember { getCanvas() }
     val spriteLoader = remember { SpriteLoader() }
+    val gameEngine = remember { ColosseumEngine() }
     val coroutineScope = rememberCoroutineScope()
 
     // game state for recomposition
-    val currentGameState = ColosseumInfo.gameState.value
+    val currentColosseumState = gameEngine.gameState.value
 
     // UI update state
     var frameTick by remember { mutableStateOf(0) }
@@ -59,15 +60,15 @@ fun Colosseum(
     // 1. Set game loop
     var lastTime by remember { mutableStateOf(0L) }
 
-    LaunchedEffect(currentGameState) {
+    LaunchedEffect(currentColosseumState) {
         lastTime = 0L  // 재시작 시 타이머 리셋
 
         // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청
-        while (ColosseumInfo.gameState.value is GameState.Playing) {
+        while (gameEngine.gameState.value is ColosseumState.Playing) {
             withFrameMillis { currentTime ->
                 if (lastTime > 0) {
                     val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산
-                    canvasState.update(deltaTime * 2)
+                    gameEngine.update(deltaTime * 2)
                 }
                 lastTime = currentTime
 
@@ -100,29 +101,29 @@ fun Colosseum(
             screenWidthPx / logicalWidth
         }
 
-        when (currentGameState) {
-            GameState.WaitingForPlayers -> {
+        when (currentColosseumState) {
+            ColosseumState.WaitingForPlayers -> {
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
                     isLandscape = isLandscape,
                     onClickStart = { players, hp ->
                         // Set HP
-                        ColosseumInfo.setDefaultHp(hp.toDouble())
+                        gameEngine.setDefaultHp(hp.toDouble())
                         // Set players
                         coroutineScope.launch {
                             val players = players.map { p ->
-                                ColosseumPlayerFactory(spriteLoader).createPlayer(
+                                ColosseumPlayerFactory(spriteLoader, gameEngine).createPlayer(
                                     name = p.name,
                                     color = p.color,
-                                    startHp = ColosseumInfo.defaultHp,
+                                    startHp = gameEngine.defaultHp,
                                 )
                             }
-                            ColosseumInfo.setPlayers(players)
+                            gameEngine.setPlayers(players)
                         }
                     },
                 )
             }
-            is GameState.Playing -> {
+            is ColosseumState.Playing -> {
                 // Canvas (World + Players)
                 ComposeCanvas(
                     modifier = Modifier
@@ -136,7 +137,7 @@ fun Colosseum(
                         )
                         .onSizeChanged {
                             val size = it.toSize()
-                            canvasState.setViewportSize(size.width, size.height)
+                            gameEngine.setViewportSize(size.width, size.height)
                         }
                 ) {
                     // frameTick에 의존하여 매 프레임 리렌더링하기 위함
@@ -147,7 +148,7 @@ fun Colosseum(
 
                     // Draw circle
                     val drawScopeWrapper = GameDrawScope.getInstance(this)
-                    canvasState.render(drawScopeWrapper, textMeasurer, fontFamily = font)
+                    gameEngine.render(drawScopeWrapper, textMeasurer, fontFamily = font)
                 }
 
                 // Log
@@ -158,23 +159,26 @@ fun Colosseum(
                         .fillMaxHeight(if(isLandscape) 0.5f else 0.4f)
                 ) {
                     ColosseumLogArea(
+                        gameEngine = gameEngine,
                         modifier = Modifier.fillMaxSize().padding(12.dp),
                     )
                 }
             }
-            is GameState.Ended -> {
+            is ColosseumState.Ended -> {
                 ColosseumEndScreen(
                     modifier = Modifier.fillMaxSize(),
-                    statsList = currentGameState.statsList,
-                    titles = currentGameState.titleList,
+                    statsList = currentColosseumState.statsList,
+                    titles = currentColosseumState.titleList,
                     isLandscape = isLandscape,
                     onClickRestart = {
                         // 바로 재시작 (플레이어 유지)
-                        ColosseumInfo.restart()
+                        gameEngine.restart()
+                        gameEngine.clearLog()
                     },
                     onClickReset = {
                         // 경기 재설정 (처음부터)
-                        ColosseumInfo.reset()
+                        gameEngine.reset()
+                        gameEngine.clearLog()
                     },
                 )
             }

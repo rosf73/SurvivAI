@@ -1,72 +1,54 @@
-package com.survivai.survivai.game.colosseum.state
+package com.survivai.survivai.game.colosseum.logic
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.common.msToMMSS
+import com.survivai.survivai.game.Engine
+import com.survivai.survivai.game.Entity
+import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
+import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
-import kotlin.collections.plus
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
-sealed interface GameState {
-    data object WaitingForPlayers : GameState  // 플레이어 등록 대기
-    data class Playing(val startTime: Long) : GameState  // 게임 진행 중
-    data class Ended(val statsList: List<List<StatCell>>, val titleList: List<MVPTitleCard>) : GameState  // 게임 종료
-}
-
-data class MVPTitleCard(
-    val title: String,
-    val desc: String,
-    val players: List<StatCell>,
-)
-
-data class StatCell(
-    val stat: String,
-    val color: Color? = null,
-)
-
-object ColosseumInfo {
+class ColosseumEngine(
+) : Engine {
 
     // 게임 초기화됨
     var initialized = false
         private set
 
     // World 초기화 여부
-    private var worldInitialized = false
+    private val worldInitialized get() = world.viewportWidth > 0 && world.viewportHeight > 0
 
     // 엔티티
-    var players = emptyList<ColosseumPlayer>()
+    override var players = emptyList<Entity>()
+        set(value) {
+            field = value
+            colosseumPlayers = value.filterIsInstance<ColosseumPlayer>()
+        }
+    var colosseumPlayers = emptyList<ColosseumPlayer>()
         private set
+
+    // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
+    override val world = ColosseumWorld()
 
     // 기본 HP 설정 (1~10)
     var defaultHp = 3.0
         private set
 
     // 게임 상태
-    private val _gameState = mutableStateOf<GameState>(GameState.WaitingForPlayers)
-    val gameState: State<GameState> get() = _gameState
-
-    // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
-    val world = ColosseumWorld()
-
-    // 로그 상태 추적
-    val itemUpdateState: State<Boolean> get() = LogManager.itemUpdateState
-
-    // 로그 리스트
-    val logEntries: List<Log> get() = LogManager.logEntries
-
-    // Viewport 크기 캐싱
-    private var viewportWidth = 0f
-    private var viewportHeight = 0f
+    private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
+    val gameState: State<ColosseumState> get() = _gameState
 
     fun setViewportSize(width: Float, height: Float) {
-        viewportWidth = width
-        viewportHeight = height
-        initializeWorld()
+        initializeWorld(width, height)
         tryInitialize()
     }
 
@@ -74,7 +56,7 @@ object ColosseumInfo {
     fun setPlayers(newList: List<ColosseumPlayer>) {
         players = newList
         initialized = false  // 재초기화 필요
-        _gameState.value = GameState.Playing(Clock.System.now().toEpochMilliseconds())
+        _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
         tryInitialize()
     }
 
@@ -82,80 +64,65 @@ object ColosseumInfo {
         defaultHp = hp.coerceIn(1.0, 10.0)
     }
 
-    private fun initializeWorld() {
+    private fun initializeWorld(width: Float, height: Float) {
         if (worldInitialized) return
-        if (viewportWidth <= 0 || viewportHeight <= 0) return
+        if (width <= 0 || height <= 0) return
 
-        world.buildMap(viewportWidth, viewportHeight)
-        worldInitialized = true
+        world.buildMap(width, height)
     }
 
     private fun tryInitialize() {
         if (initialized) return
-        if (players.isEmpty()) return
-        if (viewportWidth <= 0 || viewportHeight <= 0) return
+        if (colosseumPlayers.isEmpty()) return
+        if (!worldInitialized) return
 
-        players.initializePositions(viewportWidth, viewportHeight)
+        colosseumPlayers.initializePositions(world)
         initialized = true
     }
 
     @OptIn(ExperimentalTime::class)
     fun restart() {
         // 현재 플레이어 정보로 새 플레이어 생성 (HP 초기화)
-        val newPlayers = players.map { player ->
+        val newPlayers = colosseumPlayers.map { player ->
             ColosseumPlayer(
                 name = player.name,
                 color = player.color,
                 startHp = defaultHp,
                 spriteSheet = player.spriteSheet,
+                gameEngine = this,
             )
         }
 
         // 게임 상태 리셋
-        _gameState.value = GameState.Playing(Clock.System.now().toEpochMilliseconds())
-        LogManager.clear()
+        _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
 
         // 플레이어 재설정 및 재초기화
         players = newPlayers
         initialized = false
         tryInitialize()
-
-        // recomposition event
-        LogManager.triggerItemUpdate()
     }
 
     fun reset() {
         initialized = false
-        worldInitialized = false  // World도 재초기화 필요
+        world.buildMap(0f, 0f) // World 초기화
         players = emptyList()
         defaultHp = 3.0  // HP 초기화
-        LogManager.clear()
 
         // 게임 상태를 대기 상태로
-        _gameState.value = GameState.WaitingForPlayers
-
-        // recomposition event
-        LogManager.triggerItemUpdate()
-    }
-
-    fun addLog(log: Log) {
-        LogManager.addNewLog(log)
-
-        // recomposition event
-        LogManager.triggerItemUpdate()
+        _gameState.value = ColosseumState.WaitingForPlayers
     }
 
     // 게임이 끝났을 때만 호출
     fun updateGameSet() {
-        val gameState = gameState.value as? GameState.Playing ?: return
+        val gameState = gameState.value as? ColosseumState.Playing ?: return
 
         val statsList = calculateTotalScore(gameState)
         val titleList = calculateTitles(statsList)
-        _gameState.value = GameState.Ended(statsList, titleList)
+        _gameState.value = ColosseumState.Ended(statsList, titleList)
     }
 
     @OptIn(ExperimentalTime::class)
-    private fun calculateTotalScore(playingState: GameState.Playing): List<List<StatCell>> {
+    private fun calculateTotalScore(playingState: ColosseumState.Playing): List<List<StatCell>> {
         val startTime = playingState.startTime
         val endTime = Clock.System.now().toEpochMilliseconds()
         val totalPlayTime = endTime - startTime
@@ -172,12 +139,12 @@ object ColosseumInfo {
         // 순위 기준값 먼저 계산
         var totalAttackPoint = 0F
         var totalSurvivePoint = 0L
-        for (p in players) {
+        for (p in colosseumPlayers) {
             totalAttackPoint += p.attackPoint
             totalSurvivePoint += if (p.deathTime == 0L) firstPlayerSurvivePoint else p.deathTime - startTime
         }
 
-        return title + players.map {
+        return title + colosseumPlayers.map {
             val surviveTime = if (it.deathTime == 0L) firstPlayerSurvivePoint else it.deathTime - startTime
             val surviveTimeStr =
                 if (it.deathTime == 0L) "${totalPlayTime.msToMMSS()}(+01:00)"
@@ -261,7 +228,7 @@ object ColosseumInfo {
 
     // 타격 횟수
     fun updatePlayerAttackPoint(name: String) {
-        players = players.map {
+        players = colosseumPlayers.map {
             it.apply {
                 if (this.name == name) {
                     attackPoint += 1
@@ -273,7 +240,7 @@ object ColosseumInfo {
     // 결정타 횟수, 탈락자 생존시간
     @OptIn(ExperimentalTime::class)
     fun updatePlayerKillPoint(killerName: String, victimName: String) {
-        players = players.map {
+        players = colosseumPlayers.map {
             it.apply {
                 if (name == killerName) {
                     killPoint += 1
@@ -282,5 +249,126 @@ object ColosseumInfo {
                 }
             }
         }
+    }
+
+    // 로그 상태 추적
+    val logUpdateState: State<Boolean> get() = LogManager.itemUpdateState
+
+    // 로그 리스트
+    val logEntries: List<Log> get() = LogManager.logEntries
+
+    override fun update(deltaTime: Double) {
+        if (world.viewportWidth <= 0 || world.viewportHeight <= 0) {
+            return
+        }
+
+        // Get alive players
+        val alivePlayers = colosseumPlayers.filter { it.isAlive }
+
+        // Call Entity::update
+        colosseumPlayers.forEach { it.update(deltaTime, world) }
+
+        // (중계 로그) 대사
+        alivePlayers.forEachIndexed { _, p ->
+            val text = p.pollJustSpeeched()
+            if (text.isNotBlank()) {
+                addLog(Log.Solo(p, text))
+            }
+        }
+
+        // Check for winner (only once)
+        if (colosseumPlayers.isNotEmpty()) {
+            if (alivePlayers.size == 1) {
+                addLog(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
+                updateGameSet()
+            } else if (alivePlayers.isEmpty()) {
+                addLog(Log.System("💀 전원 탈락! 살아남은 플레이어가 없습니다!"))
+                updateGameSet()
+            }
+        }
+
+        // Player-player overlap resolution (simple horizontal push)
+        for (i in alivePlayers.indices) {
+            for (j in i + 1 until alivePlayers.size) {
+                val a = alivePlayers[i]
+                val b = alivePlayers[j]
+                val rSum = a.halfWidth + b.halfWidth
+                val dx = b.x - a.x
+                val dy = b.y - a.y
+                if (abs(dy) < max(a.halfHeight, b.halfHeight) * 1.2f && abs(dx) < rSum) {
+                    val overlap = rSum - abs(dx)
+                    val dir = if (dx >= 0f) 1f else -1f
+                    val push = overlap / 2f
+                    a.x -= push * dir
+                    b.x += push * dir
+                    // Clamp to viewport bounds
+                    if (a.x - a.halfWidth < 0f) a.x = a.halfWidth
+                    if (b.x + b.halfWidth > world.viewportWidth) b.x = world.viewportWidth - b.halfWidth
+                }
+            }
+        }
+
+        // first blood 체크 (race condition 방지)
+        var isFirstBloodFrame = (alivePlayers.size == colosseumPlayers.size)
+
+        // Attack detection
+        alivePlayers.detectAttackDamagedThisFrame { attacker, target ->
+            // 스탯 업데이트
+            updatePlayerAttackPoint(attacker.name)
+
+            if (target.hp > 0) {
+                addLog(Log.Duo(
+                    perpetrator = attacker,
+                    victim = target,
+                    interaction = "🤜",
+                    additional = "(HP=${target.hp})",
+                ))
+            } else {
+                // 스탯 업데이트
+                updatePlayerKillPoint(
+                    killerName = attacker.name,
+                    victimName = target.name,
+                )
+
+                if (isFirstBloodFrame) { // first blood
+                    addLog(Log.Duo(
+                        perpetrator = attacker,
+                        victim = target,
+                        interaction = "에 의해",
+                        additional = "First Blood! 😭",
+                    ))
+                    isFirstBloodFrame = false
+                } else {
+                    addLog(Log.Duo(
+                        perpetrator = attacker,
+                        victim = target,
+                        interaction = "에 의해",
+                        additional = "탈락! 😭",
+                    ))
+                }
+            }
+        }
+    }
+
+    fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {
+        // 맵 (플랫폼 렌더링)
+        world.render(context)
+
+        // 엔티티
+        players
+            .forEach { it.render(context, textMeasurer, fontFamily) }
+    }
+
+    fun addLog(log: Log) {
+        LogManager.addNewLog(log)
+
+        // recomposition event
+        LogManager.triggerItemUpdate()
+    }
+
+    fun clearLog() {
+        LogManager.clear()
+        // recomposition event
+        LogManager.triggerItemUpdate()
     }
 }

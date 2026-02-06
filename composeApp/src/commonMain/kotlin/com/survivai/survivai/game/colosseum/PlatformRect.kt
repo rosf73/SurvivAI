@@ -2,6 +2,7 @@ package com.survivai.survivai.game.colosseum
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import com.survivai.survivai.game.GameDrawScope
 
 /**
  * Simple axis-aligned platform rectangle. y is the top edge.

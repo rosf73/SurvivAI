@@ -7,7 +7,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.config.BuildConfig
 import com.survivai.survivai.game.Entity
-import com.survivai.survivai.game.colosseum.GameDrawScope
+import com.survivai.survivai.game.GameDrawScope
 
 class ColliderComponent(
     val width: Float,

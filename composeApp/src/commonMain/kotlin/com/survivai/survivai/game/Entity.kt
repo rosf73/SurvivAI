@@ -2,7 +2,6 @@ package com.survivai.survivai.game
 
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
-import com.survivai.survivai.game.colosseum.GameDrawScope
 import com.survivai.survivai.game.component.Component
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
@@ -29,7 +28,7 @@ interface Entity {
             ?.let { clazz.cast(it) }
     }
 
-    fun update(deltaTime: Double, viewportWidth: Float, viewportHeight: Float, world: World) {
+    fun update(deltaTime: Double, world: World) {
         components.forEach { it.update(deltaTime, this, world) }
     }
     fun render(context: GameDrawScope, textMeasurer: TextMeasurer, fontFamily: FontFamily) {

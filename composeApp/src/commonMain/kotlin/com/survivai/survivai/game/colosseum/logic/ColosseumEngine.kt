@@ -47,6 +47,12 @@ class ColosseumEngine(
     private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
     val gameState: State<ColosseumState> get() = _gameState
 
+    // 로그 상태 추적
+    val logUpdateState: State<Boolean> get() = LogManager.itemUpdateState
+
+    // 로그 리스트
+    val logEntries: List<Log> get() = LogManager.logEntries
+
     fun setViewportSize(width: Float, height: Float) {
         initializeWorld(width, height)
         tryInitialize()
@@ -250,12 +256,6 @@ class ColosseumEngine(
             }
         }
     }
-
-    // 로그 상태 추적
-    val logUpdateState: State<Boolean> get() = LogManager.itemUpdateState
-
-    // 로그 리스트
-    val logEntries: List<Log> get() = LogManager.logEntries
 
     override fun update(deltaTime: Double) {
         if (world.viewportWidth <= 0 || world.viewportHeight <= 0) {

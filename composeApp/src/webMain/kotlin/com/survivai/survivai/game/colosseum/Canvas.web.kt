@@ -5,7 +5,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
-import com.survivai.survivai.game.colosseum.state.GameState
+import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.colosseum.state.Log
 import kotlin.math.abs
 import kotlin.math.max
@@ -45,7 +45,7 @@ class WebCanvas : Canvas {
         }
 
         // Check for winner (only once)
-        if (gameState !is GameState.Ended && players.isNotEmpty()) {
+        if (gameState !is ColosseumState.Ended && players.isNotEmpty()) {
             if (alivePlayers.size == 1) {
                 log(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
                 ColosseumInfo.updateGameSet()

@@ -2,32 +2,16 @@ package com.survivai.survivai.game.colosseum.state
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.Color
 import com.survivai.survivai.common.msToMMSS
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
 import com.survivai.survivai.game.colosseum.entity.initializePositions
+import com.survivai.survivai.game.colosseum.logic.ColosseumState
+import com.survivai.survivai.game.colosseum.logic.MVPTitleCard
+import com.survivai.survivai.game.colosseum.logic.StatCell
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import kotlin.collections.plus
-import kotlin.math.max
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-
-sealed interface GameState {
-    data object WaitingForPlayers : GameState  // 플레이어 등록 대기
-    data class Playing(val startTime: Long) : GameState  // 게임 진행 중
-    data class Ended(val statsList: List<List<StatCell>>, val titleList: List<MVPTitleCard>) : GameState  // 게임 종료
-}
-
-data class MVPTitleCard(
-    val title: String,
-    val desc: String,
-    val players: List<StatCell>,
-)
-
-data class StatCell(
-    val stat: String,
-    val color: Color? = null,
-)
 
 object ColosseumInfo {
 
@@ -47,8 +31,8 @@ object ColosseumInfo {
         private set
 
     // 게임 상태
-    private val _gameState = mutableStateOf<GameState>(GameState.WaitingForPlayers)
-    val gameState: State<GameState> get() = _gameState
+    private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
+    val gameState: State<ColosseumState> get() = _gameState
 
     // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
     val world = ColosseumWorld()
@@ -74,7 +58,7 @@ object ColosseumInfo {
     fun setPlayers(newList: List<ColosseumPlayer>) {
         players = newList
         initialized = false  // 재초기화 필요
-        _gameState.value = GameState.Playing(Clock.System.now().toEpochMilliseconds())
+        _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
         tryInitialize()
     }
 
@@ -112,7 +96,7 @@ object ColosseumInfo {
         }
 
         // 게임 상태 리셋
-        _gameState.value = GameState.Playing(Clock.System.now().toEpochMilliseconds())
+        _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
         LogManager.clear()
 
         // 플레이어 재설정 및 재초기화
@@ -132,7 +116,7 @@ object ColosseumInfo {
         LogManager.clear()
 
         // 게임 상태를 대기 상태로
-        _gameState.value = GameState.WaitingForPlayers
+        _gameState.value = ColosseumState.WaitingForPlayers
 
         // recomposition event
         LogManager.triggerItemUpdate()
@@ -147,15 +131,15 @@ object ColosseumInfo {
 
     // 게임이 끝났을 때만 호출
     fun updateGameSet() {
-        val gameState = gameState.value as? GameState.Playing ?: return
+        val gameState = gameState.value as? ColosseumState.Playing ?: return
 
         val statsList = calculateTotalScore(gameState)
         val titleList = calculateTitles(statsList)
-        _gameState.value = GameState.Ended(statsList, titleList)
+        _gameState.value = ColosseumState.Ended(statsList, titleList)
     }
 
     @OptIn(ExperimentalTime::class)
-    private fun calculateTotalScore(playingState: GameState.Playing): List<List<StatCell>> {
+    private fun calculateTotalScore(playingState: ColosseumState.Playing): List<List<StatCell>> {
         val startTime = playingState.startTime
         val endTime = Clock.System.now().toEpochMilliseconds()
         val totalPlayTime = endTime - startTime

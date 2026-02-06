@@ -34,7 +34,7 @@ import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
 import com.survivai.survivai.game.colosseum.state.ColosseumInfo
-import com.survivai.survivai.game.colosseum.state.GameState
+import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
 import kotlinx.coroutines.launch
 
@@ -51,7 +51,7 @@ fun Colosseum(
     val coroutineScope = rememberCoroutineScope()
 
     // game state for recomposition
-    val currentGameState = ColosseumInfo.gameState.value
+    val currentColosseumState = ColosseumInfo.gameState.value
 
     // UI update state
     var frameTick by remember { mutableStateOf(0) }
@@ -59,11 +59,11 @@ fun Colosseum(
     // 1. Set game loop
     var lastTime by remember { mutableStateOf(0L) }
 
-    LaunchedEffect(currentGameState) {
+    LaunchedEffect(currentColosseumState) {
         lastTime = 0L  // 재시작 시 타이머 리셋
 
         // Compose의 애니메이션 프레임 루프를 사용하여 매 프레임 업데이트를 요청
-        while (ColosseumInfo.gameState.value is GameState.Playing) {
+        while (ColosseumInfo.gameState.value is ColosseumState.Playing) {
             withFrameMillis { currentTime ->
                 if (lastTime > 0) {
                     val deltaTime = (currentTime - lastTime) / 1000.0 // 초 단위 deltaTime 계산
@@ -100,8 +100,8 @@ fun Colosseum(
             screenWidthPx / logicalWidth
         }
 
-        when (currentGameState) {
-            GameState.WaitingForPlayers -> {
+        when (currentColosseumState) {
+            ColosseumState.WaitingForPlayers -> {
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
                     isLandscape = isLandscape,
@@ -122,7 +122,7 @@ fun Colosseum(
                     },
                 )
             }
-            is GameState.Playing -> {
+            is ColosseumState.Playing -> {
                 // Canvas (World + Players)
                 ComposeCanvas(
                     modifier = Modifier
@@ -162,11 +162,11 @@ fun Colosseum(
                     )
                 }
             }
-            is GameState.Ended -> {
+            is ColosseumState.Ended -> {
                 ColosseumEndScreen(
                     modifier = Modifier.fillMaxSize(),
-                    statsList = currentGameState.statsList,
-                    titles = currentGameState.titleList,
+                    statsList = currentColosseumState.statsList,
+                    titles = currentColosseumState.titleList,
                     isLandscape = isLandscape,
                     onClickRestart = {
                         // 바로 재시작 (플레이어 유지)

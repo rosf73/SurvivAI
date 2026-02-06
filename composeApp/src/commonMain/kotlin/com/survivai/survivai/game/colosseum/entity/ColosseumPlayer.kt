@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
-import com.survivai.survivai.game.colosseum.state.ColosseumInfo
 import com.survivai.survivai.game.GameDrawScope
+import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.ColorComponent
@@ -32,6 +32,7 @@ data class ColosseumPlayer(
     val color: Color,
     private val startHp: Double,
     val spriteSheet: SpriteSheet,
+    val gameEngine: ColosseumEngine,
 ) : Entity {
 
     private val combatComponent = CombatComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
@@ -62,8 +63,8 @@ data class ColosseumPlayer(
     private val gravity = 980f // 중력 가속도 (픽셀/초^2)
 
     // Viewport
-    private val viewportWidth get() = ColosseumInfo.world.viewportWidth
-    private val viewportHeight get() = ColosseumInfo.world.viewportHeight
+    private val viewportWidth get() = gameEngine.world.viewportWidth
+    private val viewportHeight get() = gameEngine.world.viewportHeight
     private val floorY: Float
         get() = viewportHeight - halfHeight
 
@@ -194,7 +195,7 @@ data class ColosseumPlayer(
      * 적들의 위치 정보를 업데이트
      */
     private fun updateEnemyPositions() {
-        val enemies = ColosseumInfo.players.filter { it != this && it.isAlive }
+        val enemies = gameEngine.colosseumPlayers.filter { it != this && it.isAlive }
 
         if (enemies.isEmpty()) {
             nearestEnemyDistance = Float.MAX_VALUE

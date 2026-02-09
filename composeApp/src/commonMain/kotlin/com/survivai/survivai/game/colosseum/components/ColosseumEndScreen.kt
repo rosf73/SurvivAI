@@ -17,7 +17,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -240,8 +242,8 @@ private fun ResultArea(
             Dashboard(
                 statsList = statsList,
                 modifier = Modifier
-                    .weight(7f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .weight(1f),
             )
 
             Spacer(modifier = Modifier.size(20.dp))
@@ -250,6 +252,7 @@ private fun ResultArea(
                 titles = titles,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f),
             )
         }
     }
@@ -345,6 +348,8 @@ private fun TitlesFixedCard(
     titles: List<MVPTitleCard>,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
+
     Surface(
         modifier = modifier
             .border(
@@ -358,7 +363,8 @@ private fun TitlesFixedCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(6.dp),
+                .padding(6.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.Start,
         ) {
             // Header

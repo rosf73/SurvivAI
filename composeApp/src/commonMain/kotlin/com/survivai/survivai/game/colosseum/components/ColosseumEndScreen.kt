@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.survivai.survivai.common.squareVerticalScrollbar
+import com.survivai.survivai.common.survivAIBackground
 import com.survivai.survivai.game.colosseum.logic.MVPTitleCard
 import com.survivai.survivai.game.colosseum.logic.StatCell
 
@@ -54,27 +55,7 @@ fun ColosseumEndScreen(
 ) {
     Column(
         modifier = modifier
-            .background(Color(0xFF0A0A0A))
-            .drawBehind {
-                // fine grid pattern
-                val gridSize = 20.dp.toPx()
-                for (x in 0..size.width.toInt() step gridSize.toInt()) {
-                    drawLine(
-                        color = Color.White.copy(alpha = 0.05f),
-                        start = Offset(x.toFloat(), 0f),
-                        end = Offset(x.toFloat(), size.height),
-                        strokeWidth = 1f
-                    )
-                }
-                for (y in 0..size.height.toInt() step gridSize.toInt()) {
-                    drawLine(
-                        color = Color.White.copy(alpha = 0.05f),
-                        start = Offset(0f, y.toFloat()),
-                        end = Offset(size.width, y.toFloat()),
-                        strokeWidth = 1f
-                    )
-                }
-            },
+            .survivAIBackground(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Header

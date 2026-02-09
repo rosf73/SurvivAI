@@ -12,3 +12,7 @@ actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver):
     return remember { mutableStateOf(true) }
 }
 
+actual fun removePlatformSplashScreen() {
+    // iOS doesn't use HTML splash
+}
+

@@ -7,3 +7,4 @@ import androidx.compose.ui.text.font.FontFamily
 @Composable
 expect fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver): State<Boolean>
 
+expect fun removePlatformSplashScreen()

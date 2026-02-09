@@ -76,6 +76,8 @@ fun App(
     if (showSplash) {
         SurvivAISplashScreen(modifier = Modifier.fillMaxSize())
     } else {
+        removePlatformSplashScreen()
+
         CompositionLocalProvider(LocalFont provides fontFamily) {
         MaterialTheme(
             typography = Typography().withFontFamily(fontFamily),

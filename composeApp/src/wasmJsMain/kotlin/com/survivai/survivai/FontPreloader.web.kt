@@ -6,14 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import survivai.composeapp.generated.resources.Res
-import androidx.compose.ui.text.platform.Font
 import kotlinx.browser.window
-import kotlinx.coroutines.await
-import kotlinx.coroutines.delay
-import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.Int8Array
-import org.w3c.fetch.Response
+import kotlinx.browser.document
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalWasmJsInterop::class)
 @Composable
@@ -39,3 +33,14 @@ actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver):
     return remember { mutableStateOf(true) }
 }
 
+@OptIn(ExperimentalWasmJsInterop::class)
+actual fun removePlatformSplashScreen() {
+    val splashScreen = document.getElementById("splash-screen")
+    splashScreen?.let {
+        it.setAttribute("style", "opacity: 0; transition: opacity 0.5s ease-out;")
+        window.setTimeout({
+            it.remove()
+            null
+        }, 500)
+    }
+}

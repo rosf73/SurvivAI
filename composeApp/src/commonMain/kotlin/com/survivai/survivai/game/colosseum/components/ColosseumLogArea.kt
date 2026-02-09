@@ -22,11 +22,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.survivai.survivai.game.colosseum.state.ColosseumInfo
-import com.survivai.survivai.game.colosseum.state.Log
+import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.logic.Log
 
 @Composable
 fun ColosseumLogArea(
+    gameEngine: ColosseumEngine, // DI
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -60,8 +61,8 @@ fun ColosseumLogArea(
             reverseLayout = true,
             modifier = Modifier.fillMaxSize(),
         ) {
-            val itemUpdater = ColosseumInfo.itemUpdateState.value
-            items(ColosseumInfo.logEntries) { log ->
+            val itemUpdater = gameEngine.logUpdateState.value
+            items(gameEngine.logEntries) { log ->
                 LogLine(
                     log = log,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),

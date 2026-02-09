@@ -3,11 +3,8 @@ package com.survivai.survivai.game.colosseum.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -42,8 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.survivai.survivai.game.colosseum.state.MVPTitleCard
-import com.survivai.survivai.game.colosseum.state.StatCell
+import com.survivai.survivai.common.squareVerticalScrollbar
+import com.survivai.survivai.common.survivAIBackground
+import com.survivai.survivai.game.colosseum.logic.MVPTitleCard
+import com.survivai.survivai.game.colosseum.logic.StatCell
 
 @Composable
 fun ColosseumEndScreen(
@@ -56,27 +55,7 @@ fun ColosseumEndScreen(
 ) {
     Column(
         modifier = modifier
-            .background(Color(0xFF0A0A0A))
-            .drawBehind {
-                // fine grid pattern
-                val gridSize = 20.dp.toPx()
-                for (x in 0..size.width.toInt() step gridSize.toInt()) {
-                    drawLine(
-                        color = Color.White.copy(alpha = 0.05f),
-                        start = Offset(x.toFloat(), 0f),
-                        end = Offset(x.toFloat(), size.height),
-                        strokeWidth = 1f
-                    )
-                }
-                for (y in 0..size.height.toInt() step gridSize.toInt()) {
-                    drawLine(
-                        color = Color.White.copy(alpha = 0.05f),
-                        start = Offset(0f, y.toFloat()),
-                        end = Offset(size.width, y.toFloat()),
-                        strokeWidth = 1f
-                    )
-                }
-            },
+            .survivAIBackground(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Header
@@ -245,8 +224,8 @@ private fun ResultArea(
             Dashboard(
                 statsList = statsList,
                 modifier = Modifier
-                    .weight(7f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .weight(1f),
             )
 
             Spacer(modifier = Modifier.size(20.dp))
@@ -255,6 +234,7 @@ private fun ResultArea(
                 titles = titles,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f),
             )
         }
     }
@@ -331,7 +311,7 @@ private fun TitlesVerticalCard(
                                 style = LocalTextStyle.current.copy(
                                     fontSize = 15.sp,
                                 ),
-                                color = p.color ?: Color.Unspecified,
+                                color = p.color,
                                 modifier = Modifier.padding(end = 4.dp),
                             )
                         }
@@ -350,6 +330,8 @@ private fun TitlesFixedCard(
     titles: List<MVPTitleCard>,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
+
     Surface(
         modifier = modifier
             .border(
@@ -363,7 +345,9 @@ private fun TitlesFixedCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(6.dp),
+                .padding(6.dp)
+                .squareVerticalScrollbar(scrollState, color = Color.White)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.Start,
         ) {
             // Header
@@ -414,7 +398,7 @@ private fun TitlesFixedCard(
                             style = LocalTextStyle.current.copy(
                                 fontSize = 15.sp,
                             ),
-                            color = p.color ?: Color.Unspecified,
+                            color = p.color,
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }
@@ -437,14 +421,13 @@ private fun Dashboard(
             .border(
                 BorderStroke(3.dp, Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))),
             ),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF222222)),
+        colors = CardDefaults.cardColors(containerColor = Color(0x00FFFFFF)),
     ) {
         LazyColumn {
             itemsIndexed(statsList) { rowIndex, rowData ->
                 val backgroundColor = when (rowIndex) {
-                    0 -> Color(0xFF4FC3F7)
-                    1 -> Color(0xFFFFF9C4)
-                    else -> Color(0x80FFFFFF)
+                    0 -> Color(0xFF4FC3F7) // title color
+                    else -> Color(0x00FFFFFF)
                 }
 
                 Row(
@@ -463,7 +446,7 @@ private fun Dashboard(
                                 .background(backgroundColor)
                                 .border(
                                     width = 1.dp,
-                                    color = Color(0xFF666666),
+                                    color = Color(0xFFCCCCCC),
                                 )
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center
@@ -472,9 +455,10 @@ private fun Dashboard(
                                 text = cellText.stat,
                                 style = LocalTextStyle.current.copy(
                                     fontSize = 12.sp,
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = cellText.weight,
                                 ),
-                                color = cellText.color ?: Color.Unspecified,
+                                color = cellText.color,
                             )
                         }
                     }

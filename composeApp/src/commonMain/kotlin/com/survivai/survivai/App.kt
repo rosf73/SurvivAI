@@ -33,7 +33,12 @@ import org.jetbrains.compose.resources.Font
 import survivai.composeapp.generated.resources.NotoEmojiColor
 import survivai.composeapp.generated.resources.NotoSansKR
 import survivai.composeapp.generated.resources.Res
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 @Composable
 fun App(
     openLink: (String) -> Unit, // TODO : hilt injection
@@ -48,9 +53,32 @@ fun App(
 
     // font preload
     val fontFamilyResolver = LocalFontFamilyResolver.current
-    preloadEmojiFontForFallback(fontFamilyResolver)
+    val isFontLoaded = preloadEmojiFontForFallback(fontFamilyResolver)
 
-    CompositionLocalProvider(LocalFont provides fontFamily) {
+    var showSplash by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        val minSplashTime = 2000L
+        val splashStart = Clock.System.now().toEpochMilliseconds()
+
+        // Wait for font load
+        snapshotFlow { isFontLoaded.value }.first { it }
+
+        // Ensure minimum splash duration
+        val elapsed = Clock.System.now().toEpochMilliseconds() - splashStart
+        if (elapsed < minSplashTime) {
+            delay(minSplashTime - elapsed)
+        }
+
+        showSplash = false
+    }
+
+    if (showSplash) {
+        SurvivAISplashScreen(modifier = Modifier.fillMaxSize())
+    } else {
+        removePlatformSplashScreen()
+
+        CompositionLocalProvider(LocalFont provides fontFamily) {
         MaterialTheme(
             typography = Typography().withFontFamily(fontFamily),
         ) {
@@ -96,7 +124,9 @@ fun App(
             }
         }
     }
+    }
 }
+
 
 @Composable
 private fun VersionText(

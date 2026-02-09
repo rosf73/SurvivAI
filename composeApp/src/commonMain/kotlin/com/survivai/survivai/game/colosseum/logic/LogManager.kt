@@ -1,4 +1,4 @@
-package com.survivai.survivai.game.colosseum.state
+package com.survivai.survivai.game.colosseum.logic
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf

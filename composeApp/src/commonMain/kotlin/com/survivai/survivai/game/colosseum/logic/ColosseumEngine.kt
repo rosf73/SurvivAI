@@ -205,8 +205,8 @@ class ColosseumEngine(
                 }
             }
 
-            // 최단기퇴물 (10초 이내 사망)
-            if (surviveTime <= "00:10") {
+            // 최단기퇴물 (10초 이내 사망, 1등 제외)
+            if (i > 1 && surviveTime <= "00:10") {
                 quickExits.add(name)
             }
 

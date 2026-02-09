@@ -17,7 +17,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.survivai.survivai.common.squareVerticalScrollbar
 import com.survivai.survivai.game.colosseum.logic.MVPTitleCard
 import com.survivai.survivai.game.colosseum.logic.StatCell
 
@@ -240,8 +243,8 @@ private fun ResultArea(
             Dashboard(
                 statsList = statsList,
                 modifier = Modifier
-                    .weight(7f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .weight(1f),
             )
 
             Spacer(modifier = Modifier.size(20.dp))
@@ -250,6 +253,7 @@ private fun ResultArea(
                 titles = titles,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f),
             )
         }
     }
@@ -345,6 +349,8 @@ private fun TitlesFixedCard(
     titles: List<MVPTitleCard>,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
+
     Surface(
         modifier = modifier
             .border(
@@ -358,7 +364,9 @@ private fun TitlesFixedCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(6.dp),
+                .padding(6.dp)
+                .squareVerticalScrollbar(scrollState, color = Color.White)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.Start,
         ) {
             // Header
@@ -432,14 +440,13 @@ private fun Dashboard(
             .border(
                 BorderStroke(3.dp, Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))),
             ),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF222222)),
+        colors = CardDefaults.cardColors(containerColor = Color(0x00FFFFFF)),
     ) {
         LazyColumn {
             itemsIndexed(statsList) { rowIndex, rowData ->
                 val backgroundColor = when (rowIndex) {
-                    0 -> Color(0xFF4FC3F7)
-                    1 -> Color(0xFFFFF9C4)
-                    else -> Color(0x80FFFFFF)
+                    0 -> Color(0xFF4FC3F7) // title color
+                    else -> Color(0x00FFFFFF)
                 }
 
                 Row(
@@ -458,7 +465,7 @@ private fun Dashboard(
                                 .background(backgroundColor)
                                 .border(
                                     width = 1.dp,
-                                    color = Color(0xFF666666),
+                                    color = Color(0xFFCCCCCC),
                                 )
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center
@@ -467,9 +474,10 @@ private fun Dashboard(
                                 text = cellText.stat,
                                 style = LocalTextStyle.current.copy(
                                     fontSize = 12.sp,
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = cellText.weight,
                                 ),
-                                color = cellText.color ?: Color.Unspecified,
+                                color = cellText.color,
                             )
                         }
                     }

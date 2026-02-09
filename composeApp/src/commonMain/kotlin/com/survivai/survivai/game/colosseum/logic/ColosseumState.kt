@@ -1,6 +1,7 @@
 package com.survivai.survivai.game.colosseum.logic
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 
 sealed interface ColosseumState {
     data object WaitingForPlayers : ColosseumState  // 플레이어 등록 대기
@@ -16,5 +17,12 @@ data class MVPTitleCard(
 
 data class StatCell(
     val stat: String,
-    val color: Color? = null,
-)
+    val color: Color = Color.Unspecified,
+    val weight: FontWeight = FontWeight.Normal,
+) {
+    companion object {
+        // factory
+        fun rowTitle(stat: String) = StatCell(stat, Color.Black, FontWeight.Bold)
+        fun colLabel(stat: String, color: Color) = StatCell(stat, color, FontWeight.Bold)
+    }
+}

@@ -330,7 +330,7 @@ private fun TitlesVerticalCard(
                                 style = LocalTextStyle.current.copy(
                                     fontSize = 15.sp,
                                 ),
-                                color = p.color ?: Color.Unspecified,
+                                color = p.color,
                                 modifier = Modifier.padding(end = 4.dp),
                             )
                         }
@@ -417,7 +417,7 @@ private fun TitlesFixedCard(
                             style = LocalTextStyle.current.copy(
                                 fontSize = 15.sp,
                             ),
-                            color = p.color ?: Color.Unspecified,
+                            color = p.color,
                             modifier = Modifier.padding(end = 4.dp),
                         )
                     }

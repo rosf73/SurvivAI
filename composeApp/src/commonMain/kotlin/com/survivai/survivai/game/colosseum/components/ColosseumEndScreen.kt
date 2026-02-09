@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.survivai.survivai.common.squareVerticalScrollbar
 import com.survivai.survivai.game.colosseum.logic.MVPTitleCard
 import com.survivai.survivai.game.colosseum.logic.StatCell
 
@@ -364,6 +365,7 @@ private fun TitlesFixedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(6.dp)
+                .squareVerticalScrollbar(scrollState, color = Color.White)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.Start,
         ) {

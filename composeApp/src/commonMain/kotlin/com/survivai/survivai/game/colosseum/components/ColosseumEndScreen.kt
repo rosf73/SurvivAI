@@ -443,7 +443,7 @@ private fun Dashboard(
         LazyColumn {
             itemsIndexed(statsList) { rowIndex, rowData ->
                 val backgroundColor = when (rowIndex) {
-                    0 -> Color(0xFF4FC3F7)
+                    0 -> Color(0xFF4FC3F7) // title color
                     else -> Color(0x00FFFFFF)
                 }
 
@@ -456,11 +456,6 @@ private fun Dashboard(
                         } else {
                             // same width
                             Modifier.weight(1f)
-                        }
-                        val cellTextWeight = if (rowIndex == 0 || colIndex == 0) {
-                            FontWeight.Bold
-                        } else {
-                            FontWeight.Normal
                         }
 
                         Box(
@@ -478,9 +473,9 @@ private fun Dashboard(
                                 style = LocalTextStyle.current.copy(
                                     fontSize = 12.sp,
                                     textAlign = TextAlign.Center,
-                                    fontWeight = cellTextWeight,
+                                    fontWeight = cellText.weight,
                                 ),
-                                color = cellText.color ?: Color.Unspecified,
+                                color = cellText.color,
                             )
                         }
                     }

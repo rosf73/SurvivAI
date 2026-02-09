@@ -136,11 +136,11 @@ class ColosseumEngine(
         val firstPlayerSurvivePoint = totalPlayTime + 60000
 
         val title = listOf(listOf(
-            StatCell("NAME", color = Color.Black),
-            StatCell("ATTACK", color = Color.Black),
-            StatCell("KILL", color = Color.Black),
-            StatCell("SURVIVE", color = Color.Black),
-            StatCell("총점", color = Color.Black),
+            StatCell.rowTitle("NAME"),
+            StatCell.rowTitle("ATTACK"),
+            StatCell.rowTitle("KILL"),
+            StatCell.rowTitle("SURVIVE"),
+            StatCell.rowTitle("SCORE"),
         ))
 
         // 순위 기준값 먼저 계산
@@ -160,7 +160,7 @@ class ColosseumEngine(
             val statColor = if (it.isAlive) Color.Yellow else Color.White
 
             listOf(
-                StatCell(it.name, color = it.color),
+                StatCell.colLabel(it.name, color = it.color),
                 StatCell(it.attackPoint.toString(), color = statColor),
                 StatCell(it.killPoint.toString(), color = statColor),
                 StatCell(surviveTimeStr, color = statColor),

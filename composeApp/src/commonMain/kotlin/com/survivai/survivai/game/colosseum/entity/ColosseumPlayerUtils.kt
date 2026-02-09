@@ -30,14 +30,14 @@ private val playerNames = listOf(
  * 사용 가능한 플레이어 색상 팔레트
  */
 private val playerColorPalette = listOf(
-    Color(0xFFE73F3C), // Red
+    Color(0xFFE77F3C), // Orange
     Color(0xFF3498DB), // Blue
     Color(0xFF2ECC71), // Green
     Color(0xFFF3CC12), // Yellow
     Color(0xFF9B59B6), // Purple
-    Color(0xFF7ABCBC), // Sky Blue
+    Color(0xFF666666), // Dark Gray
     Color(0xFFE91E63), // Pink
-    Color(0xFFAAAAAA), // Gray
+    Color(0xFFBBBBBB), // Gray
 )
 
 data class PlayerInitPair(

@@ -2,6 +2,7 @@ package com.survivai.survivai.game.colosseum.logic
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.common.msToMMSS
@@ -135,11 +136,11 @@ class ColosseumEngine(
         val firstPlayerSurvivePoint = totalPlayTime + 60000
 
         val title = listOf(listOf(
-            StatCell("NAME"),
-            StatCell("ATTACK"),
-            StatCell("KILL"),
-            StatCell("SURVIVE"),
-            StatCell("총점"),
+            StatCell("NAME", color = Color.Black),
+            StatCell("ATTACK", color = Color.Black),
+            StatCell("KILL", color = Color.Black),
+            StatCell("SURVIVE", color = Color.Black),
+            StatCell("총점", color = Color.Black),
         ))
 
         // 순위 기준값 먼저 계산
@@ -156,13 +157,14 @@ class ColosseumEngine(
                 if (it.deathTime == 0L) "${totalPlayTime.msToMMSS()}(+01:00)"
                 else surviveTime.msToMMSS()
             val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime.toFloat() / totalSurvivePoint) * 100
+            val statColor = if (it.isAlive) Color.Yellow else Color.White
 
             listOf(
                 StatCell(it.name, color = it.color),
-                StatCell(it.attackPoint.toString()),
-                StatCell(it.killPoint.toString()),
-                StatCell(surviveTimeStr),
-                StatCell(score.toInt().toString()),
+                StatCell(it.attackPoint.toString(), color = statColor),
+                StatCell(it.killPoint.toString(), color = statColor),
+                StatCell(surviveTimeStr, color = statColor),
+                StatCell(score.toInt().toString(), color = statColor),
             )
         }.sortedByDescending {
             it.last().stat.toInt()

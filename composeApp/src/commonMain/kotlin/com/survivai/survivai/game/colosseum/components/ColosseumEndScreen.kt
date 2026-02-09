@@ -432,14 +432,13 @@ private fun Dashboard(
             .border(
                 BorderStroke(3.dp, Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))),
             ),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF222222)),
+        colors = CardDefaults.cardColors(containerColor = Color(0x00FFFFFF)),
     ) {
         LazyColumn {
             itemsIndexed(statsList) { rowIndex, rowData ->
                 val backgroundColor = when (rowIndex) {
                     0 -> Color(0xFF4FC3F7)
-                    1 -> Color(0xFFFFF9C4)
-                    else -> Color(0x80FFFFFF)
+                    else -> Color(0x00FFFFFF)
                 }
 
                 Row(
@@ -452,13 +451,18 @@ private fun Dashboard(
                             // same width
                             Modifier.weight(1f)
                         }
+                        val cellTextWeight = if (rowIndex == 0 || colIndex == 0) {
+                            FontWeight.Bold
+                        } else {
+                            FontWeight.Normal
+                        }
 
                         Box(
                             modifier = cellModifier
                                 .background(backgroundColor)
                                 .border(
                                     width = 1.dp,
-                                    color = Color(0xFF666666),
+                                    color = Color(0xFFCCCCCC),
                                 )
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center
@@ -467,7 +471,8 @@ private fun Dashboard(
                                 text = cellText.stat,
                                 style = LocalTextStyle.current.copy(
                                     fontSize = 12.sp,
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = cellTextWeight,
                                 ),
                                 color = cellText.color ?: Color.Unspecified,
                             )

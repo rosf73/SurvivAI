@@ -1,6 +1,9 @@
 package com.survivai.survivai
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import survivai.composeapp.generated.resources.Res
@@ -14,7 +17,7 @@ import org.w3c.fetch.Response
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalWasmJsInterop::class)
 @Composable
-actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver) {
+actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver): State<Boolean> {
 //    var fontsLoaded by remember { mutableStateOf(false) }
 //
 //    LaunchedEffect(Unit) {
@@ -33,5 +36,6 @@ actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver) 
 //            e.printStackTrace()
 //        }
 //    }
+    return remember { mutableStateOf(true) }
 }
 

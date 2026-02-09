@@ -1,6 +1,10 @@
 package com.survivai.survivai
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import survivai.composeapp.generated.resources.Res
@@ -14,8 +18,8 @@ import org.w3c.fetch.Response
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalWasmJsInterop::class)
 @Composable
-actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver) {
-    var fontsLoaded by remember { mutableStateOf(false) }
+actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver): State<Boolean> {
+    val fontsLoaded = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         try {
@@ -25,12 +29,14 @@ actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver) 
                 Font("NotoEmojiColor", emojiBytes)
             )
             fontFamilyResolver.preload(emojiFont)
-            fontsLoaded = true
+            fontsLoaded.value = true
             println("✅ Emoji font preloaded successfully")
         } catch (e: Exception) {
             println("❌ Failed to preload emoji font: ${e.message}")
             e.printStackTrace()
+            fontsLoaded.value = true
         }
     }
+    return fontsLoaded
 }
 

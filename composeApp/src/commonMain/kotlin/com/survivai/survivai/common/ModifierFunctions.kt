@@ -1,8 +1,10 @@
 package com.survivai.survivai.common
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -34,4 +36,30 @@ fun Modifier.squareVerticalScrollbar(
             size = Size(width.toPx(), thumbHeight),
         )
     }
+}
+
+@Composable
+fun Modifier.survivAIBackground(): Modifier {
+    // dark vibe
+    return background(Color(0xFF0A0A0A))
+        .drawBehind {
+            // fine grid pattern
+            val gridSize = 20.dp.toPx()
+            for (x in 0..size.width.toInt() step gridSize.toInt()) {
+                drawLine(
+                    color = Color.White.copy(alpha = 0.05f),
+                    start = Offset(x.toFloat(), 0f),
+                    end = Offset(x.toFloat(), size.height),
+                    strokeWidth = 1f
+                )
+            }
+            for (y in 0..size.height.toInt() step gridSize.toInt()) {
+                drawLine(
+                    color = Color.White.copy(alpha = 0.05f),
+                    start = Offset(0f, y.toFloat()),
+                    end = Offset(size.width, y.toFloat()),
+                    strokeWidth = 1f
+                )
+            }
+        }
 }

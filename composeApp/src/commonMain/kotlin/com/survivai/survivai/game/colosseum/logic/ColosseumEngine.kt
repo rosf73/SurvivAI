@@ -63,6 +63,7 @@ class ColosseumEngine(
     suspend fun playGame(
         playerInitList: List<PlayerInitPair>,
         startHp: Double,
+        options: Set<DisasterOption>,
     ) {
         players = playerInitList.map { p ->
             ColosseumPlayerFactory(spriteLoader, this).createPlayer(

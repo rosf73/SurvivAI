@@ -103,11 +103,12 @@ fun Colosseum(
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
                     isLandscape = isLandscape,
-                    onClickStart = { players, hp ->
+                    onClickStart = { players, hp, options ->
                         coroutineScope.launch {
                             gameEngine.playGame(
                                 playerInitList = players,
                                 startHp = hp.toDouble(),
+                                options = options,
                             )
                         }
                     },

@@ -10,15 +10,19 @@ import com.survivai.survivai.game.Engine
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
+import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
+import com.survivai.survivai.game.colosseum.entity.PlayerInitPair
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import com.survivai.survivai.game.sprite.SpriteLoader
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 class ColosseumEngine(
+    private val spriteLoader: SpriteLoader,
 ) : Engine {
 
     // 게임 초기화됨
@@ -40,10 +44,6 @@ class ColosseumEngine(
     // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
     override val world = ColosseumWorld()
 
-    // 기본 HP 설정 (1~10)
-    var defaultHp = 3.0
-        private set
-
     // 게임 상태
     private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
     val gameState: State<ColosseumState> get() = _gameState
@@ -60,15 +60,21 @@ class ColosseumEngine(
     }
 
     @OptIn(ExperimentalTime::class)
-    fun setPlayers(newList: List<ColosseumPlayer>) {
-        players = newList
+    suspend fun playGame(
+        playerInitList: List<PlayerInitPair>,
+        startHp: Double,
+    ) {
+        players = playerInitList.map { p ->
+            ColosseumPlayerFactory(spriteLoader, this).createPlayer(
+                name = p.name,
+                color = p.color,
+                startHp = startHp,
+            )
+        }
+
         initialized = false  // 재초기화 필요
         _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
         tryInitialize()
-    }
-
-    fun setDefaultHp(hp: Double) {
-        defaultHp = hp.coerceIn(1.0, 10.0)
     }
 
     private fun initializeWorld(width: Float, height: Float) {
@@ -94,7 +100,7 @@ class ColosseumEngine(
             ColosseumPlayer(
                 name = player.name,
                 color = player.color,
-                startHp = defaultHp,
+                startHp = player.startHp,
                 spriteSheet = player.spriteSheet,
                 gameEngine = this,
             )
@@ -113,7 +119,6 @@ class ColosseumEngine(
         initialized = false
         world.buildMap(0f, 0f) // World 초기화
         players = emptyList()
-        defaultHp = 3.0  // HP 초기화
 
         // 게임 상태를 대기 상태로
         _gameState.value = ColosseumState.WaitingForPlayers

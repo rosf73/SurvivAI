@@ -30,7 +30,7 @@ import kotlin.random.Random
 data class ColosseumPlayer(
     val name: String,
     val color: Color,
-    private val startHp: Double,
+    val startHp: Double,
     val spriteSheet: SpriteSheet,
     val gameEngine: ColosseumEngine,
 ) : Entity {

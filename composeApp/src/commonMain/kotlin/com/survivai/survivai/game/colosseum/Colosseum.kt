@@ -23,8 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFontFamilyResolver
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -33,7 +31,6 @@ import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
-import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
@@ -48,7 +45,7 @@ fun Colosseum(
     val font = LocalFont.current
 
     val spriteLoader = remember { SpriteLoader() }
-    val gameEngine = remember { ColosseumEngine() }
+    val gameEngine = remember { ColosseumEngine(spriteLoader) }
     val coroutineScope = rememberCoroutineScope()
 
     // game state for recomposition
@@ -107,18 +104,11 @@ fun Colosseum(
                     modifier = Modifier.fillMaxSize(),
                     isLandscape = isLandscape,
                     onClickStart = { players, hp ->
-                        // Set HP
-                        gameEngine.setDefaultHp(hp.toDouble())
-                        // Set players
                         coroutineScope.launch {
-                            val players = players.map { p ->
-                                ColosseumPlayerFactory(spriteLoader, gameEngine).createPlayer(
-                                    name = p.name,
-                                    color = p.color,
-                                    startHp = gameEngine.defaultHp,
-                                )
-                            }
-                            gameEngine.setPlayers(players)
+                            gameEngine.playGame(
+                                playerInitList = players,
+                                startHp = hp.toDouble(),
+                            )
                         }
                     },
                 )

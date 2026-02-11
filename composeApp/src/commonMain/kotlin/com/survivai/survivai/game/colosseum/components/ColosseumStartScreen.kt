@@ -3,6 +3,7 @@ package com.survivai.survivai.game.colosseum.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridItemSpanScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -204,16 +206,16 @@ private fun SettingArea(
             modifier = modifier,
             header = { span ->
                 // HP Setting
-                item(span = span) {
+                item(span = { GridItemSpan(span / 2) }) {
                     HpSettingCard(
                         hpValue = hp.roundToInt(),
                         onHpChange = updateHp,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
-                item(span = span) {
+                item(span = { GridItemSpan(span / 2) }) {
                     OptionSettingCard(
-                        options = options,
+                        checkedOptions = options,
                         onOptionsChecked = addOption,
                         onOptionsUnchecked = removeOption,
                         modifier = Modifier.fillMaxWidth(),
@@ -240,7 +242,7 @@ private fun SettingArea(
                 Spacer(modifier = Modifier.size(12.dp))
 
                 OptionSettingCard(
-                    options = options,
+                    checkedOptions = options,
                     onOptionsChecked = addOption,
                     onOptionsUnchecked = removeOption,
                     modifier = Modifier
@@ -324,11 +326,13 @@ private fun HpSettingCard(
 
 @Composable
 private fun OptionSettingCard(
-    options: List<DisasterOption>,
+    checkedOptions: List<DisasterOption>,
     onOptionsChecked: (DisasterOption) -> Unit,
     onOptionsUnchecked: (DisasterOption) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val wholeOptions = DisasterOption.entries
+
     Card(
         modifier = modifier
             .border(BorderStroke(1.dp, Color(0xFF333333)), CutCornerShape(4.dp)),
@@ -339,7 +343,7 @@ private fun OptionSettingCard(
             modifier = Modifier.padding(12.dp),
         ) {
             Text(
-                text = "DISASTER OPTION",
+                text = "RANDOM DISASTERS MODE",
                 style = LocalTextStyle.current.copy(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
@@ -347,6 +351,48 @@ private fun OptionSettingCard(
                     letterSpacing = 1.sp
                 ),
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            wholeOptions.forEach { option ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            if (option in checkedOptions) {
+                                onOptionsUnchecked(option)
+                            } else {
+                                onOptionsChecked(option)
+                            }
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = option in checkedOptions,
+                        onCheckedChange = { isChecked ->
+                            if (isChecked) {
+                                onOptionsChecked(option)
+                            } else {
+                                onOptionsUnchecked(option)
+                            }
+                        },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Color(0xFF00E5FF),
+                            uncheckedColor = Color(0xFF555555),
+                            checkmarkColor = Color.Black
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = option.label,
+                        style = LocalTextStyle.current.copy(
+                            color = if (option in checkedOptions) Color.White else Color.Gray,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    )
+                }
+            }
         }
     }
 }
@@ -359,7 +405,7 @@ private fun PlayerSettingArea(
     addPlayer: (PlayerInitPair) -> Unit,
     isLandscape: Boolean,
     modifier: Modifier = Modifier,
-    header: LazyGridScope.(span: LazyGridItemSpanScope.() -> GridItemSpan) -> Unit = {},
+    header: LazyGridScope.(span: Int) -> Unit = {},
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -370,7 +416,7 @@ private fun PlayerSettingArea(
         item(span = { GridItemSpan(2) }) {
             Spacer(modifier = Modifier.size(0.dp))
         }
-        header({ GridItemSpan(2) })
+        header(2)
 
         // Players (2 Columns)
         itemsIndexed(players) { index, player ->

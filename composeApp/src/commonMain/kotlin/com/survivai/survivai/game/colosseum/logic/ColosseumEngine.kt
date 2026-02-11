@@ -262,7 +262,7 @@ class ColosseumEngine(
         entities = entities.map {
             it.apply {
                 if (this is ColosseumPlayer) {
-                    if (name == name) {
+                    if (this.name == name) {
                         killPoint += 1
                     }
                 }

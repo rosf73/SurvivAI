@@ -96,14 +96,38 @@ class ColosseumFallingRock(
                 if (kotlin.math.abs(x - player.x) < hitThresholdX && 
                     kotlin.math.abs(y - player.y) < hitThresholdY) {
 
-                    // Inflict damage
-                    val success = player.receiveDamage(attacker = this, power = 800f) // stronger knockback
-                    if (success) {
-                        gameEngine.addLog(Log.Solo(player, "으악! 돌에 맞았어!"))
-                        return
+                    // Check speed for damage
+                    if (velocityY > SPEED_THRESHOLD) {
+                        // Inflict damage
+                        val success = player.receiveDamage(attacker = this, power = 800f)
+                        if (success) {
+                            gameEngine.addLog(Log.Solo(player, "으악! 낙석이다!"))
+                            gameEngine.destroyEntity(this)
+                            return
+                        }
+                    } else {
+                        // Just push (physics interaction)
+                        val dx = player.x - x
+                        val pushDir = if (dx >= 0) -1f else 1f
+
+                        // Push player slightly
+                        // player.x += -pushDir * 20f // Player might be pushed by rock (optional)
+
+                        // Push rock
+                        x += pushDir * 20f
+
+                        // If falling on top of player, maybe bounce up a bit
+                        if (y < player.y) {
+                            velocityY = -300f
+                            y -= 10f
+                        }
                     }
                 }
             }
         }
+    }
+
+    companion object {
+        private const val SPEED_THRESHOLD = 800f
     }
 }

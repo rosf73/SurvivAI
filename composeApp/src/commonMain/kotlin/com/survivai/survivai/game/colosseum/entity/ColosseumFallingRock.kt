@@ -102,7 +102,6 @@ class ColosseumFallingRock(
                         val success = player.receiveDamage(attacker = this, power = 800f)
                         if (success) {
                             gameEngine.addLog(Log.Solo(player, "으악! 낙석이다!"))
-                            gameEngine.destroyEntity(this)
                             return
                         }
                     } else {

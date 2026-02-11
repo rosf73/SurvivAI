@@ -25,14 +25,10 @@ class ColosseumEngine(
     private val spriteLoader: SpriteLoader,
 ) : Engine {
 
-    // 게임 초기화됨
     var initialized = false
         private set
-
-    // World 초기화 여부
     private val worldInitialized get() = world.viewportWidth > 0 && world.viewportHeight > 0
 
-    // 엔티티
     override var players = emptyList<Entity>()
         set(value) {
             field = value
@@ -41,17 +37,13 @@ class ColosseumEngine(
     var colosseumPlayers = emptyList<ColosseumPlayer>()
         private set
 
-    // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
     override val world = ColosseumWorld()
 
-    // 게임 상태
     private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
     val gameState: State<ColosseumState> get() = _gameState
 
-    // 로그 상태 추적
     val logUpdateState: State<Boolean> get() = LogManager.itemUpdateState
 
-    // 로그 리스트
     val logEntries: List<Log> get() = LogManager.logEntries
 
     fun setViewportSize(width: Float, height: Float) {

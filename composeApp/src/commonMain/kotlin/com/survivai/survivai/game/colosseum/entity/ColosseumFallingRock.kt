@@ -1,5 +1,6 @@
 package com.survivai.survivai.game.colosseum.entity
 
+import androidx.compose.ui.graphics.Color
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
@@ -21,6 +22,9 @@ class ColosseumFallingRock(
         width = Random.nextFloat() * 128 + 64, // 64.0 ~ 192.0
         height = Random.nextFloat() * 128 + 64, // 64.0 ~ 192.0
     )
+
+    override val name = "낙석"
+    override val signatureColor = Color.Gray
 
     override var x: Float = Random.nextFloat() * 1920
     override var y: Float = -128f // ceiling

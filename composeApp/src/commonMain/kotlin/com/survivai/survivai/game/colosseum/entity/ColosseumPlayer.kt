@@ -28,8 +28,8 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 data class ColosseumPlayer(
-    val name: String,
-    val color: Color,
+    override val name: String,
+    override val signatureColor: Color,
     val startHp: Double,
     val spriteSheet: SpriteSheet,
     val gameEngine: ColosseumEngine,
@@ -50,7 +50,7 @@ data class ColosseumPlayer(
 
     override val components: MutableList<Component> = mutableListOf(
         SpriteComponent(spriteSheet = spriteSheet),
-        ColorComponent(tintColor = color),
+        ColorComponent(tintColor = signatureColor),
         colliderComponent,
         damageableComponent,
     )

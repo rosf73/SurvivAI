@@ -98,7 +98,7 @@ class ColosseumEngine(
         val newPlayers = colosseumPlayers.map { player ->
             ColosseumPlayer(
                 name = player.name,
-                color = player.color,
+                signatureColor = player.signatureColor,
                 startHp = player.startHp,
                 spriteSheet = player.spriteSheet,
                 gameEngine = this,
@@ -164,7 +164,7 @@ class ColosseumEngine(
             val statColor = if (it.isAlive) Color.Yellow else Color.White
 
             listOf(
-                StatCell.colLabel(it.name, color = it.color),
+                StatCell.colLabel(it.name, color = it.signatureColor),
                 StatCell(it.attackPoint.toString(), color = statColor),
                 StatCell(it.killPoint.toString(), color = statColor),
                 StatCell(surviveTimeStr, color = statColor),

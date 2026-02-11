@@ -1,5 +1,6 @@
 package com.survivai.survivai.game
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.game.component.Component
@@ -7,6 +8,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
 interface Entity {
+    val name: String
+    val signatureColor: Color
+
     var x: Float
     var y: Float
     var width: Float

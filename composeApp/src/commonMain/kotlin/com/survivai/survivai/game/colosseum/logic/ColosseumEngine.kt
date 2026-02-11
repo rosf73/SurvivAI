@@ -39,6 +39,9 @@ class ColosseumEngine(
 
     override val world = ColosseumWorld()
 
+    var colosseumOptions = setOf<DisasterOption>()
+        private set
+
     private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
     val gameState: State<ColosseumState> get() = _gameState
 
@@ -64,6 +67,7 @@ class ColosseumEngine(
                 startHp = startHp,
             )
         }
+        colosseumOptions = options
 
         initialized = false  // 재초기화 필요
         _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
@@ -254,6 +258,16 @@ class ColosseumEngine(
                     deathTime = Clock.System.now().toEpochMilliseconds()
                 }
             }
+        }
+    }
+
+    // 터치 (클릭)
+    fun onScreenTouch(x: Float, y: Float) {
+        if (!initialized) return
+
+        // 특정 옵션에 따른 로직 수행 (예: FALLING_ROCKS)
+        if (colosseumOptions.contains(DisasterOption.FALLING_ROCKS)) {
+            // TODO: call falling rock logic
         }
     }
 

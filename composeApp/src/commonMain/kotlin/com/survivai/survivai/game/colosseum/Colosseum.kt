@@ -1,7 +1,8 @@
 package com.survivai.survivai.game.colosseum
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Canvas as ComposeCanvas
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -116,7 +118,7 @@ fun Colosseum(
             }
             is ColosseumState.Playing -> {
                 // Canvas (World + Players)
-                ComposeCanvas(
+                Canvas(
                     modifier = Modifier
                         .requiredSize( // fixed logical screen
                             width = with(density) { logicalWidth.toDp() },
@@ -125,6 +127,15 @@ fun Colosseum(
                         .graphicsLayer(
                             scaleX = scale,
                             scaleY = scale,
+                        )
+                        .then(
+                            if (gameEngine.colosseumOptions.any { it.clickable }) {
+                                Modifier.pointerInput(Unit) {
+                                    detectTapGestures { offset ->
+                                        gameEngine.onScreenTouch(offset.x, offset.y)
+                                    }
+                                }
+                            } else Modifier
                         )
                         .onSizeChanged {
                             val size = it.toSize()

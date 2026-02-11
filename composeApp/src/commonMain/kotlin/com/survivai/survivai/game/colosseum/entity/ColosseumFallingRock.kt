@@ -9,6 +9,7 @@ import com.survivai.survivai.game.component.Component
 import com.survivai.survivai.game.component.SpriteComponent
 import com.survivai.survivai.game.sprite.ActionState
 import com.survivai.survivai.game.sprite.SpriteSheet
+import com.survivai.survivai.game.colosseum.logic.Log
 import kotlin.random.Random
 
 class ColosseumFallingRock(
@@ -77,6 +78,28 @@ class ColosseumFallingRock(
         // Check if out of bounds (removal)
         if (y > world.viewportHeight + height) {
             gameEngine.destroyEntity(this)
+            return
+        }
+
+        // Check collision with players
+        gameEngine.colosseumPlayers.forEach { player ->
+            if (player.isAlive) {
+                // Simple AABB collision detection
+                // Using 50% reduced hitbox for more forgiving gameplay
+                val hitThresholdX = (width + player.width) / 4
+                val hitThresholdY = (height + player.height) / 4
+
+                if (kotlin.math.abs(x - player.x) < hitThresholdX && 
+                    kotlin.math.abs(y - player.y) < hitThresholdY) {
+
+                    // Inflict damage
+                    val success = player.receiveDamage(attackerX = x, power = 800f) // stronger knockback
+                    if (success) {
+                        gameEngine.addLog(Log.Solo(player, "으악! 돌에 맞았어!"))
+                        return
+                    }
+                }
+            }
         }
     }
 }

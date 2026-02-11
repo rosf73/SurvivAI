@@ -94,7 +94,7 @@ class ColosseumEngine(
 
     @OptIn(ExperimentalTime::class)
     fun restart() {
-        // Remain only players (HP reset)
+        // Remain only entities (HP reset)
         val newPlayers = colosseumPlayers.map { player ->
             ColosseumPlayer(
                 name = player.name,
@@ -267,13 +267,12 @@ class ColosseumEngine(
         }
     }
 
-    // 터치 (클릭)
+    // Touch or Click
     suspend fun onScreenTouch(x: Float, y: Float) {
         if (!initialized || gameState.value !is ColosseumState.Playing) return
 
-        // 특정 옵션에 따른 로직 수행 (예: FALLING_ROCKS)
         if (colosseumOptions.contains(DisasterOption.FALLING_ROCKS)) {
-            // TODO: call falling rock logic
+            entities += entityFactory.createFallingRock()
         }
     }
 
@@ -285,8 +284,8 @@ class ColosseumEngine(
         // Get alive players
         val alivePlayers = colosseumPlayers.filter { it.isAlive }
 
-        // Call Entity::update
-        colosseumPlayers.forEach { it.update(deltaTime, world) }
+        // Update all entities
+        entities.forEach { it.update(deltaTime, world) }
 
         // (중계 로그) 대사
         alivePlayers.forEachIndexed { _, p ->
@@ -377,6 +376,10 @@ class ColosseumEngine(
         // 엔티티
         entities
             .forEach { it.render(context, textMeasurer, fontFamily) }
+    }
+
+    fun destroyEntity(entity: Entity) {
+        entities -= entity
     }
 
     fun addLog(log: Log) {

@@ -94,4 +94,24 @@ class ColosseumEntityFactory(
             name, color, startHp, sheet, gameEngine,
         )
     }
+
+    suspend fun createFallingRock(): ColosseumFallingRock = coroutineScope {
+        val idleAnimation = async {
+            loader.load(
+                "sprite_rock.png",
+                SpriteAnimationData.fixed(
+                    frameSize = Size(128f, 128f),
+                ),
+            )
+        }
+
+        val sheet = SpriteSheet(
+            imageSize = Size(128f, 128f),
+            animations = mapOf(
+                ActionState.IDLE to listOf(idleAnimation.await()),
+            ),
+        )
+
+        ColosseumFallingRock(spriteSheet = sheet, gameEngine = gameEngine)
+    }
 }

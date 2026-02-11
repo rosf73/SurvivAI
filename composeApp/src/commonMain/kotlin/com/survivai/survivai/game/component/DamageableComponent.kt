@@ -4,7 +4,7 @@ import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import kotlin.math.min
 
-class CombatComponent(
+class DamageableComponent(
     var hp: Double,
     val invincibilityTime: Double = 0.0,
     val onDeath: (() -> Unit)? = null,

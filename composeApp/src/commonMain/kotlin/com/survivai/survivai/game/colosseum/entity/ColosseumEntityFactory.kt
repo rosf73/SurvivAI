@@ -2,7 +2,6 @@ package com.survivai.survivai.game.colosseum.entity
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.sprite.ActionState
 import com.survivai.survivai.game.sprite.SpriteAnimationData
@@ -11,7 +10,7 @@ import com.survivai.survivai.game.sprite.SpriteSheet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-class ColosseumPlayerFactory(
+class ColosseumEntityFactory(
     private val loader: SpriteLoader,
     private val gameEngine: ColosseumEngine,
 ) {

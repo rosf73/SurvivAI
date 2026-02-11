@@ -10,7 +10,7 @@ import com.survivai.survivai.game.Engine
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
-import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
+import com.survivai.survivai.game.colosseum.entity.ColosseumEntityFactory
 import com.survivai.survivai.game.colosseum.entity.PlayerInitPair
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.entity.initializePositions
@@ -29,7 +29,7 @@ class ColosseumEngine(
         private set
     private val worldInitialized get() = world.viewportWidth > 0 && world.viewportHeight > 0
 
-    override var players = emptyList<Entity>()
+    override var entities = emptyList<Entity>()
         set(value) {
             field = value
             colosseumPlayers = value.filterIsInstance<ColosseumPlayer>()
@@ -49,6 +49,8 @@ class ColosseumEngine(
 
     val logEntries: List<Log> get() = LogManager.logEntries
 
+    private val entityFactory = ColosseumEntityFactory(spriteLoader, this)
+
     fun setViewportSize(width: Float, height: Float) {
         initializeWorld(width, height)
         tryInitialize()
@@ -60,8 +62,8 @@ class ColosseumEngine(
         startHp: Double,
         options: Set<DisasterOption>,
     ) {
-        players = playerInitList.map { p ->
-            ColosseumPlayerFactory(spriteLoader, this).createPlayer(
+        entities = playerInitList.map { p ->
+            entityFactory.createPlayer(
                 name = p.name,
                 color = p.color,
                 startHp = startHp,
@@ -92,7 +94,7 @@ class ColosseumEngine(
 
     @OptIn(ExperimentalTime::class)
     fun restart() {
-        // 현재 플레이어 정보로 새 플레이어 생성 (HP 초기화)
+        // Remain only players (HP reset)
         val newPlayers = colosseumPlayers.map { player ->
             ColosseumPlayer(
                 name = player.name,
@@ -107,7 +109,7 @@ class ColosseumEngine(
         _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
 
         // 플레이어 재설정 및 재초기화
-        players = newPlayers
+        entities = newPlayers
         initialized = false
         tryInitialize()
     }
@@ -115,7 +117,7 @@ class ColosseumEngine(
     fun reset() {
         initialized = false
         world.buildMap(0f, 0f) // World 초기화
-        players = emptyList()
+        entities = emptyList()
 
         // 게임 상태를 대기 상태로
         _gameState.value = ColosseumState.WaitingForPlayers
@@ -238,10 +240,12 @@ class ColosseumEngine(
 
     // 타격 횟수
     fun updatePlayerAttackPoint(name: String) {
-        players = colosseumPlayers.map {
+        entities = entities.map {
             it.apply {
-                if (this.name == name) {
-                    attackPoint += 1
+                if (this is ColosseumPlayer) {
+                    if (this.name == name) {
+                        attackPoint += 1
+                    }
                 }
             }
         }
@@ -250,20 +254,22 @@ class ColosseumEngine(
     // 결정타 횟수, 탈락자 생존시간
     @OptIn(ExperimentalTime::class)
     fun updatePlayerKillPoint(killerName: String, victimName: String) {
-        players = colosseumPlayers.map {
+        entities = entities.map {
             it.apply {
-                if (name == killerName) {
-                    killPoint += 1
-                } else if (name == victimName) {
-                    deathTime = Clock.System.now().toEpochMilliseconds()
+                if (this is ColosseumPlayer) {
+                    if (name == killerName) {
+                        killPoint += 1
+                    } else if (name == victimName) {
+                        deathTime = Clock.System.now().toEpochMilliseconds()
+                    }
                 }
             }
         }
     }
 
     // 터치 (클릭)
-    fun onScreenTouch(x: Float, y: Float) {
-        if (!initialized) return
+    suspend fun onScreenTouch(x: Float, y: Float) {
+        if (!initialized || gameState.value !is ColosseumState.Playing) return
 
         // 특정 옵션에 따른 로직 수행 (예: FALLING_ROCKS)
         if (colosseumOptions.contains(DisasterOption.FALLING_ROCKS)) {
@@ -369,7 +375,7 @@ class ColosseumEngine(
         world.render(context)
 
         // 엔티티
-        players
+        entities
             .forEach { it.render(context, textMeasurer, fontFamily) }
     }
 

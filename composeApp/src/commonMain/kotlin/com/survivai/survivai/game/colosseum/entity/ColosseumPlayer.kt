@@ -17,7 +17,7 @@ import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.ColorComponent
-import com.survivai.survivai.game.component.CombatComponent
+import com.survivai.survivai.game.component.DamageableComponent
 import com.survivai.survivai.game.component.Component
 import com.survivai.survivai.game.component.SpriteComponent
 import com.survivai.survivai.game.sprite.ActionState
@@ -35,7 +35,7 @@ data class ColosseumPlayer(
     val gameEngine: ColosseumEngine,
 ) : Entity {
 
-    private val combatComponent = CombatComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
+    private val damageableComponent = DamageableComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
     private val colliderComponent = ColliderComponent(width = 64f, height = 64f)
 
     // Position (Center offset)
@@ -52,7 +52,7 @@ data class ColosseumPlayer(
         SpriteComponent(spriteSheet = spriteSheet),
         ColorComponent(tintColor = color),
         colliderComponent,
-        combatComponent,
+        damageableComponent,
     )
 
     val halfWidth get() = width / 2
@@ -87,10 +87,10 @@ data class ColosseumPlayer(
     private var inAction = false
 
     // HP
-    val hp: Double get() = combatComponent.hp
+    val hp: Double get() = damageableComponent.hp
 
     // 생존 여부
-    val isAlive: Boolean get() = combatComponent.isAlive
+    val isAlive: Boolean get() = damageableComponent.isAlive
 
     // Event flags
     private var justSpeeched = ""
@@ -599,7 +599,7 @@ data class ColosseumPlayer(
     // damaged
     fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
         // 데미지
-        val damaged = combatComponent.takeDamage(1.0)
+        val damaged = damageableComponent.takeDamage(1.0)
         if (!damaged) return false
         if (!isAlive) {
             state = ActionState.DIE
@@ -621,7 +621,7 @@ data class ColosseumPlayer(
         return true
     }
 
-    companion object Companion {
+    companion object {
         private const val ACTION_IDLE_PROBABILITY = 0.02
         private const val ATTACK_PREPARE_DURATION = 1.0f   // 선딜
         private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격

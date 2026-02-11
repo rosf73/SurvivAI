@@ -36,6 +36,7 @@ import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -132,7 +133,9 @@ fun Colosseum(
                             if (gameEngine.colosseumOptions.any { it.clickable }) {
                                 Modifier.pointerInput(Unit) {
                                     detectTapGestures { offset ->
-                                        gameEngine.onScreenTouch(offset.x, offset.y)
+                                        coroutineScope.launch(Dispatchers.Main) {
+                                            gameEngine.onScreenTouch(offset.x, offset.y)
+                                        }
                                     }
                                 }
                             } else Modifier

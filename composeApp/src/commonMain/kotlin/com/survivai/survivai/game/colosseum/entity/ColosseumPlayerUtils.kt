@@ -108,7 +108,7 @@ fun List<ColosseumPlayer>.initializePositions(world: ColosseumWorld) {
  * 타격 성공 여부
  */
 fun List<ColosseumPlayer>.detectAttackDamagedThisFrame(
-    onDetected: (ColosseumPlayer, ColosseumPlayer) -> Unit,
+    onDetected: (ColosseumPlayer) -> Unit,
 ) {
     val hitThisFrame = mutableSetOf<Pair<Int, Int>>()
 
@@ -126,12 +126,17 @@ fun List<ColosseumPlayer>.detectAttackDamagedThisFrame(
             if (inFront && abs(dx) <= reach && abs(dy) <= heightTol) {
                 val key = i to j
                 if (hitThisFrame.add(key)) {
-                    val damaged = target.receiveDamage(attacker.x, power = 700f)
+                    val damaged = target.receiveDamage(attacker, power = 700f)
                     if (damaged) {
-                        onDetected(attacker, target)
+                        onDetected(attacker)
                     }
                 }
             }
         }
     }
+}
+
+fun List<ColosseumPlayer>.isAllAlive(): Boolean {
+    val aliveCount = count { it.isAlive }
+    return size == aliveCount
 }

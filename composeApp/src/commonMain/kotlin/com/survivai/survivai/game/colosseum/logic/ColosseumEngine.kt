@@ -152,13 +152,19 @@ class ColosseumEngine(
         var totalSurvivePoint = 0L
         for (p in colosseumPlayers) {
             totalAttackPoint += p.attackPoint
-            totalSurvivePoint += if (p.deathTime == 0L) firstPlayerSurvivePoint else p.deathTime - startTime
+            totalSurvivePoint += if (p.isAlive) firstPlayerSurvivePoint else p.deathTime - startTime
+        }
+        if (totalAttackPoint == 0f) {
+            totalAttackPoint = 1f
+        }
+        if (totalSurvivePoint == 0L) {
+            totalSurvivePoint = 1
         }
 
         return title + colosseumPlayers.map {
-            val surviveTime = if (it.deathTime == 0L) firstPlayerSurvivePoint else it.deathTime - startTime
+            val surviveTime = if (it.isAlive) firstPlayerSurvivePoint else it.deathTime - startTime
             val surviveTimeStr =
-                if (it.deathTime == 0L) "${totalPlayTime.msToMMSS()}(+01:00)"
+                if (it.isAlive) "${totalPlayTime.msToMMSS()}(+01:00)"
                 else surviveTime.msToMMSS()
             val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime.toFloat() / totalSurvivePoint) * 100
             val statColor = if (it.isAlive) Color.Yellow else Color.White
@@ -238,7 +244,7 @@ class ColosseumEngine(
         return titles
     }
 
-    // 타격 횟수
+    // Update player's attack point
     fun updatePlayerAttackPoint(name: String) {
         entities = entities.map {
             it.apply {
@@ -251,16 +257,13 @@ class ColosseumEngine(
         }
     }
 
-    // 결정타 횟수, 탈락자 생존시간
-    @OptIn(ExperimentalTime::class)
-    fun updatePlayerKillPoint(killerName: String, victimName: String) {
+    // Update player's kill point
+    fun updatePlayerKillPoint(name: String) {
         entities = entities.map {
             it.apply {
                 if (this is ColosseumPlayer) {
-                    if (name == killerName) {
+                    if (name == name) {
                         killPoint += 1
-                    } else if (name == victimName) {
-                        deathTime = Clock.System.now().toEpochMilliseconds()
                     }
                 }
             }
@@ -327,45 +330,10 @@ class ColosseumEngine(
             }
         }
 
-        // first blood 체크 (race condition 방지)
-        var isFirstBloodFrame = (alivePlayers.size == colosseumPlayers.size)
-
         // Attack detection
-        alivePlayers.detectAttackDamagedThisFrame { attacker, target ->
-            // 스탯 업데이트
+        alivePlayers.detectAttackDamagedThisFrame { attacker ->
+            // Update stat
             updatePlayerAttackPoint(attacker.name)
-
-            if (target.hp > 0) {
-                addLog(Log.Duo(
-                    perpetrator = attacker,
-                    victim = target,
-                    interaction = "🤜",
-                    additional = "(HP=${target.hp})",
-                ))
-            } else {
-                // 스탯 업데이트
-                updatePlayerKillPoint(
-                    killerName = attacker.name,
-                    victimName = target.name,
-                )
-
-                if (isFirstBloodFrame) { // first blood
-                    addLog(Log.Duo(
-                        perpetrator = attacker,
-                        victim = target,
-                        interaction = "에 의해",
-                        additional = "First Blood! 😭",
-                    ))
-                    isFirstBloodFrame = false
-                } else {
-                    addLog(Log.Duo(
-                        perpetrator = attacker,
-                        victim = target,
-                        interaction = "에 의해",
-                        additional = "탈락! 😭",
-                    ))
-                }
-            }
         }
     }
 

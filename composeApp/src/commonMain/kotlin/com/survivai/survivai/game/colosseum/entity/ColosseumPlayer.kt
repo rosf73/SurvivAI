@@ -14,6 +14,7 @@ import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.logic.Log
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.ColorComponent
@@ -26,6 +27,8 @@ import kotlin.enums.EnumEntries
 import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 data class ColosseumPlayer(
     override val name: String,
@@ -597,26 +600,59 @@ data class ColosseumPlayer(
     fun getNearestEnemyDistance(): Float = nearestEnemyDistance
 
     // damaged
-    fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
-        // 데미지
+    @OptIn(ExperimentalTime::class)
+    fun receiveDamage(attacker: Entity, power: Float = 600f): Boolean {
+        val isFirstBlood = gameEngine.colosseumPlayers.isAllAlive()
+
         val damaged = damageableComponent.takeDamage(1.0)
         if (!damaged) return false
         if (!isAlive) {
             state = ActionState.DIE
+            deathTime = Clock.System.now().toEpochMilliseconds()
+
+            // Update result stat
+            if (attacker is ColosseumPlayer) {
+                gameEngine.updatePlayerKillPoint(name = attacker.name)
+            }
+
+            if (isFirstBlood) {
+                gameEngine.addLog(Log.Duo(
+                    perpetrator = attacker,
+                    victim = this,
+                    interaction = "에 의해",
+                    additional = "First Blood! 😭",
+                ))
+            } else {
+                gameEngine.addLog(Log.Duo(
+                    perpetrator = attacker,
+                    victim = this,
+                    interaction = "에 의해",
+                    additional = "탈락! 😭",
+                ))
+            }
+        } else {
+            // Knockback
+            val dir = if (attacker.x < x) 1f else -1f
+            velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
+
+            // Jump out
+            velocityY = -200f
+            onPlatform = false
+
+            // Cancel actions
+            attackState = AttackState.NONE
+            attackTimer = 0f
+            inAction = true
+
+            if (attacker is ColosseumPlayer) {
+                gameEngine.addLog(Log.Duo(
+                    perpetrator = attacker,
+                    victim = this,
+                    interaction = "🤜",
+                    additional = "(HP=$hp)",
+                ))
+            }
         }
-
-        // 넉백
-        val dir = if (attackerX < x) 1f else -1f
-        velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
-
-        // 약간 점프
-        velocityY = -200f
-        onPlatform = false
-
-        // 액션 취소
-        attackState = AttackState.NONE
-        attackTimer = 0f
-        inAction = true
 
         return true
     }
@@ -629,7 +665,7 @@ data class ColosseumPlayer(
         private const val IDLE_MAX_DURATION = 0.5f
         private const val MAX_SPEED = 2000f
         private const val FRICTION = 0.95f // 마찰력 계수
-        private const val INVINCIBLE_DURATION = 0.5 // invincible time
+        private const val INVINCIBLE_DURATION = 0.8 // invincible time
 
         // 가중치 조정 파라미터
         private const val NEARBY_RANGE_MULTIPLIER = 4f // attackReach의 배수로 주변 범위 결정

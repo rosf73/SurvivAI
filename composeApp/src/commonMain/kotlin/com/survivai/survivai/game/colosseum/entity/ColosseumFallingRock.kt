@@ -97,7 +97,7 @@ class ColosseumFallingRock(
                     kotlin.math.abs(y - player.y) < hitThresholdY) {
 
                     // Inflict damage
-                    val success = player.receiveDamage(attackerX = x, power = 800f) // stronger knockback
+                    val success = player.receiveDamage(attacker = this, power = 800f) // stronger knockback
                     if (success) {
                         gameEngine.addLog(Log.Solo(player, "으악! 돌에 맞았어!"))
                         return

@@ -11,6 +11,7 @@ import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
 import com.survivai.survivai.game.colosseum.entity.ColosseumEntityFactory
+import com.survivai.survivai.game.colosseum.entity.ColosseumTouchEffect
 import com.survivai.survivai.game.colosseum.entity.PlayerInitPair
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.entity.initializePositions
@@ -276,6 +277,7 @@ class ColosseumEngine(
 
         if (colosseumOptions.contains(DisasterOption.FALLING_ROCKS)) {
             entities += entityFactory.createFallingRock()
+            entities += ColosseumTouchEffect(x, y, gameEngine = this)
         }
     }
 

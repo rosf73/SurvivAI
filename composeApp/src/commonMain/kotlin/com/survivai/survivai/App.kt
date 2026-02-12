@@ -1,5 +1,8 @@
 package com.survivai.survivai
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -97,11 +100,10 @@ fun App(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        VersionText(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                        )
+                        VersionText()
 
                         GitHubButton(
                             openLink = openLink,
@@ -112,6 +114,7 @@ fun App(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         GitHubIconButton(
@@ -119,9 +122,7 @@ fun App(
                             modifier = Modifier.size(30.dp)
                         )
 
-                        VersionText(
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                        )
+                        VersionText()
                     }
                 }
             }
@@ -135,13 +136,19 @@ fun App(
 private fun VersionText(
     modifier: Modifier = Modifier,
 ) {
-    Spacer(modifier = Modifier.size(5.dp))
+    Spacer(modifier = Modifier.size(2.dp))
     Text(
-        modifier = modifier,
+        modifier = modifier
+            .background(
+                color = Color.DarkGray,
+                shape = RoundedCornerShape(4.dp),
+            )
+            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), RoundedCornerShape(4.dp))
+            .padding(6.dp, 1.dp),
         text = "v${BuildConfig.VERSION_NAME}",
-        style = TextStyle(fontSize = 12.sp, color = Color.Gray),
+        style = TextStyle(fontSize = 12.sp, color = Color.White),
     )
-    Spacer(modifier = Modifier.size(5.dp))
+    Spacer(modifier = Modifier.size(2.dp))
 }
 
 @Composable

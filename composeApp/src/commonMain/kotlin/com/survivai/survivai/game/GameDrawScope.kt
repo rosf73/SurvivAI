@@ -27,11 +27,13 @@ class GameDrawScope private constructor(
         color: Color,
         center: Offset,
         radius: Float,
+        style: DrawStyle = Fill,
     ) {
         drawScope.drawCircle(
             color = color,
             center = center,
             radius = radius,
+            style = style,
         )
     }
 

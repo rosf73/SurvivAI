@@ -1,7 +1,8 @@
 package com.survivai.survivai.game.colosseum
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Canvas as ComposeCanvas
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,10 +22,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFontFamilyResolver
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -33,10 +33,10 @@ import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
-import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -48,7 +48,7 @@ fun Colosseum(
     val font = LocalFont.current
 
     val spriteLoader = remember { SpriteLoader() }
-    val gameEngine = remember { ColosseumEngine() }
+    val gameEngine = remember { ColosseumEngine(spriteLoader) }
     val coroutineScope = rememberCoroutineScope()
 
     // game state for recomposition
@@ -106,26 +106,20 @@ fun Colosseum(
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
                     isLandscape = isLandscape,
-                    onClickStart = { players, hp ->
-                        // Set HP
-                        gameEngine.setDefaultHp(hp.toDouble())
-                        // Set players
+                    onClickStart = { players, hp, options ->
                         coroutineScope.launch {
-                            val players = players.map { p ->
-                                ColosseumPlayerFactory(spriteLoader, gameEngine).createPlayer(
-                                    name = p.name,
-                                    color = p.color,
-                                    startHp = gameEngine.defaultHp,
-                                )
-                            }
-                            gameEngine.setPlayers(players)
+                            gameEngine.playGame(
+                                playerInitList = players,
+                                startHp = hp.toDouble(),
+                                options = options,
+                            )
                         }
                     },
                 )
             }
             is ColosseumState.Playing -> {
                 // Canvas (World + Players)
-                ComposeCanvas(
+                Canvas(
                     modifier = Modifier
                         .requiredSize( // fixed logical screen
                             width = with(density) { logicalWidth.toDp() },
@@ -134,6 +128,17 @@ fun Colosseum(
                         .graphicsLayer(
                             scaleX = scale,
                             scaleY = scale,
+                        )
+                        .then(
+                            if (gameEngine.colosseumOptions.any { it.clickable }) {
+                                Modifier.pointerInput(Unit) {
+                                    detectTapGestures { offset ->
+                                        coroutineScope.launch(Dispatchers.Main) {
+                                            gameEngine.onScreenTouch(offset.x, offset.y)
+                                        }
+                                    }
+                                }
+                            } else Modifier
                         )
                         .onSizeChanged {
                             val size = it.toSize()

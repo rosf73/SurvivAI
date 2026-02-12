@@ -10,26 +10,32 @@ import com.survivai.survivai.game.Engine
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
+import com.survivai.survivai.game.colosseum.entity.ColosseumEntityFactory
+import com.survivai.survivai.game.colosseum.entity.ColosseumTouchEffect
+import com.survivai.survivai.game.colosseum.entity.PlayerInitPair
 import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import com.survivai.survivai.game.sprite.SpriteLoader
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import com.survivai.survivai.game.colosseum.entity.ColosseumRunningCar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class ColosseumEngine(
+    spriteLoader: SpriteLoader,
 ) : Engine {
 
-    // 게임 초기화됨
     var initialized = false
         private set
-
-    // World 초기화 여부
     private val worldInitialized get() = world.viewportWidth > 0 && world.viewportHeight > 0
 
-    // 엔티티
-    override var players = emptyList<Entity>()
+    override var entities = emptyList<Entity>()
         set(value) {
             field = value
             colosseumPlayers = value.filterIsInstance<ColosseumPlayer>()
@@ -37,22 +43,26 @@ class ColosseumEngine(
     var colosseumPlayers = emptyList<ColosseumPlayer>()
         private set
 
-    // 월드 객체 TODO : 다른 world 유형으로 교체 가능하도록 변경
     override val world = ColosseumWorld()
 
-    // 기본 HP 설정 (1~10)
-    var defaultHp = 3.0
+    var colosseumOptions = setOf<DisasterOption>()
         private set
 
-    // 게임 상태
     private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
     val gameState: State<ColosseumState> get() = _gameState
 
-    // 로그 상태 추적
+    private var pendingWinnerWaitTime = 0.0
+
     val logUpdateState: State<Boolean> get() = LogManager.itemUpdateState
 
-    // 로그 리스트
     val logEntries: List<Log> get() = LogManager.logEntries
+
+    private val entityFactory = ColosseumEntityFactory(spriteLoader, this)
+
+    private val spawnScope = CoroutineScope(Dispatchers.Main)
+    private var carSpawnTimer = 0.0
+    private var nextCarSpawnInterval = 0.0
+    private var isSpawningCar = false
 
     fun setViewportSize(width: Float, height: Float) {
         initializeWorld(width, height)
@@ -60,15 +70,23 @@ class ColosseumEngine(
     }
 
     @OptIn(ExperimentalTime::class)
-    fun setPlayers(newList: List<ColosseumPlayer>) {
-        players = newList
+    suspend fun playGame(
+        playerInitList: List<PlayerInitPair>,
+        startHp: Double,
+        options: Set<DisasterOption>,
+    ) {
+        entities = playerInitList.map { p ->
+            entityFactory.createPlayer(
+                name = p.name,
+                color = p.color,
+                startHp = startHp,
+            )
+        }
+        colosseumOptions = options
+
         initialized = false  // 재초기화 필요
         _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
         tryInitialize()
-    }
-
-    fun setDefaultHp(hp: Double) {
-        defaultHp = hp.coerceIn(1.0, 10.0)
     }
 
     private fun initializeWorld(width: Float, height: Float) {
@@ -89,12 +107,12 @@ class ColosseumEngine(
 
     @OptIn(ExperimentalTime::class)
     fun restart() {
-        // 현재 플레이어 정보로 새 플레이어 생성 (HP 초기화)
+        // Remain only entities (HP reset)
         val newPlayers = colosseumPlayers.map { player ->
             ColosseumPlayer(
                 name = player.name,
-                color = player.color,
-                startHp = defaultHp,
+                signatureColor = player.signatureColor,
+                startHp = player.startHp,
                 spriteSheet = player.spriteSheet,
                 gameEngine = this,
             )
@@ -104,7 +122,7 @@ class ColosseumEngine(
         _gameState.value = ColosseumState.Playing(Clock.System.now().toEpochMilliseconds())
 
         // 플레이어 재설정 및 재초기화
-        players = newPlayers
+        entities = newPlayers
         initialized = false
         tryInitialize()
     }
@@ -112,8 +130,7 @@ class ColosseumEngine(
     fun reset() {
         initialized = false
         world.buildMap(0f, 0f) // World 초기화
-        players = emptyList()
-        defaultHp = 3.0  // HP 초기화
+        entities = emptyList()
 
         // 게임 상태를 대기 상태로
         _gameState.value = ColosseumState.WaitingForPlayers
@@ -148,19 +165,25 @@ class ColosseumEngine(
         var totalSurvivePoint = 0L
         for (p in colosseumPlayers) {
             totalAttackPoint += p.attackPoint
-            totalSurvivePoint += if (p.deathTime == 0L) firstPlayerSurvivePoint else p.deathTime - startTime
+            totalSurvivePoint += if (p.isAlive) firstPlayerSurvivePoint else p.deathTime - startTime
+        }
+        if (totalAttackPoint == 0f) {
+            totalAttackPoint = 1f
+        }
+        if (totalSurvivePoint == 0L) {
+            totalSurvivePoint = 1
         }
 
         return title + colosseumPlayers.map {
-            val surviveTime = if (it.deathTime == 0L) firstPlayerSurvivePoint else it.deathTime - startTime
+            val surviveTime = if (it.isAlive) firstPlayerSurvivePoint else it.deathTime - startTime
             val surviveTimeStr =
-                if (it.deathTime == 0L) "${totalPlayTime.msToMMSS()}(+01:00)"
+                if (it.isAlive) "${totalPlayTime.msToMMSS()}(+01:00)"
                 else surviveTime.msToMMSS()
             val score = (it.attackPoint / totalAttackPoint) * 100 + (surviveTime.toFloat() / totalSurvivePoint) * 100
             val statColor = if (it.isAlive) Color.Yellow else Color.White
 
             listOf(
-                StatCell.colLabel(it.name, color = it.color),
+                StatCell.colLabel(it.name, color = it.signatureColor),
                 StatCell(it.attackPoint.toString(), color = statColor),
                 StatCell(it.killPoint.toString(), color = statColor),
                 StatCell(surviveTimeStr, color = statColor),
@@ -234,28 +257,39 @@ class ColosseumEngine(
         return titles
     }
 
-    // 타격 횟수
+    // Update player's attack point
     fun updatePlayerAttackPoint(name: String) {
-        players = colosseumPlayers.map {
+        entities = entities.map {
             it.apply {
-                if (this.name == name) {
-                    attackPoint += 1
+                if (this is ColosseumPlayer) {
+                    if (this.name == name) {
+                        attackPoint += 1
+                    }
                 }
             }
         }
     }
 
-    // 결정타 횟수, 탈락자 생존시간
-    @OptIn(ExperimentalTime::class)
-    fun updatePlayerKillPoint(killerName: String, victimName: String) {
-        players = colosseumPlayers.map {
+    // Update player's kill point
+    fun updatePlayerKillPoint(name: String) {
+        entities = entities.map {
             it.apply {
-                if (name == killerName) {
-                    killPoint += 1
-                } else if (name == victimName) {
-                    deathTime = Clock.System.now().toEpochMilliseconds()
+                if (this is ColosseumPlayer) {
+                    if (this.name == name) {
+                        killPoint += 1
+                    }
                 }
             }
+        }
+    }
+
+    // Touch or Click
+    suspend fun onScreenTouch(x: Float, y: Float) {
+        if (!initialized || gameState.value !is ColosseumState.Playing) return
+
+        if (colosseumOptions.contains(DisasterOption.FALLING_ROCKS)) {
+            entities += entityFactory.createFallingRock()
+            entities += ColosseumTouchEffect(x, y, gameEngine = this)
         }
     }
 
@@ -267,8 +301,29 @@ class ColosseumEngine(
         // Get alive players
         val alivePlayers = colosseumPlayers.filter { it.isAlive }
 
-        // Call Entity::update
-        colosseumPlayers.forEach { it.update(deltaTime, world) }
+        // Update all entities
+        entities.forEach { it.update(deltaTime, world) }
+
+        // Car spawning logic
+        if (colosseumOptions.contains(DisasterOption.CAR_HIT_AND_RUN)) {
+            val hasCar = entities.any { it is ColosseumRunningCar }
+            if (!hasCar && !isSpawningCar) {
+                if (nextCarSpawnInterval <= 0) {
+                    // Schedule next spawn (3s ~ 20s)
+                    nextCarSpawnInterval = Random.nextDouble(3.0, 20.0)
+                    carSpawnTimer = 0.0
+                }
+
+                carSpawnTimer += deltaTime
+                if (carSpawnTimer >= nextCarSpawnInterval) {
+                    spawnCar()
+                }
+            } else {
+                // Reset schedule when car exists or is spawning
+                nextCarSpawnInterval = 0.0
+                carSpawnTimer = 0.0
+            }
+        }
 
         // (중계 로그) 대사
         alivePlayers.forEachIndexed { _, p ->
@@ -281,11 +336,21 @@ class ColosseumEngine(
         // Check for winner (only once)
         if (colosseumPlayers.isNotEmpty()) {
             if (alivePlayers.size == 1) {
-                addLog(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
-                updateGameSet()
-            } else if (alivePlayers.isEmpty()) {
-                addLog(Log.System("💀 전원 탈락! 살아남은 플레이어가 없습니다!"))
-                updateGameSet()
+                if (pendingWinnerWaitTime < WINNER_CONFIRMATION_DELAY) {
+                    pendingWinnerWaitTime += deltaTime
+                    // not yet win
+                } else {
+                    // Hold for 1 second
+                    addLog(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
+                    updateGameSet()
+                }
+            } else {
+                pendingWinnerWaitTime = 0.0
+
+                if (alivePlayers.isEmpty()) {
+                    addLog(Log.System("💀 전원 탈락! 살아남은 플레이어가 없습니다!"))
+                    updateGameSet()
+                }
             }
         }
 
@@ -310,45 +375,20 @@ class ColosseumEngine(
             }
         }
 
-        // first blood 체크 (race condition 방지)
-        var isFirstBloodFrame = (alivePlayers.size == colosseumPlayers.size)
-
         // Attack detection
-        alivePlayers.detectAttackDamagedThisFrame { attacker, target ->
-            // 스탯 업데이트
+        alivePlayers.detectAttackDamagedThisFrame { attacker ->
+            // Update stat
             updatePlayerAttackPoint(attacker.name)
+        }
+    }
 
-            if (target.hp > 0) {
-                addLog(Log.Duo(
-                    perpetrator = attacker,
-                    victim = target,
-                    interaction = "🤜",
-                    additional = "(HP=${target.hp})",
-                ))
-            } else {
-                // 스탯 업데이트
-                updatePlayerKillPoint(
-                    killerName = attacker.name,
-                    victimName = target.name,
-                )
-
-                if (isFirstBloodFrame) { // first blood
-                    addLog(Log.Duo(
-                        perpetrator = attacker,
-                        victim = target,
-                        interaction = "에 의해",
-                        additional = "First Blood! 😭",
-                    ))
-                    isFirstBloodFrame = false
-                } else {
-                    addLog(Log.Duo(
-                        perpetrator = attacker,
-                        victim = target,
-                        interaction = "에 의해",
-                        additional = "탈락! 😭",
-                    ))
-                }
-            }
+    private fun spawnCar() {
+        isSpawningCar = true
+        spawnScope.launch {
+            val car = entityFactory.createRunningCar()
+            addLog(Log.Solo(player = car, "지나갑니다"))
+            entities += car
+            isSpawningCar = false
         }
     }
 
@@ -357,8 +397,12 @@ class ColosseumEngine(
         world.render(context)
 
         // 엔티티
-        players
+        entities
             .forEach { it.render(context, textMeasurer, fontFamily) }
+    }
+
+    fun destroyEntity(entity: Entity) {
+        entities -= entity
     }
 
     fun addLog(log: Log) {
@@ -372,5 +416,9 @@ class ColosseumEngine(
         LogManager.clear()
         // recomposition event
         LogManager.triggerItemUpdate()
+    }
+
+    companion object {
+        private const val WINNER_CONFIRMATION_DELAY = 1.0 // 1초 대기
     }
 }

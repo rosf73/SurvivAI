@@ -9,6 +9,12 @@ sealed interface ColosseumState {
     data class Ended(val statsList: List<List<StatCell>>, val titleList: List<MVPTitleCard>) : ColosseumState  // 게임 종료
 }
 
+enum class DisasterOption(val label: String, val clickable: Boolean = false) {
+    FALLING_ROCKS("Falling rocks", clickable = true),
+    CAR_HIT_AND_RUN("Car hit-and-run"),
+    ;
+}
+
 data class MVPTitleCard(
     val title: String,
     val desc: String,

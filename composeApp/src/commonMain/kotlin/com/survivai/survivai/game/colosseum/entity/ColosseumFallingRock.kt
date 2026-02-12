@@ -1,0 +1,130 @@
+package com.survivai.survivai.game.colosseum.entity
+
+import androidx.compose.ui.graphics.Color
+import com.survivai.survivai.game.Entity
+import com.survivai.survivai.game.World
+import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.world.ColosseumWorld
+import com.survivai.survivai.game.component.ColliderComponent
+import com.survivai.survivai.game.component.Component
+import com.survivai.survivai.game.component.SpriteComponent
+import com.survivai.survivai.game.sprite.ActionState
+import com.survivai.survivai.game.sprite.SpriteSheet
+import com.survivai.survivai.game.colosseum.logic.Log
+import kotlin.random.Random
+
+class ColosseumFallingRock(
+    val spriteSheet: SpriteSheet,
+    val gameEngine: ColosseumEngine,
+) : Entity {
+
+    private val colliderComponent = ColliderComponent(
+        width = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.width, // 64.0 ~ 192.0
+        height = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.height, // 64.0 ~ 192.0
+    )
+
+    override val name = "낙석"
+    override val signatureColor = Color.Gray
+
+    override var x: Float = Random.nextFloat() * gameEngine.world.viewportWidth
+    override var y: Float = -colliderComponent.height // ceiling
+    override var width = colliderComponent.width
+    override var height = colliderComponent.height
+    override var imageWidth = colliderComponent.width // same with collision size
+    override var imageHeight = colliderComponent.height // same with collision size
+    override var direction = setOf(Entity.Direction.LEFT, Entity.Direction.RIGHT).random()
+    override var state: Entity.State = ActionState.IDLE
+
+    override val components: MutableList<Component> = mutableListOf(
+        SpriteComponent(spriteSheet = spriteSheet),
+        colliderComponent,
+    )
+
+    // Physics
+    var velocityY = 0f
+    private val gravity = 1500f
+    private val restitution = 0.4f
+    var hasBounced = false
+
+    override fun update(deltaTime: Double, world: World) {
+        super.update(deltaTime, world)
+
+        val dt = deltaTime.toFloat()
+
+        // Gravity
+        velocityY += gravity * dt
+        val prevY = y
+        y += velocityY * dt
+
+        // Bounce on platform
+        if (!hasBounced && velocityY > 0) {
+            val fallingRockBottom = y + height / 2
+            val prevBottom = prevY + height / 2
+
+            // Check platforms
+            (world as? ColosseumWorld)?.getPlatforms()?.forEach { p ->
+                // Horizontal overlap (Check collision with the center of the rock)
+                val inHorizontalRange = x >= p.left && x <= p.right
+                
+                // Vertical passing through
+                val passedThrough = p.top in prevBottom..fallingRockBottom
+                
+                if (inHorizontalRange && passedThrough) {
+                    y = p.top - height / 2
+                    velocityY = -velocityY * restitution
+                    hasBounced = true
+                }
+            }
+        }
+
+        // Check if out of bounds (removal)
+        if (y > world.viewportHeight + height) {
+            gameEngine.destroyEntity(this) // TODO : pooling
+            return
+        }
+
+        // Check collision with players
+        gameEngine.colosseumPlayers.forEach { player ->
+            if (player.isAlive) {
+                // Simple AABB collision detection
+                // Using 50% reduced hitbox for more forgiving gameplay
+                val hitThresholdX = (width + player.width) / 4
+                val hitThresholdY = (height + player.height) / 4
+
+                if (kotlin.math.abs(x - player.x) < hitThresholdX && 
+                    kotlin.math.abs(y - player.y) < hitThresholdY) {
+
+                    // Check speed for damage
+                    if (velocityY > SPEED_THRESHOLD) {
+                        // Inflict damage
+                        val success = player.receiveDamage(attacker = this, power = 800f)
+                        if (success) {
+                            gameEngine.addLog(Log.Solo(player, "으악! 낙석이다!"))
+                            return
+                        }
+                    } else {
+                        // Just push (physics interaction)
+                        val dx = player.x - x
+                        val pushDir = if (dx >= 0) -1f else 1f
+
+                        // Push player slightly
+                        // player.x += -pushDir * 20f // Player might be pushed by rock (optional)
+
+                        // Push rock
+                        x += pushDir * 20f
+
+                        // If falling on top of player, maybe bounce up a bit
+                        if (y < player.y) {
+                            velocityY = -300f
+                            y -= 10f
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    companion object {
+        private const val SPEED_THRESHOLD = 800f
+    }
+}

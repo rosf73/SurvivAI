@@ -92,7 +92,7 @@ private fun LogLine(
             }
             is Log.Solo -> {
                 PlayerLabel(
-                    color = log.player.color,
+                    color = log.player.signatureColor,
                     name = log.player.name,
                 )
                 Text(
@@ -104,7 +104,7 @@ private fun LogLine(
             is Log.Duo -> {
                 Spacer(modifier = Modifier.size(30.dp, 1.dp))
                 PlayerLabel(
-                    color = log.perpetrator.color,
+                    color = log.perpetrator.signatureColor,
                     name = log.perpetrator.name,
                 )
                 Text(
@@ -113,11 +113,22 @@ private fun LogLine(
                     color = Color.Gray,
                 )
                 PlayerLabel(
-                    color = log.victim.color,
+                    color = log.victim.signatureColor,
                     name = log.victim.name,
                 )
                 Text(
                     text = " ${log.additional}",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                )
+            }
+            is Log.Accidental -> {
+                PlayerLabel(
+                    color = log.victim.signatureColor,
+                    name = log.victim.name,
+                )
+                Text(
+                    text = log.msg,
                     fontSize = 12.sp,
                     color = Color.Gray,
                 )

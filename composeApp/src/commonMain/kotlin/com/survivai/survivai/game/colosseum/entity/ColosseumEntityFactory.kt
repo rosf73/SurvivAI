@@ -114,4 +114,24 @@ class ColosseumEntityFactory(
 
         ColosseumFallingRock(spriteSheet = sheet, gameEngine = gameEngine)
     }
+
+    suspend fun createRunningCar(): ColosseumRunningCar = coroutineScope {
+        val idleAnimation = async {
+            loader.load(
+                "sprite_car.png",
+                SpriteAnimationData.fixed(
+                    frameSize = Size(256f, 256f),
+                ),
+            )
+        }
+
+        val sheet = SpriteSheet(
+            imageSize = Size(256f, 256f),
+            animations = mapOf(
+                ActionState.IDLE to listOf(idleAnimation.await()),
+            ),
+        )
+
+        ColosseumRunningCar(spriteSheet = sheet, gameEngine = gameEngine)
+    }
 }

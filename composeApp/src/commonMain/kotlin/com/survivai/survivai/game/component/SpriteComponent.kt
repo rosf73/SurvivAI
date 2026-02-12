@@ -19,6 +19,7 @@ class SpriteComponent(
 ) : Component() {
     private var elapsedTime: Double = 0.0
     private var currentFrame: Int = 0
+    var alpha = 1.0f
 
     override fun update(deltaTime: Double, owner: Entity, world: World) {
         val animations = spriteSheet.get(owner.state) ?: return
@@ -75,6 +76,7 @@ class SpriteComponent(
                 srcSize = animation.data.frameSize.toIntSize(),
                 dstOffset = dstOffset,
                 dstSize = dstSize,
+                alpha = alpha,
                 colorFilter =
                     if (colorAlpha > 0) {
                         color?.let { ColorFilter.tint(it.copy(alpha = colorAlpha)) }

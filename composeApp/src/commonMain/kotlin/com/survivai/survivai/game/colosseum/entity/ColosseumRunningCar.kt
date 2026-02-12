@@ -4,8 +4,6 @@ import androidx.compose.ui.graphics.Color
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
-import com.survivai.survivai.game.colosseum.logic.Log
-import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.Component
 import com.survivai.survivai.game.component.SpriteComponent
@@ -22,6 +20,9 @@ class ColosseumRunningCar(
         width = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.width, // 128.0 ~ 384.0
         height = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.height, // 128.0 ~ 384.0
     )
+    private val spriteComponent = SpriteComponent(spriteSheet = spriteSheet).apply {
+        alpha = INITIAL_ALPHA // start alpha
+    }
 
     override val name = "뺑소니"
     override val signatureColor = Color.Red
@@ -36,7 +37,7 @@ class ColosseumRunningCar(
     override var state: Entity.State = ActionState.IDLE
 
     override val components: MutableList<Component> = mutableListOf(
-        SpriteComponent(spriteSheet = spriteSheet),
+        spriteComponent,
         colliderComponent,
     )
 
@@ -60,6 +61,10 @@ class ColosseumRunningCar(
         imageWidth = width
         imageHeight = height
 
+        // Update alpha
+        val progress = ((width - initialWidth) / (FINAL_WIDTH - initialWidth)).coerceIn(0f, 1f)
+        spriteComponent.alpha = INITIAL_ALPHA + (0.7f * progress)
+
         // Check crash condition
         if (!hasCrashed && width >= FINAL_WIDTH) {
             hasCrashed = true
@@ -80,6 +85,7 @@ class ColosseumRunningCar(
     }
 
     companion object {
+        private const val INITIAL_ALPHA = 0.3f
         private const val END_LAG = 3 // post delay (sec)
         private const val FINAL_WIDTH = 960f
     }

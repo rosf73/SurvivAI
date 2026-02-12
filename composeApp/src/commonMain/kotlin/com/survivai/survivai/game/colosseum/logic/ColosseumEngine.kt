@@ -51,6 +51,8 @@ class ColosseumEngine(
     private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
     val gameState: State<ColosseumState> get() = _gameState
 
+    private var pendingWinnerWaitTime = 0.0
+
     val logUpdateState: State<Boolean> get() = LogManager.itemUpdateState
 
     val logEntries: List<Log> get() = LogManager.logEntries
@@ -334,11 +336,21 @@ class ColosseumEngine(
         // Check for winner (only once)
         if (colosseumPlayers.isNotEmpty()) {
             if (alivePlayers.size == 1) {
-                addLog(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
-                updateGameSet()
-            } else if (alivePlayers.isEmpty()) {
-                addLog(Log.System("💀 전원 탈락! 살아남은 플레이어가 없습니다!"))
-                updateGameSet()
+                if (pendingWinnerWaitTime < WINNER_CONFIRMATION_DELAY) {
+                    pendingWinnerWaitTime += deltaTime
+                    // not yet win
+                } else {
+                    // Hold for 1 second
+                    addLog(Log.System("🏆 ${alivePlayers[0].name} 우승! 최후의 생존자!"))
+                    updateGameSet()
+                }
+            } else {
+                pendingWinnerWaitTime = 0.0
+
+                if (alivePlayers.isEmpty()) {
+                    addLog(Log.System("💀 전원 탈락! 살아남은 플레이어가 없습니다!"))
+                    updateGameSet()
+                }
             }
         }
 
@@ -374,6 +386,7 @@ class ColosseumEngine(
         isSpawningCar = true
         spawnScope.launch {
             val car = entityFactory.createRunningCar()
+            addLog(Log.Solo(player = car, "지나갑니다"))
             entities += car
             isSpawningCar = false
         }
@@ -403,5 +416,9 @@ class ColosseumEngine(
         LogManager.clear()
         // recomposition event
         LogManager.triggerItemUpdate()
+    }
+
+    companion object {
+        private const val WINNER_CONFIRMATION_DELAY = 1.0 // 1초 대기
     }
 }

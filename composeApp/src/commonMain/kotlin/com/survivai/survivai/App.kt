@@ -3,11 +3,13 @@ package com.survivai.survivai
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -112,8 +114,9 @@ fun App(
                             .padding(8.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        GitHubButton(
+                        GitHubIconButton(
                             openLink = openLink,
+                            modifier = Modifier.size(30.dp)
                         )
 
                         VersionText(
@@ -171,5 +174,32 @@ private fun GitHubButton(
                 text = "GitHub",
             )
         }
+    }
+}
+
+@Composable
+private fun GitHubIconButton(
+    openLink: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = {
+            openLink("https://github.com/rosf73/SurvivAI")
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Black,
+            contentColor = Color.White,
+        ),
+        shape = RoundedCornerShape(6.dp),
+        contentPadding = PaddingValues(4.dp),
+        modifier = modifier,
+    ) {
+        // GitHub 아이콘
+        Icon(
+            imageVector = createGitHubIcon(),
+            contentDescription = "GitHub",
+            modifier = Modifier.fillMaxSize(),
+            tint = Color.White,
+        )
     }
 }

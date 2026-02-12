@@ -21,9 +21,14 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import com.survivai.survivai.game.colosseum.entity.ColosseumRunningCar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class ColosseumEngine(
-    private val spriteLoader: SpriteLoader,
+    spriteLoader: SpriteLoader,
 ) : Engine {
 
     var initialized = false
@@ -51,6 +56,11 @@ class ColosseumEngine(
     val logEntries: List<Log> get() = LogManager.logEntries
 
     private val entityFactory = ColosseumEntityFactory(spriteLoader, this)
+
+    private val spawnScope = CoroutineScope(Dispatchers.Main)
+    private var carSpawnTimer = 0.0
+    private var nextCarSpawnInterval = 0.0
+    private var isSpawningCar = false
 
     fun setViewportSize(width: Float, height: Float) {
         initializeWorld(width, height)
@@ -292,6 +302,27 @@ class ColosseumEngine(
         // Update all entities
         entities.forEach { it.update(deltaTime, world) }
 
+        // Car spawning logic
+        if (colosseumOptions.contains(DisasterOption.CAR_HIT_AND_RUN)) {
+            val hasCar = entities.any { it is ColosseumRunningCar }
+            if (!hasCar && !isSpawningCar) {
+                if (nextCarSpawnInterval <= 0) {
+                    // Schedule next spawn (3s ~ 20s)
+                    nextCarSpawnInterval = Random.nextDouble(3.0, 20.0)
+                    carSpawnTimer = 0.0
+                }
+
+                carSpawnTimer += deltaTime
+                if (carSpawnTimer >= nextCarSpawnInterval) {
+                    spawnCar()
+                }
+            } else {
+                // Reset schedule when car exists or is spawning
+                nextCarSpawnInterval = 0.0
+                carSpawnTimer = 0.0
+            }
+        }
+
         // (중계 로그) 대사
         alivePlayers.forEachIndexed { _, p ->
             val text = p.pollJustSpeeched()
@@ -336,6 +367,15 @@ class ColosseumEngine(
         alivePlayers.detectAttackDamagedThisFrame { attacker ->
             // Update stat
             updatePlayerAttackPoint(attacker.name)
+        }
+    }
+
+    private fun spawnCar() {
+        isSpawningCar = true
+        spawnScope.launch {
+            val car = entityFactory.createRunningCar()
+            entities += car
+            isSpawningCar = false
         }
     }
 

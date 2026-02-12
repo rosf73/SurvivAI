@@ -636,7 +636,7 @@ data class ColosseumPlayer(
             velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
 
             // Jump out
-            velocityY = -200f
+            velocityY = -200f - (power / 10)
             onPlatform = false
 
             // Cancel actions
@@ -663,7 +663,7 @@ data class ColosseumPlayer(
         private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격
         private const val SPEECH_DURATION = 2.0f
         private const val IDLE_MAX_DURATION = 0.5f
-        private const val MAX_SPEED = 2000f
+        private const val MAX_SPEED = 3000f
         private const val FRICTION = 0.95f // 마찰력 계수
         private const val INVINCIBLE_DURATION = 0.8 // invincible time
 

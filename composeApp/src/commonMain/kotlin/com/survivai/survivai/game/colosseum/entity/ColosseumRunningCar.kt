@@ -96,7 +96,7 @@ class ColosseumRunningCar(
         gameEngine.colosseumPlayers.forEach { player ->
             if (player.isAlive) {
                 if (player.x in xRange && player.y in yRange) {
-                    val success = player.receiveDamage(attacker = this, power = 1000f)
+                    val success = player.receiveDamage(attacker = this, power = 2000f)
                     if (success) {
                         gameEngine.addLog(Log.Solo(player, "으악! 뺑소니야!"))
                     }

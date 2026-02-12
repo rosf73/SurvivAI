@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.logic.Log
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.Component
 import com.survivai.survivai.game.component.SpriteComponent
@@ -28,7 +29,8 @@ class ColosseumRunningCar(
     override val name = "뺑소니"
     override val signatureColor = Color.Red
 
-    override var x: Float = Random.nextFloat() * (gameEngine.world.viewportWidth - colliderComponent.width)
+    // 128 ~ 1792
+    override var x: Float = Random.nextFloat() * (gameEngine.world.viewportWidth - colliderComponent.width) + (colliderComponent.width / 2)
     override var y: Float = gameEngine.world.viewportHeight - colliderComponent.height
     override var width = colliderComponent.width
     override var height = colliderComponent.height
@@ -44,8 +46,8 @@ class ColosseumRunningCar(
 
     private val initialWidth = width
     private val aspectRatio = width / height
-    // We want to reach FINAL_WIDTH in about 3 seconds
-    private val growthSpeed = (FINAL_WIDTH - initialWidth) / 3f
+    // We want to reach FINAL_WIDTH in about 10 seconds
+    private val growthSpeed = (FINAL_WIDTH - initialWidth) / 10f
 
     private var hasCrashed = false
     private var postCrashTimer = 0.0
@@ -62,14 +64,16 @@ class ColosseumRunningCar(
         imageWidth = width
         imageHeight = height
 
-        // Update alpha
-        val progress = ((width - initialWidth) / (FINAL_WIDTH - initialWidth)).coerceIn(0f, 1f)
-        spriteComponent.alpha = INITIAL_ALPHA + (0.7f * progress)
-
         // Check crash condition
-        if (!hasCrashed && width >= FINAL_WIDTH) {
-            hasCrashed = true
-            onCrashed()
+        if (!hasCrashed) {
+            // Update alpha
+            val progress = ((width - initialWidth) / (FINAL_WIDTH - initialWidth)).coerceIn(0f, 1f)
+            spriteComponent.alpha = INITIAL_ALPHA + (0.5f * progress)
+
+            if (width >= FINAL_WIDTH) {
+                hasCrashed = true
+                onCrashed()
+            }
         }
 
         // Post crash logic
@@ -82,12 +86,28 @@ class ColosseumRunningCar(
     }
 
     private fun onCrashed() {
+        // Passed platform effect
+        spriteComponent.alpha = 1.0f
 
+        // Attack damageable entities
+        // For crash calculation
+        val xRange = (x - width/2)..(x + width/2)
+        val yRange = (y - height/2)..(y + height/2)
+        gameEngine.colosseumPlayers.forEach { player ->
+            if (player.isAlive) {
+                if (player.x in xRange && player.y in yRange) {
+                    val success = player.receiveDamage(attacker = this, power = 1000f)
+                    if (success) {
+                        gameEngine.addLog(Log.Solo(player, "으악! 뺑소니야!"))
+                    }
+                }
+            }
+        }
     }
 
     companion object {
-        private const val INITIAL_ALPHA = 0.3f
-        private const val END_LAG = 3 // post delay (sec)
+        private const val INITIAL_ALPHA = 0.2f
+        private const val END_LAG = 2 // post delay (sec)
         private const val FINAL_WIDTH = 960f
     }
 }

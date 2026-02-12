@@ -19,15 +19,15 @@ class ColosseumFallingRock(
 ) : Entity {
 
     private val colliderComponent = ColliderComponent(
-        width = Random.nextFloat() * 128 + 64, // 64.0 ~ 192.0
-        height = Random.nextFloat() * 128 + 64, // 64.0 ~ 192.0
+        width = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.width, // 64.0 ~ 192.0
+        height = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.height, // 64.0 ~ 192.0
     )
 
     override val name = "낙석"
     override val signatureColor = Color.Gray
 
-    override var x: Float = Random.nextFloat() * 1920
-    override var y: Float = -128f // ceiling
+    override var x: Float = Random.nextFloat() * gameEngine.world.viewportWidth
+    override var y: Float = -colliderComponent.height // ceiling
     override var width = colliderComponent.width
     override var height = colliderComponent.height
     override var imageWidth = colliderComponent.width // same with collision size
@@ -45,10 +45,8 @@ class ColosseumFallingRock(
     private val gravity = 1500f
     private val restitution = 0.4f
     var hasBounced = false
-    var isAlive = true
 
     override fun update(deltaTime: Double, world: World) {
-        if (!isAlive) return
         super.update(deltaTime, world)
 
         val dt = deltaTime.toFloat()
@@ -81,7 +79,7 @@ class ColosseumFallingRock(
 
         // Check if out of bounds (removal)
         if (y > world.viewportHeight + height) {
-            gameEngine.destroyEntity(this)
+            gameEngine.destroyEntity(this) // TODO : pooling
             return
         }
 

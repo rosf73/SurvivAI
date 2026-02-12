@@ -16,9 +16,10 @@ class ColosseumRunningCar(
     val gameEngine: ColosseumEngine,
 ) : Entity {
 
+    private val initialSize = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.width // 128.0 ~ 384.0
     private val colliderComponent = ColliderComponent(
-        width = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.width, // 128.0 ~ 384.0
-        height = (Random.nextFloat() + 0.5f) * spriteSheet.imageSize.height, // 128.0 ~ 384.0
+        width = initialSize,
+        height = initialSize,
     )
     private val spriteComponent = SpriteComponent(spriteSheet = spriteSheet).apply {
         alpha = INITIAL_ALPHA // start alpha

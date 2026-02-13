@@ -49,6 +49,9 @@ import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
+import com.survivai.survivai.game.colosseum.components.MainMenuPopup
+import com.survivai.survivai.game.colosseum.components.PopupType
+import com.survivai.survivai.game.colosseum.components.RematchPopup
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
@@ -69,6 +72,9 @@ fun Colosseum(
 
     // game state for recomposition
     val currentColosseumState = gameEngine.gameState.value
+
+    // popup state
+    var currentPopup by remember { mutableStateOf<PopupType?>(null) }
 
     // UI update state
     var frameTick by remember { mutableStateOf(0) }
@@ -191,9 +197,9 @@ fun Colosseum(
                         .align(Alignment.TopStart)
                         .padding(6.dp),
                 ) {
-                    MatchButton("REMATCH", onClick = gameEngine::restart)
+                    MatchButton("REMATCH", onClick = { currentPopup = PopupType.REMATCH })
                     Spacer(modifier = Modifier.size(6.dp))
-                    MatchButton("MAIN MENU", onClick = gameEngine::reset)
+                    MatchButton("MAIN MENU", onClick = { currentPopup = PopupType.MAIN_MENU })
                 }
             }
             is ColosseumState.Ended -> {
@@ -206,6 +212,20 @@ fun Colosseum(
                     onClickReset = gameEngine::reset,
                 )
             }
+        }
+
+        when (currentPopup) {
+            PopupType.REMATCH -> RematchPopup(
+                onClickYes = { gameEngine.restart(); currentPopup = null },
+                onClickNo = { currentPopup = null },
+                modifier = Modifier.fillMaxSize(),
+            )
+            PopupType.MAIN_MENU -> MainMenuPopup(
+                onClickYes = { gameEngine.reset(); currentPopup = null },
+                onClickNo = { currentPopup = null },
+                modifier = Modifier.fillMaxSize(),
+            )
+            null -> { /* not showing */ }
         }
     }
 }

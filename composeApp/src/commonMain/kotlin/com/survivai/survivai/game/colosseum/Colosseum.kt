@@ -3,7 +3,6 @@ package com.survivai.survivai.game.colosseum
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -36,6 +35,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -49,6 +53,7 @@ import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
+import com.survivai.survivai.game.colosseum.components.ScoreboardPopup
 import com.survivai.survivai.game.colosseum.components.MainMenuPopup
 import com.survivai.survivai.game.colosseum.components.PopupType
 import com.survivai.survivai.game.colosseum.components.RematchPopup
@@ -103,7 +108,19 @@ fun Colosseum(
     // 2. Rendering
     BoxWithConstraints(
         modifier = modifier
-            .background(Color.Black), // letter box
+            .background(Color.Black) // letter box
+            .onPreviewKeyEvent { event ->
+                if (event.key == Key.Tab) {
+                    if (event.type == KeyEventType.KeyDown) {
+                        currentPopup = PopupType.SCOREBOARD
+                    } else if (event.type == KeyEventType.KeyUp) {
+                        currentPopup = null
+                    }
+                    true
+                } else {
+                    false
+                }
+            },
         contentAlignment = Alignment.Center,
     ) {
         val density = LocalDensity.current
@@ -200,6 +217,8 @@ fun Colosseum(
                     MatchButton("REMATCH", onClick = { currentPopup = PopupType.REMATCH })
                     Spacer(modifier = Modifier.size(6.dp))
                     MatchButton("MAIN MENU", onClick = { currentPopup = PopupType.MAIN_MENU })
+                    Spacer(modifier = Modifier.size(6.dp))
+                    MatchButton("DASHBOARD", onClick = { currentPopup = PopupType.SCOREBOARD })
                 }
             }
             is ColosseumState.Ended -> {
@@ -223,6 +242,11 @@ fun Colosseum(
             PopupType.MAIN_MENU -> MainMenuPopup(
                 onClickYes = { gameEngine.reset(); currentPopup = null },
                 onClickNo = { currentPopup = null },
+                modifier = Modifier.fillMaxSize(),
+            )
+            PopupType.SCOREBOARD -> ScoreboardPopup(
+                statsList = emptyList(),
+                onClickOutside = { currentPopup = null },
                 modifier = Modifier.fillMaxSize(),
             )
             null -> { /* not showing */ }

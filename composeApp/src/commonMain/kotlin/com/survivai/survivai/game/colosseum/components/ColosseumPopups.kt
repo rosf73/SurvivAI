@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,11 +27,12 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.survivai.survivai.game.colosseum.logic.StatCell
 
 enum class PopupType {
     REMATCH,
     MAIN_MENU,
-    // TODO : DASHBOARD,
+    SCOREBOARD,
 }
 
 @Composable
@@ -125,6 +129,37 @@ private fun PopupButton(
                 ),
                 letterSpacing = 2.sp
             )
+        )
+    }
+}
+
+@Composable
+fun ScoreboardPopup(
+    statsList: List<List<StatCell>>,
+    onClickOutside: () -> Unit,
+    modifier: Modifier,
+) {
+    Box(
+        modifier = modifier
+            .background(Color.Black.copy(alpha = 0.3f))
+            .clickable(onClickLabel = "close", onClick = onClickOutside),
+    ) {
+        ColosseumScoreboard(
+            statsList = statsList,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .widthIn(min = 0.dp, max = 1000.dp)
+                .fillMaxSize()
+                .padding(30.dp),
+        )
+
+        Text(
+            "Press TAP key to open and close",
+            style = LocalTextStyle.current.copy(
+                fontSize = 14.sp,
+                color = Color.White.copy(alpha = 0.6f),
+            ),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp),
         )
     }
 }

@@ -1,15 +1,26 @@
 package com.survivai.survivai.game.colosseum
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,19 +31,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.common.LocalFont
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
+import com.survivai.survivai.game.colosseum.components.MainMenuPopup
+import com.survivai.survivai.game.colosseum.components.PopupType
+import com.survivai.survivai.game.colosseum.components.RematchPopup
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
@@ -53,6 +72,9 @@ fun Colosseum(
 
     // game state for recomposition
     val currentColosseumState = gameEngine.gameState.value
+
+    // popup state
+    var currentPopup by remember { mutableStateOf<PopupType?>(null) }
 
     // UI update state
     var frameTick by remember { mutableStateOf(0) }
@@ -168,6 +190,17 @@ fun Colosseum(
                         modifier = Modifier.fillMaxSize().padding(12.dp),
                     )
                 }
+
+                // match buttons
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(6.dp),
+                ) {
+                    MatchButton("REMATCH", onClick = { currentPopup = PopupType.REMATCH })
+                    Spacer(modifier = Modifier.size(6.dp))
+                    MatchButton("MAIN MENU", onClick = { currentPopup = PopupType.MAIN_MENU })
+                }
             }
             is ColosseumState.Ended -> {
                 ColosseumEndScreen(
@@ -175,18 +208,59 @@ fun Colosseum(
                     statsList = currentColosseumState.statsList,
                     titles = currentColosseumState.titleList,
                     isLandscape = isLandscape,
-                    onClickRestart = {
-                        // 바로 재시작 (플레이어 유지)
-                        gameEngine.restart()
-                        gameEngine.clearLog()
-                    },
-                    onClickReset = {
-                        // 경기 재설정 (처음부터)
-                        gameEngine.reset()
-                        gameEngine.clearLog()
-                    },
+                    onClickRestart = gameEngine::restart,
+                    onClickReset = gameEngine::reset,
                 )
             }
         }
+
+        when (currentPopup) {
+            PopupType.REMATCH -> RematchPopup(
+                onClickYes = { gameEngine.restart(); currentPopup = null },
+                onClickNo = { currentPopup = null },
+                modifier = Modifier.fillMaxSize(),
+            )
+            PopupType.MAIN_MENU -> MainMenuPopup(
+                onClickYes = { gameEngine.reset(); currentPopup = null },
+                onClickNo = { currentPopup = null },
+                modifier = Modifier.fillMaxSize(),
+            )
+            null -> { /* not showing */ }
+        }
+    }
+}
+
+@Composable
+private fun MatchButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        modifier = modifier,
+        shape = CutCornerShape(6.dp),
+        border = BorderStroke(
+            2.dp,
+            Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFD32F2F),
+            contentColor = Color.White,
+        ),
+        contentPadding = PaddingValues(6.dp),
+        onClick = onClick,
+    ) {
+        Text(
+            label,
+            style = LocalTextStyle.current.copy(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(2f, 2f)
+                ),
+                letterSpacing = 2.sp
+            )
+        )
     }
 }

@@ -125,6 +125,8 @@ class ColosseumEngine(
         entities = newPlayers
         initialized = false
         tryInitialize()
+
+        clearLog()
     }
 
     fun reset() {
@@ -134,6 +136,8 @@ class ColosseumEngine(
 
         // 게임 상태를 대기 상태로
         _gameState.value = ColosseumState.WaitingForPlayers
+
+        clearLog()
     }
 
     // 게임이 끝났을 때만 호출

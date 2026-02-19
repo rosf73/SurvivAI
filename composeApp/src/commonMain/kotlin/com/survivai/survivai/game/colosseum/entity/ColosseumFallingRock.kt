@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.logic.ColosseumEvent
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.Component
@@ -99,7 +100,7 @@ class ColosseumFallingRock(
                         // Inflict damage
                         val success = player.receiveDamage(attacker = this, power = 800f)
                         if (success) {
-                            gameEngine.addLog(Log.Solo(player, "으악! 낙석이다!"))
+                            gameEngine.onGameEvent(ColosseumEvent.Accident(disaster = this, victim = player))
                             return
                         }
                     } else {

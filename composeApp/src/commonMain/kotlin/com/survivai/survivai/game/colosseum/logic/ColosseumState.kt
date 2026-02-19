@@ -5,9 +5,7 @@ import androidx.compose.ui.text.font.FontWeight
 
 sealed interface ColosseumState {
     data object WaitingForPlayers : ColosseumState
-    data class Playing(val startTime: Long) : ColosseumState {
-        var isFirstBlood = true
-    }
+    data class Playing(val startTime: Long) : ColosseumState
     data class Ended(val statsList: List<List<StatCell>>, val titleList: List<MVPTitleCard>) : ColosseumState
 }
 

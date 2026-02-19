@@ -50,7 +50,6 @@ class ColosseumEngine(
     private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
     val gameState: State<ColosseumState> get() = _gameState
 
-    private var isFirstBlood = true
     var scoreTable = listOf(emptyList<StatCell>())
         private set
 
@@ -169,13 +168,13 @@ class ColosseumEngine(
         // 3. Update latest log
         val log = when (event) {
             is ColosseumEvent.Attack -> Log.Attack(event.attacker, event.victim)
-            is ColosseumEvent.Kill ->
-                if (gameState.isFirstBlood) {
-                    gameState.isFirstBlood = false
+            is ColosseumEvent.Kill -> {
+                val isFirstBlood = colosseumPlayers.count { !it.isAlive } == 1
+                if (isFirstBlood)
                     Log.FirstBlood(event.killer, event.victim)
-                } else {
+                else
                     Log.Kill(event.killer, event.victim)
-                }
+            }
             is ColosseumEvent.Accident -> Log.Speech(event.victim, "아이고야!")
         }
         addLog(log)

@@ -1,4 +1,4 @@
-package com.survivai.survivai
+package com.survivai.survivai.expect
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -15,4 +15,3 @@ actual fun preloadEmojiFontForFallback(fontFamilyResolver: FontFamily.Resolver):
 actual fun removePlatformSplashScreen() {
     // iOS doesn't use HTML splash
 }
-

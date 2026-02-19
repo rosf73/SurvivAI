@@ -110,10 +110,7 @@ fun Colosseum(
         modifier = modifier
             .background(Color.Black) // letter box
             .onPreviewKeyEvent { event ->
-                if (gameEngine.gameState.value !is ColosseumState.Playing) {
-                    false
-                    // Allow tab only when in 'Playing' state
-                } else if (event.key == Key.Tab) {
+                if (event.key == Key.Tab) {
                     if (event.type == KeyEventType.KeyDown) {
                         currentPopup = PopupType.SCOREBOARD
                     } else if (event.type == KeyEventType.KeyUp) {
@@ -159,6 +156,7 @@ fun Colosseum(
                     },
                 )
             }
+
             is ColosseumState.Playing -> {
                 // Canvas (World + Players)
                 Canvas(
@@ -223,7 +221,28 @@ fun Colosseum(
                     Spacer(modifier = Modifier.size(6.dp))
                     MatchButton("DASHBOARD", onClick = { currentPopup = PopupType.SCOREBOARD })
                 }
+
+                // Popup only show in state 'Playing'
+                when (currentPopup) {
+                    PopupType.REMATCH -> RematchPopup(
+                        onClickYes = { gameEngine.restart(); currentPopup = null },
+                        onClickNo = { currentPopup = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    PopupType.MAIN_MENU -> MainMenuPopup(
+                        onClickYes = { gameEngine.reset(); currentPopup = null },
+                        onClickNo = { currentPopup = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    PopupType.SCOREBOARD -> ScoreboardPopup(
+                        statsList = gameEngine.scoreTable,
+                        onClickOutside = { currentPopup = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    null -> { /* not showing */ }
+                }
             }
+
             is ColosseumState.Ended -> {
                 ColosseumEndScreen(
                     modifier = Modifier.fillMaxSize(),
@@ -234,25 +253,6 @@ fun Colosseum(
                     onClickReset = gameEngine::reset,
                 )
             }
-        }
-
-        when (currentPopup) {
-            PopupType.REMATCH -> RematchPopup(
-                onClickYes = { gameEngine.restart(); currentPopup = null },
-                onClickNo = { currentPopup = null },
-                modifier = Modifier.fillMaxSize(),
-            )
-            PopupType.MAIN_MENU -> MainMenuPopup(
-                onClickYes = { gameEngine.reset(); currentPopup = null },
-                onClickNo = { currentPopup = null },
-                modifier = Modifier.fillMaxSize(),
-            )
-            PopupType.SCOREBOARD -> ScoreboardPopup(
-                statsList = gameEngine.scoreTable,
-                onClickOutside = { currentPopup = null },
-                modifier = Modifier.fillMaxSize(),
-            )
-            null -> { /* not showing */ }
         }
     }
 }

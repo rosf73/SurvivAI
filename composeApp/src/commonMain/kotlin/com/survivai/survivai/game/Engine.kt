@@ -2,7 +2,8 @@ package com.survivai.survivai.game
 
 interface Engine {
     val world: World
-    var players: List<Entity>
+    // TODO : to MutableList
+    var entities: List<Entity>
 
     fun update(deltaTime: Double)
 }

@@ -1,14 +1,25 @@
 package com.survivai.survivai.game.colosseum
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Canvas as ComposeCanvas
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,24 +30,37 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFontFamilyResolver
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.survivai.survivai.common.LocalFont
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.components.ColosseumEndScreen
 import com.survivai.survivai.game.colosseum.components.ColosseumLogArea
 import com.survivai.survivai.game.colosseum.components.ColosseumStartScreen
-import com.survivai.survivai.game.colosseum.entity.ColosseumPlayerFactory
+import com.survivai.survivai.game.colosseum.components.ScoreboardPopup
+import com.survivai.survivai.game.colosseum.components.MainMenuPopup
+import com.survivai.survivai.game.colosseum.components.PopupType
+import com.survivai.survivai.game.colosseum.components.RematchPopup
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.logic.ColosseumState
 import com.survivai.survivai.game.sprite.SpriteLoader
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -48,11 +72,14 @@ fun Colosseum(
     val font = LocalFont.current
 
     val spriteLoader = remember { SpriteLoader() }
-    val gameEngine = remember { ColosseumEngine() }
+    val gameEngine = remember { ColosseumEngine(spriteLoader) }
     val coroutineScope = rememberCoroutineScope()
 
     // game state for recomposition
     val currentColosseumState = gameEngine.gameState.value
+
+    // popup state
+    var currentPopup by remember { mutableStateOf<PopupType?>(null) }
 
     // UI update state
     var frameTick by remember { mutableStateOf(0) }
@@ -81,7 +108,19 @@ fun Colosseum(
     // 2. Rendering
     BoxWithConstraints(
         modifier = modifier
-            .background(Color.Black), // letter box
+            .background(Color.Black) // letter box
+            .onPreviewKeyEvent { event ->
+                if (event.key == Key.Tab) {
+                    if (event.type == KeyEventType.KeyDown) {
+                        currentPopup = PopupType.SCOREBOARD
+                    } else if (event.type == KeyEventType.KeyUp) {
+                        currentPopup = null
+                    }
+                    true
+                } else {
+                    false
+                }
+            },
         contentAlignment = Alignment.Center,
     ) {
         val density = LocalDensity.current
@@ -106,26 +145,21 @@ fun Colosseum(
                 ColosseumStartScreen(
                     modifier = Modifier.fillMaxSize(),
                     isLandscape = isLandscape,
-                    onClickStart = { players, hp ->
-                        // Set HP
-                        gameEngine.setDefaultHp(hp.toDouble())
-                        // Set players
+                    onClickStart = { players, hp, options ->
                         coroutineScope.launch {
-                            val players = players.map { p ->
-                                ColosseumPlayerFactory(spriteLoader, gameEngine).createPlayer(
-                                    name = p.name,
-                                    color = p.color,
-                                    startHp = gameEngine.defaultHp,
-                                )
-                            }
-                            gameEngine.setPlayers(players)
+                            gameEngine.playGame(
+                                playerInitList = players,
+                                startHp = hp.toDouble(),
+                                options = options,
+                            )
                         }
                     },
                 )
             }
+
             is ColosseumState.Playing -> {
                 // Canvas (World + Players)
-                ComposeCanvas(
+                Canvas(
                     modifier = Modifier
                         .requiredSize( // fixed logical screen
                             width = with(density) { logicalWidth.toDp() },
@@ -134,6 +168,17 @@ fun Colosseum(
                         .graphicsLayer(
                             scaleX = scale,
                             scaleY = scale,
+                        )
+                        .then(
+                            if (gameEngine.colosseumOptions.any { it.clickable }) {
+                                Modifier.pointerInput(Unit) {
+                                    detectTapGestures { offset ->
+                                        coroutineScope.launch(Dispatchers.Main) {
+                                            gameEngine.onScreenTouch(offset.x, offset.y)
+                                        }
+                                    }
+                                }
+                            } else Modifier
                         )
                         .onSizeChanged {
                             val size = it.toSize()
@@ -163,25 +208,86 @@ fun Colosseum(
                         modifier = Modifier.fillMaxSize().padding(12.dp),
                     )
                 }
+
+                // match buttons
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(6.dp),
+                ) {
+                    MatchButton("REMATCH", onClick = { currentPopup = PopupType.REMATCH })
+                    Spacer(modifier = Modifier.size(6.dp))
+                    MatchButton("MAIN MENU", onClick = { currentPopup = PopupType.MAIN_MENU })
+                    Spacer(modifier = Modifier.size(6.dp))
+                    MatchButton("DASHBOARD", onClick = { currentPopup = PopupType.SCOREBOARD })
+                }
+
+                // Popup only show in state 'Playing'
+                when (currentPopup) {
+                    PopupType.REMATCH -> RematchPopup(
+                        onClickYes = { gameEngine.restart(); currentPopup = null },
+                        onClickNo = { currentPopup = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    PopupType.MAIN_MENU -> MainMenuPopup(
+                        onClickYes = { gameEngine.reset(); currentPopup = null },
+                        onClickNo = { currentPopup = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    PopupType.SCOREBOARD -> ScoreboardPopup(
+                        statsList = gameEngine.scoreTable,
+                        onClickOutside = { currentPopup = null },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    null -> { /* not showing */ }
+                }
             }
+
             is ColosseumState.Ended -> {
                 ColosseumEndScreen(
                     modifier = Modifier.fillMaxSize(),
                     statsList = currentColosseumState.statsList,
                     titles = currentColosseumState.titleList,
                     isLandscape = isLandscape,
-                    onClickRestart = {
-                        // 바로 재시작 (플레이어 유지)
-                        gameEngine.restart()
-                        gameEngine.clearLog()
-                    },
-                    onClickReset = {
-                        // 경기 재설정 (처음부터)
-                        gameEngine.reset()
-                        gameEngine.clearLog()
-                    },
+                    onClickRestart = gameEngine::restart,
+                    onClickReset = gameEngine::reset,
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun MatchButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        modifier = modifier,
+        shape = CutCornerShape(6.dp),
+        border = BorderStroke(
+            2.dp,
+            Brush.verticalGradient(listOf(Color(0xFF00E5FF), Color(0xFF00838F)))
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color(0xFFD32F2F),
+            contentColor = Color.White,
+        ),
+        contentPadding = PaddingValues(6.dp),
+        onClick = onClick,
+    ) {
+        Text(
+            label,
+            style = LocalTextStyle.current.copy(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(2f, 2f)
+                ),
+                letterSpacing = 2.sp
+            )
+        )
     }
 }

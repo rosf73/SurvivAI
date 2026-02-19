@@ -1,13 +1,18 @@
 package com.survivai.survivai
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -28,6 +33,8 @@ import com.survivai.survivai.common.LocalFont
 import com.survivai.survivai.common.createGitHubIcon
 import com.survivai.survivai.common.withFontFamily
 import com.survivai.survivai.config.BuildConfig
+import com.survivai.survivai.expect.preloadEmojiFontForFallback
+import com.survivai.survivai.expect.removePlatformSplashScreen
 import com.survivai.survivai.game.colosseum.Colosseum
 import org.jetbrains.compose.resources.Font
 import survivai.composeapp.generated.resources.NotoEmojiColor
@@ -95,11 +102,10 @@ fun App(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        VersionText(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                        )
+                        VersionText()
 
                         GitHubButton(
                             openLink = openLink,
@@ -110,15 +116,15 @@ fun App(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
-                        GitHubButton(
+                        GitHubIconButton(
                             openLink = openLink,
+                            modifier = Modifier.size(30.dp)
                         )
 
-                        VersionText(
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                        )
+                        VersionText()
                     }
                 }
             }
@@ -132,13 +138,19 @@ fun App(
 private fun VersionText(
     modifier: Modifier = Modifier,
 ) {
-    Spacer(modifier = Modifier.size(5.dp))
+    Spacer(modifier = Modifier.size(2.dp))
     Text(
-        modifier = modifier,
+        modifier = modifier
+            .background(
+                color = Color.DarkGray,
+                shape = RoundedCornerShape(4.dp),
+            )
+            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), RoundedCornerShape(4.dp))
+            .padding(6.dp, 1.dp),
         text = "v${BuildConfig.VERSION_NAME}",
-        style = TextStyle(fontSize = 12.sp, color = Color.Gray),
+        style = TextStyle(fontSize = 12.sp, color = Color.White),
     )
-    Spacer(modifier = Modifier.size(5.dp))
+    Spacer(modifier = Modifier.size(2.dp))
 }
 
 @Composable
@@ -171,5 +183,32 @@ private fun GitHubButton(
                 text = "GitHub",
             )
         }
+    }
+}
+
+@Composable
+private fun GitHubIconButton(
+    openLink: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = {
+            openLink("https://github.com/rosf73/SurvivAI")
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Black,
+            contentColor = Color.White,
+        ),
+        shape = RoundedCornerShape(6.dp),
+        contentPadding = PaddingValues(4.dp),
+        modifier = modifier,
+    ) {
+        // GitHub 아이콘
+        Icon(
+            imageVector = createGitHubIcon(),
+            contentDescription = "GitHub",
+            modifier = Modifier.fillMaxSize(),
+            tint = Color.White,
+        )
     }
 }

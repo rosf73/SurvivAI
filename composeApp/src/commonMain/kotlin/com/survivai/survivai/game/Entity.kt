@@ -1,12 +1,15 @@
 package com.survivai.survivai.game
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.FontFamily
 import com.survivai.survivai.game.component.Component
-import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
 interface Entity {
+    val name: String
+    val signatureColor: Color
+
     var x: Float
     var y: Float
     var width: Float
@@ -21,12 +24,6 @@ interface Entity {
     var direction: Direction
     var state: State
     val components: MutableList<Component>
-
-    fun <T : Component> getComponent(clazz: KClass<T>): T? {
-        return components
-            .find { clazz.isInstance(it) }
-            ?.let { clazz.cast(it) }
-    }
 
     fun update(deltaTime: Double, world: World) {
         components.forEach { it.update(deltaTime, this, world) }
@@ -46,4 +43,10 @@ interface Entity {
         fun isRight() = this == RIGHT
         fun isDown() = this == DOWN
     }
+}
+
+inline fun <reified T : Component> Entity.getComponent(): T? {
+    return components
+        .find { T::class.isInstance(it) }
+        ?.let { T::class.cast(it) }
 }

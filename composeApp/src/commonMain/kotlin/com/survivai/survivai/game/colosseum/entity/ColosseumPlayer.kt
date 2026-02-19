@@ -14,10 +14,12 @@ import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.logic.ColosseumEvent
+import com.survivai.survivai.game.colosseum.logic.Log
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.ColorComponent
-import com.survivai.survivai.game.component.CombatComponent
+import com.survivai.survivai.game.component.DamageableComponent
 import com.survivai.survivai.game.component.Component
 import com.survivai.survivai.game.component.SpriteComponent
 import com.survivai.survivai.game.sprite.ActionState
@@ -26,16 +28,18 @@ import kotlin.enums.EnumEntries
 import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 data class ColosseumPlayer(
-    val name: String,
-    val color: Color,
-    private val startHp: Double,
+    override val name: String,
+    override val signatureColor: Color,
+    val startHp: Double,
     val spriteSheet: SpriteSheet,
     val gameEngine: ColosseumEngine,
 ) : Entity {
 
-    private val combatComponent = CombatComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
+    private val damageableComponent = DamageableComponent(hp = startHp, invincibilityTime = INVINCIBLE_DURATION)
     private val colliderComponent = ColliderComponent(width = 64f, height = 64f)
 
     // Position (Center offset)
@@ -50,9 +54,9 @@ data class ColosseumPlayer(
 
     override val components: MutableList<Component> = mutableListOf(
         SpriteComponent(spriteSheet = spriteSheet),
-        ColorComponent(tintColor = color),
+        ColorComponent(tintColor = signatureColor),
         colliderComponent,
-        combatComponent,
+        damageableComponent,
     )
 
     val halfWidth get() = width / 2
@@ -87,10 +91,10 @@ data class ColosseumPlayer(
     private var inAction = false
 
     // HP
-    val hp: Double get() = combatComponent.hp
+    val hp: Double get() = damageableComponent.hp
 
     // 생존 여부
-    val isAlive: Boolean get() = combatComponent.isAlive
+    val isAlive: Boolean get() = damageableComponent.isAlive
 
     // Event flags
     private var justSpeeched = ""
@@ -104,6 +108,7 @@ data class ColosseumPlayer(
     var attackPoint = 0
     var killPoint = 0
     var deathTime = 0L
+        private set
 
     // 적들과의 상대적 위치 정보 (매 프레임 업데이트)
     private var nearestEnemyDistance: Float = Float.MAX_VALUE
@@ -597,39 +602,48 @@ data class ColosseumPlayer(
     fun getNearestEnemyDistance(): Float = nearestEnemyDistance
 
     // damaged
-    fun receiveDamage(attackerX: Float, power: Float = 600f): Boolean {
-        // 데미지
-        val damaged = combatComponent.takeDamage(1.0)
+    @OptIn(ExperimentalTime::class)
+    fun receiveDamage(attacker: Entity, power: Float = 600f): Boolean {
+        val damaged = damageableComponent.takeDamage(1.0)
         if (!damaged) return false
+
         if (!isAlive) {
             state = ActionState.DIE
+            deathTime = Clock.System.now().toEpochMilliseconds()
+
+            // Update result stat
+            gameEngine.onGameEvent(ColosseumEvent.Kill(attacker, this))
+
+            return true
         }
 
-        // 넉백
-        val dir = if (attackerX < x) 1f else -1f
+        // Knockback
+        val dir = if (attacker.x < x) 1f else -1f
         velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
 
-        // 약간 점프
-        velocityY = -200f
+        // Jump out
+        velocityY = -200f - (power / 10)
         onPlatform = false
 
-        // 액션 취소
+        // Cancel actions
         attackState = AttackState.NONE
         attackTimer = 0f
         inAction = true
 
+        gameEngine.onGameEvent(ColosseumEvent.Attack(attacker, this))
+
         return true
     }
 
-    companion object Companion {
+    companion object {
         private const val ACTION_IDLE_PROBABILITY = 0.02
         private const val ATTACK_PREPARE_DURATION = 1.0f   // 선딜
         private const val ATTACK_EXECUTE_DURATION = 0.3f   // 실제 공격
         private const val SPEECH_DURATION = 2.0f
         private const val IDLE_MAX_DURATION = 0.5f
-        private const val MAX_SPEED = 2000f
+        private const val MAX_SPEED = 3000f
         private const val FRICTION = 0.95f // 마찰력 계수
-        private const val INVINCIBLE_DURATION = 0.5 // invincible time
+        private const val INVINCIBLE_DURATION = 0.8 // invincible time
 
         // 가중치 조정 파라미터
         private const val NEARBY_RANGE_MULTIPLIER = 4f // attackReach의 배수로 주변 범위 결정

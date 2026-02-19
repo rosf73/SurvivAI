@@ -2,7 +2,6 @@ package com.survivai.survivai.game.colosseum.entity
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.sprite.ActionState
 import com.survivai.survivai.game.sprite.SpriteAnimationData
@@ -11,7 +10,7 @@ import com.survivai.survivai.game.sprite.SpriteSheet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-class ColosseumPlayerFactory(
+class ColosseumEntityFactory(
     private val loader: SpriteLoader,
     private val gameEngine: ColosseumEngine,
 ) {
@@ -94,5 +93,45 @@ class ColosseumPlayerFactory(
         ColosseumPlayer(
             name, color, startHp, sheet, gameEngine,
         )
+    }
+
+    suspend fun createFallingRock(): ColosseumFallingRock = coroutineScope {
+        val idleAnimation = async {
+            loader.load(
+                "sprite_rock.png",
+                SpriteAnimationData.fixed(
+                    frameSize = Size(128f, 128f),
+                ),
+            )
+        }
+
+        val sheet = SpriteSheet(
+            imageSize = Size(128f, 128f),
+            animations = mapOf(
+                ActionState.IDLE to listOf(idleAnimation.await()),
+            ),
+        )
+
+        ColosseumFallingRock(spriteSheet = sheet, gameEngine = gameEngine)
+    }
+
+    suspend fun createRunningCar(): ColosseumRunningCar = coroutineScope {
+        val idleAnimation = async {
+            loader.load(
+                "sprite_car.png",
+                SpriteAnimationData.fixed(
+                    frameSize = Size(256f, 256f),
+                ),
+            )
+        }
+
+        val sheet = SpriteSheet(
+            imageSize = Size(256f, 256f),
+            animations = mapOf(
+                ActionState.IDLE to listOf(idleAnimation.await()),
+            ),
+        )
+
+        ColosseumRunningCar(spriteSheet = sheet, gameEngine = gameEngine)
     }
 }

@@ -11,6 +11,7 @@ import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.Entity.Direction
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.GameDrawScope
+import com.survivai.survivai.game.getComponent
 import com.survivai.survivai.game.sprite.ActionState
 import com.survivai.survivai.game.sprite.SpriteSheet
 
@@ -19,6 +20,7 @@ class SpriteComponent(
 ) : Component() {
     private var elapsedTime: Double = 0.0
     private var currentFrame: Int = 0
+    var alpha = 1.0f
 
     override fun update(deltaTime: Double, owner: Entity, world: World) {
         val animations = spriteSheet.get(owner.state) ?: return
@@ -53,7 +55,7 @@ class SpriteComponent(
             ?: return
 
         // get color component
-        val color = owner.getComponent(ColorComponent::class)?.tintColor
+        val color = owner.getComponent<ColorComponent>()?.tintColor
 
         // get entity's location
         val dstOffset = IntOffset((owner.x - owner.imageWidth / 2).toInt(), (owner.y - owner.imageHeight / 2).toInt())
@@ -75,6 +77,7 @@ class SpriteComponent(
                 srcSize = animation.data.frameSize.toIntSize(),
                 dstOffset = dstOffset,
                 dstSize = dstSize,
+                alpha = alpha,
                 colorFilter =
                     if (colorAlpha > 0) {
                         color?.let { ColorFilter.tint(it.copy(alpha = colorAlpha)) }

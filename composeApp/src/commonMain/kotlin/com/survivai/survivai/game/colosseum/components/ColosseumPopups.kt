@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.survivai.survivai.expect.isDesktopPlatform
 import com.survivai.survivai.game.colosseum.logic.StatCell
 
 enum class PopupType {
@@ -154,7 +155,8 @@ fun ScoreboardPopup(
         )
 
         Text(
-            "Press TAP key to open and close",
+            if (isDesktopPlatform) "Press TAB key to open and close"
+            else "Tap outside to close",
             style = LocalTextStyle.current.copy(
                 fontSize = 14.sp,
                 color = Color.White.copy(alpha = 0.6f),

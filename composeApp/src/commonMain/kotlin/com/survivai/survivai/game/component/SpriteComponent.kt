@@ -11,6 +11,7 @@ import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.Entity.Direction
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.GameDrawScope
+import com.survivai.survivai.game.getComponent
 import com.survivai.survivai.game.sprite.ActionState
 import com.survivai.survivai.game.sprite.SpriteSheet
 
@@ -54,7 +55,7 @@ class SpriteComponent(
             ?: return
 
         // get color component
-        val color = owner.getComponent(ColorComponent::class)?.tintColor
+        val color = owner.getComponent<ColorComponent>()?.tintColor
 
         // get entity's location
         val dstOffset = IntOffset((owner.x - owner.imageWidth / 2).toInt(), (owner.y - owner.imageHeight / 2).toInt())

@@ -14,6 +14,7 @@ import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.GameDrawScope
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.logic.ColosseumEvent
 import com.survivai.survivai.game.colosseum.logic.Log
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.component.ColliderComponent
@@ -107,6 +108,7 @@ data class ColosseumPlayer(
     var attackPoint = 0
     var killPoint = 0
     var deathTime = 0L
+        private set
 
     // 적들과의 상대적 위치 정보 (매 프레임 업데이트)
     private var nearestEnemyDistance: Float = Float.MAX_VALUE
@@ -602,57 +604,33 @@ data class ColosseumPlayer(
     // damaged
     @OptIn(ExperimentalTime::class)
     fun receiveDamage(attacker: Entity, power: Float = 600f): Boolean {
-        val isFirstBlood = gameEngine.colosseumPlayers.isAllAlive()
-
         val damaged = damageableComponent.takeDamage(1.0)
         if (!damaged) return false
+
         if (!isAlive) {
             state = ActionState.DIE
             deathTime = Clock.System.now().toEpochMilliseconds()
 
             // Update result stat
-            if (attacker is ColosseumPlayer) {
-                gameEngine.updatePlayerKillPoint(name = attacker.name)
-            }
+            gameEngine.onGameEvent(ColosseumEvent.Kill(attacker, this))
 
-            if (isFirstBlood) {
-                gameEngine.addLog(Log.Duo(
-                    perpetrator = attacker,
-                    victim = this,
-                    interaction = "에 의해",
-                    additional = "First Blood! 😭",
-                ))
-            } else {
-                gameEngine.addLog(Log.Duo(
-                    perpetrator = attacker,
-                    victim = this,
-                    interaction = "에 의해",
-                    additional = "탈락! 😭",
-                ))
-            }
-        } else {
-            // Knockback
-            val dir = if (attacker.x < x) 1f else -1f
-            velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
-
-            // Jump out
-            velocityY = -200f - (power / 10)
-            onPlatform = false
-
-            // Cancel actions
-            attackState = AttackState.NONE
-            attackTimer = 0f
-            inAction = true
-
-            if (attacker is ColosseumPlayer) {
-                gameEngine.addLog(Log.Duo(
-                    perpetrator = attacker,
-                    victim = this,
-                    interaction = "🤜",
-                    additional = "(HP=$hp)",
-                ))
-            }
+            return true
         }
+
+        // Knockback
+        val dir = if (attacker.x < x) 1f else -1f
+        velocityX = (velocityX + dir * power).coerceIn(-MAX_SPEED, MAX_SPEED)
+
+        // Jump out
+        velocityY = -200f - (power / 10)
+        onPlatform = false
+
+        // Cancel actions
+        attackState = AttackState.NONE
+        attackTimer = 0f
+        inAction = true
+
+        gameEngine.onGameEvent(ColosseumEvent.Attack(attacker, this))
 
         return true
     }

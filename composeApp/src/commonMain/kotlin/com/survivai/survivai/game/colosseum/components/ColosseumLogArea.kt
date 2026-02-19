@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
 import com.survivai.survivai.game.colosseum.logic.Log
+import com.survivai.survivai.game.component.DamageableComponent
+import com.survivai.survivai.game.getComponent
 
 @Composable
 fun ColosseumLogArea(
@@ -90,45 +92,83 @@ private fun LogLine(
                     color = Color.Gray,
                 )
             }
-            is Log.Solo -> {
+
+            is Log.Attack -> {
+                Spacer(modifier = Modifier.size(30.dp, 1.dp))
                 PlayerLabel(
-                    color = log.player.signatureColor,
-                    name = log.player.name,
+                    color = log.attacker.signatureColor,
+                    name = log.attacker.name,
+                )
+                Text(
+                    text = " 🤜 ",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                )
+                PlayerLabel(
+                    color = log.victim.signatureColor,
+                    name = log.victim.name,
+                )
+
+                val hp = log.victim.getComponent<DamageableComponent>()?.hp
+                if (hp != null) {
+                    Text(
+                        text = " (HP=$hp)",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                    )
+                }
+            }
+            is Log.Kill -> {
+                Spacer(modifier = Modifier.size(30.dp, 1.dp))
+                PlayerLabel(
+                    color = log.killer.signatureColor,
+                    name = log.killer.name,
+                )
+                Text(
+                    text = " 에 의해 ",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                )
+                PlayerLabel(
+                    color = log.victim.signatureColor,
+                    name = log.victim.name,
+                )
+
+                Text(
+                    text = " 탈락! 😭",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                )
+            }
+            is Log.FirstBlood -> {
+                Spacer(modifier = Modifier.size(30.dp, 1.dp))
+                PlayerLabel(
+                    color = log.killer.signatureColor,
+                    name = log.killer.name,
+                )
+                Text(
+                    text = " 에 의해 ",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                )
+                PlayerLabel(
+                    color = log.victim.signatureColor,
+                    name = log.victim.name,
+                )
+
+                Text(
+                    text = " First Blood! 😭",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                )
+            }
+            is Log.Speech -> {
+                PlayerLabel(
+                    color = log.actor.signatureColor,
+                    name = log.actor.name,
                 )
                 Text(
                     text = ": \"${log.msg}\"",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                )
-            }
-            is Log.Duo -> {
-                Spacer(modifier = Modifier.size(30.dp, 1.dp))
-                PlayerLabel(
-                    color = log.perpetrator.signatureColor,
-                    name = log.perpetrator.name,
-                )
-                Text(
-                    text = " ${log.interaction} ",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                )
-                PlayerLabel(
-                    color = log.victim.signatureColor,
-                    name = log.victim.name,
-                )
-                Text(
-                    text = " ${log.additional}",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                )
-            }
-            is Log.Accidental -> {
-                PlayerLabel(
-                    color = log.victim.signatureColor,
-                    name = log.victim.name,
-                )
-                Text(
-                    text = log.msg,
                     fontSize = 12.sp,
                     color = Color.Gray,
                 )

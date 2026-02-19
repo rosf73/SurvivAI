@@ -13,7 +13,6 @@ import com.survivai.survivai.game.colosseum.entity.ColosseumPlayer
 import com.survivai.survivai.game.colosseum.entity.ColosseumEntityFactory
 import com.survivai.survivai.game.colosseum.entity.ColosseumTouchEffect
 import com.survivai.survivai.game.colosseum.entity.PlayerInitPair
-import com.survivai.survivai.game.colosseum.entity.detectAttackDamagedThisFrame
 import com.survivai.survivai.game.colosseum.entity.initializePositions
 import com.survivai.survivai.game.colosseum.world.ColosseumWorld
 import com.survivai.survivai.game.sprite.SpriteLoader
@@ -50,6 +49,9 @@ class ColosseumEngine(
 
     private val _gameState = mutableStateOf<ColosseumState>(ColosseumState.WaitingForPlayers)
     val gameState: State<ColosseumState> get() = _gameState
+
+    var scoreTable = listOf(emptyList<StatCell>())
+        private set
 
     private var pendingWinnerWaitTime = 0.0
 
@@ -140,17 +142,52 @@ class ColosseumEngine(
         clearLog()
     }
 
-    // 게임이 끝났을 때만 호출
-    fun updateGameSet() {
+    fun onGameEvent(event: ColosseumEvent) {
         val gameState = gameState.value as? ColosseumState.Playing ?: return
 
-        val statsList = calculateTotalScore(gameState)
-        val titleList = calculateTitles(statsList)
-        _gameState.value = ColosseumState.Ended(statsList, titleList)
+        // 1. Update game stats
+        when (event) {
+            is ColosseumEvent.Attack -> {
+                if (event.attacker is ColosseumPlayer) {
+                    event.attacker.attackPoint++
+                }
+            }
+            is ColosseumEvent.Kill -> {
+                if (event.killer is ColosseumPlayer) {
+                    event.killer.killPoint++
+                }
+            }
+            is ColosseumEvent.Accident -> {
+
+            }
+        }
+
+        // 2. Update total score
+        refreshTotalScore(gameState)
+
+        // 3. Update latest log
+        val log = when (event) {
+            is ColosseumEvent.Attack -> Log.Attack(event.attacker, event.victim)
+            is ColosseumEvent.Kill -> {
+                val isFirstBlood = colosseumPlayers.count { !it.isAlive } == 1
+                if (isFirstBlood)
+                    Log.FirstBlood(event.killer, event.victim)
+                else
+                    Log.Kill(event.killer, event.victim)
+            }
+            is ColosseumEvent.Accident -> Log.Speech(event.victim, "아이고야!")
+        }
+        addLog(log)
+    }
+
+    // 게임이 끝났을 때만 호출
+    fun updateGameSet() {
+        val titleList = calculateTitles(scoreTable)
+        _gameState.value = ColosseumState.Ended(scoreTable, titleList)
     }
 
     @OptIn(ExperimentalTime::class)
-    private fun calculateTotalScore(playingState: ColosseumState.Playing): List<List<StatCell>> {
+    private fun refreshTotalScore(playingState: ColosseumState.Playing) {
         val startTime = playingState.startTime
         val endTime = Clock.System.now().toEpochMilliseconds()
         val totalPlayTime = endTime - startTime
@@ -178,7 +215,7 @@ class ColosseumEngine(
             totalSurvivePoint = 1
         }
 
-        return title + colosseumPlayers.map {
+        scoreTable = title + colosseumPlayers.map {
             val surviveTime = if (it.isAlive) firstPlayerSurvivePoint else it.deathTime - startTime
             val surviveTimeStr =
                 if (it.isAlive) "${totalPlayTime.msToMMSS()}(+01:00)"
@@ -261,32 +298,6 @@ class ColosseumEngine(
         return titles
     }
 
-    // Update player's attack point
-    fun updatePlayerAttackPoint(name: String) {
-        entities = entities.map {
-            it.apply {
-                if (this is ColosseumPlayer) {
-                    if (this.name == name) {
-                        attackPoint += 1
-                    }
-                }
-            }
-        }
-    }
-
-    // Update player's kill point
-    fun updatePlayerKillPoint(name: String) {
-        entities = entities.map {
-            it.apply {
-                if (this is ColosseumPlayer) {
-                    if (this.name == name) {
-                        killPoint += 1
-                    }
-                }
-            }
-        }
-    }
-
     // Touch or Click
     suspend fun onScreenTouch(x: Float, y: Float) {
         if (!initialized || gameState.value !is ColosseumState.Playing) return
@@ -329,11 +340,11 @@ class ColosseumEngine(
             }
         }
 
-        // (중계 로그) 대사
+        // Add log to speech
         alivePlayers.forEachIndexed { _, p ->
             val text = p.pollJustSpeeched()
             if (text.isNotBlank()) {
-                addLog(Log.Solo(p, text))
+                addLog(Log.Speech(p, text))
             }
         }
 
@@ -380,9 +391,25 @@ class ColosseumEngine(
         }
 
         // Attack detection
-        alivePlayers.detectAttackDamagedThisFrame { attacker ->
-            // Update stat
-            updatePlayerAttackPoint(attacker.name)
+        val hitThisFrame = mutableSetOf<Pair<Int, Int>>()
+        for (i in alivePlayers.indices) {
+            val attacker = alivePlayers[i]
+            if (!attacker.isAttackingNow) continue
+            val reach = attacker.attackReach
+            val heightTol = attacker.height * 0.6f
+            for (j in alivePlayers.indices) {
+                if (i == j) continue
+                val target = alivePlayers[j]
+                val dx = target.x - attacker.x
+                val dy = target.y - attacker.y
+                val inFront = if (attacker.isFacingRight) dx > 0f else dx < 0f
+                if (inFront && abs(dx) <= reach && abs(dy) <= heightTol) {
+                    val key = i to j
+                    if (hitThisFrame.add(key)) {
+                        target.receiveDamage(attacker, power = 700f)
+                    }
+                }
+            }
         }
     }
 
@@ -390,7 +417,7 @@ class ColosseumEngine(
         isSpawningCar = true
         spawnScope.launch {
             val car = entityFactory.createRunningCar()
-            addLog(Log.Solo(player = car, "지나갑니다"))
+            addLog(Log.Speech(car, "지나갑니다"))
             entities += car
             isSpawningCar = false
         }
@@ -409,14 +436,14 @@ class ColosseumEngine(
         entities -= entity
     }
 
-    fun addLog(log: Log) {
+    private fun addLog(log: Log) {
         LogManager.addNewLog(log)
 
         // recomposition event
         LogManager.triggerItemUpdate()
     }
 
-    fun clearLog() {
+    private fun clearLog() {
         LogManager.clear()
         // recomposition event
         LogManager.triggerItemUpdate()

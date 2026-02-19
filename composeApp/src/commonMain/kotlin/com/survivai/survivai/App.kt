@@ -33,6 +33,8 @@ import com.survivai.survivai.common.LocalFont
 import com.survivai.survivai.common.createGitHubIcon
 import com.survivai.survivai.common.withFontFamily
 import com.survivai.survivai.config.BuildConfig
+import com.survivai.survivai.expect.preloadEmojiFontForFallback
+import com.survivai.survivai.expect.removePlatformSplashScreen
 import com.survivai.survivai.game.colosseum.Colosseum
 import org.jetbrains.compose.resources.Font
 import survivai.composeapp.generated.resources.NotoEmojiColor

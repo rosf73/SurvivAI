@@ -6,9 +6,11 @@ import com.survivai.survivai.game.Entity
 
 sealed interface Log {
     data class System(val msg: String) : Log
-    data class Solo(val player: Entity, val msg: String) : Log
-    data class Duo(val perpetrator: Entity, val victim: Entity, val interaction: String, val additional: String) : Log
-    data class Accidental(val victim: Entity, val msg: String) : Log
+
+    data class Attack(val attacker: Entity, val victim: Entity) : Log
+    data class Kill(val killer: Entity, val victim: Entity) : Log
+    data class FirstBlood(val killer: Entity, val victim: Entity) : Log
+    data class Speech(val actor: Entity, val msg: String) : Log
 }
 
 object LogManager {

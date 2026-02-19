@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.survivai.survivai.game.Entity
 import com.survivai.survivai.game.World
 import com.survivai.survivai.game.colosseum.logic.ColosseumEngine
+import com.survivai.survivai.game.colosseum.logic.ColosseumEvent
 import com.survivai.survivai.game.colosseum.logic.Log
 import com.survivai.survivai.game.component.ColliderComponent
 import com.survivai.survivai.game.component.Component
@@ -98,7 +99,7 @@ class ColosseumRunningCar(
                 if (player.x in xRange && player.y in yRange) {
                     val success = player.receiveDamage(attacker = this, power = 2000f)
                     if (success) {
-                        gameEngine.addLog(Log.Solo(player, "으악! 뺑소니야!"))
+                        gameEngine.onGameEvent(ColosseumEvent.Accident(disaster = this, victim = player))
                     }
                 }
             }

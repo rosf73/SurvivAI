@@ -245,7 +245,7 @@ fun Colosseum(
                 modifier = Modifier.fillMaxSize(),
             )
             PopupType.SCOREBOARD -> ScoreboardPopup(
-                statsList = emptyList(),
+                statsList = gameEngine.scoreTable,
                 onClickOutside = { currentPopup = null },
                 modifier = Modifier.fillMaxSize(),
             )

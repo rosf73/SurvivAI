@@ -110,7 +110,10 @@ fun Colosseum(
         modifier = modifier
             .background(Color.Black) // letter box
             .onPreviewKeyEvent { event ->
-                if (event.key == Key.Tab) {
+                if (gameEngine.gameState.value !is ColosseumState.Playing) {
+                    false
+                    // Allow tab only when in 'Playing' state
+                } else if (event.key == Key.Tab) {
                     if (event.type == KeyEventType.KeyDown) {
                         currentPopup = PopupType.SCOREBOARD
                     } else if (event.type == KeyEventType.KeyUp) {
